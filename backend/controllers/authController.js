@@ -1,7 +1,11 @@
 import User from '../models/User.js';
 import Token from '../models/Token.js';
+import AuditLog from '../models/AuditLog.js';
 import { generateAccessToken, generateRefreshToken, generateResetToken, verifyRefreshToken, verifyResetToken } from '../utils/jwt.js';
 import crypto from 'crypto';
+
+const IP = (req) => req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null;
+const UA = (req) => req.headers['user-agent'] || null;
 
 export const login = async (req, res, next) => {
   try {
@@ -17,6 +21,14 @@ export const login = async (req, res, next) => {
     const user = await User.findOne({ email });
     
     if (!user) {
+      await AuditLog.logAuth({
+        action: 'LOGIN_FAILED',
+        description: `Đăng nhập thất bại - email không tồn tại: ${email}`,
+        ipAddress: IP(req),
+        userAgent: UA(req),
+        status: 'FAILURE',
+        severity: 'MEDIUM'
+      });
       return res.status(401).json({
         success: false,
         message: 'Email hoặc mật khẩu không chính xác'
@@ -40,6 +52,14 @@ export const login = async (req, res, next) => {
     const isPasswordValid = await user.comparePassword(password);
     
     if (!isPasswordValid) {
+      await AuditLog.logAuth({
+        action: 'LOGIN_FAILED',
+        description: `Đăng nhập thất bại - sai mật khẩu cho: ${email}`,
+        ipAddress: IP(req),
+        userAgent: UA(req),
+        status: 'FAILURE',
+        severity: 'MEDIUM'
+      });
       return res.status(401).json({
         success: false,
         message: 'Email hoặc mật khẩu không chính xác'
@@ -50,11 +70,25 @@ export const login = async (req, res, next) => {
     const refreshToken = generateRefreshToken({ userId: user._id });
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await Token.deleteMany({ user: user._id, type: 'refresh' });
     await Token.create({
       user: user._id,
       token: refreshToken,
       type: 'refresh',
       expiresAt
+    });
+
+    await AuditLog.logAuth({
+      action: 'LOGIN',
+      description: `User "${user.name}" đăng nhập thành công`,
+      performedBy: String(user._id),
+      performedByName: user.name,
+      performedByRole: user.role,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: 'SUCCESS',
+      severity: 'LOW'
     });
 
     return res.status(200).json({
@@ -130,11 +164,20 @@ export const register = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const userId = req.user.id;
 
-    if (refreshToken) {
-      await Token.deleteOne({ token: refreshToken, type: 'refresh' });
-    }
+    await Token.deleteMany({ user: userId, type: 'refresh' });
+
+    await AuditLog.logAuth({
+      action: 'LOGOUT',
+      description: `User "${req.user.name}" đăng xuất`,
+      performedBy: userId,
+      performedByName: req.user.name,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: 'SUCCESS',
+      severity: 'LOW'
+    });
 
     return res.status(200).json({
       success: true,

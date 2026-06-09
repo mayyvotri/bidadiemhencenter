@@ -50,7 +50,7 @@ export const getTaskId = (task) => task._id || task.id;
 export const authApi = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   register: (email, password, name, phone, role) => api.post('/auth/register', { email, password, name, phone, role }),
-  logout: (refreshToken) => api.post('/auth/logout', { refreshToken }),
+  logout: () => api.post('/auth/logout'),
   refreshToken: (refreshToken) => api.post('/auth/refresh-token', { refreshToken }),
   changePassword: (currentPassword, newPassword) => api.post('/auth/change-password', { currentPassword, newPassword }),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
@@ -119,8 +119,12 @@ export const faceRecognitionApi = {
     const queryString = new URLSearchParams(params).toString();
     return api.get(`/face-recognition/verification-logs${queryString ? `?${queryString}` : ''}`);
   },
-  getAllFaceProfiles: () => api.get('/face-recognition/all-profiles'),
+  getAllFaceProfiles: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/face-recognition/all-profiles${qs ? `?${qs}` : ''}`);
+  },
   toggleFaceProfile: (id) => api.patch(`/face-recognition/${id}/toggle`),
+  deleteFaceProfileAdmin: (id) => api.delete(`/face-recognition/${id}`),
 };
 
 // System Settings API
@@ -251,4 +255,106 @@ export const leaveBalanceApi = {
   },
   updateLeaveBalance: (userId, data) => api.put(`/leave-balances/${userId}`, data),
   initializeLeaveBalances: (data) => api.post('/leave-balances/initialize', data),
+};
+
+// Payroll API
+export const payrollApi = {
+  getWageConfigs: () => api.get('/salary/wage-configs'),
+  getWageConfig: (staffId) => api.get(`/salary/wage-configs/${staffId}`),
+  setWageConfig: (data) => api.post('/salary/wage-configs', data),
+  bulkSetWages: (wages) => api.post('/salary/wage-configs/bulk', { wages }),
+  calculatePayroll: (month, year) => api.post(`/salary/calculate/${month}/${year}`),
+  getPayroll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/salary${queryString ? `?${queryString}` : ''}`);
+  },
+  getPayrollByStaff: (staffId, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/salary/by-staff/${staffId}${queryString ? `?${queryString}` : ''}`);
+  },
+  getPayrollDetail: (id) => api.get(`/salary/detail/${id}`),
+  adjustPayroll: (id, data) => api.patch(`/salary/${id}/adjust`, data),
+  removeAdjustment: (id, adjId) => api.delete(`/salary/${id}/adjustments/${adjId}`),
+  updatePayrollStatus: (id, status) => api.patch(`/salary/${id}/status`, { status }),
+  getPayrollReport: (month, year) => api.get(`/salary/report?month=${month}&year=${year}`),
+  getPayrollStats: () => api.get('/salary/stats'),
+  getSalarySummary: () => api.get('/salary/summary'),
+  getSalaryHistory: () => api.get('/salary/history'),
+};
+
+// Notification API
+export const notificationApi = {
+  getNotifications: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/notifications${queryString ? `?${queryString}` : ''}`);
+  },
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
+  deleteNotification: (id) => api.delete(`/notifications/${id}`),
+  clearAll: () => api.delete('/notifications'),
+  sendNotification: (data) => api.post('/notifications/send', data),
+  sendBulkNotifications: (notifications) => api.post('/notifications/send-bulk', { notifications }),
+};
+
+// Schedule Generator API
+export const scheduleGeneratorApi = {
+  getSettings: () => api.get('/schedule/generator/settings'),
+  updateSettings: (data) => api.put('/schedule/generator/settings', data),
+  getAvailability: (weekOffset) => api.get(`/schedule/generator/availability?weekOffset=${weekOffset}`),
+  getSchedule: (weekOffset) => api.get(`/schedule/generator/schedule?weekOffset=${weekOffset}`),
+  generate: (data) => api.post('/schedule/generator/generate', data),
+  updateSlot: (id, data) => api.patch(`/schedule/generator/${id}/slot`, data),
+  batchUpdateSlots: (id, changes) => api.patch(`/schedule/generator/${id}/slots/batch`, changes),
+  publish: (id) => api.patch(`/schedule/generator/${id}/publish`),
+  archive: (id) => api.patch(`/schedule/generator/${id}/archive`),
+  getHistory: (status) => api.get(`/schedule/generator/history${status ? `?status=${status}` : ''}`),
+};
+
+// Reports & Analytics API
+export const reportApi = {
+  getTypes: () => api.get('/reports/types'),
+  getDashboard: () => api.get('/reports/dashboard'),
+  generate: (data) => api.post('/reports/generate', data),
+  getHistory: (params) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/reports/history${qs ? `?${qs}` : ''}`);
+  },
+  getData: (id) => api.get(`/reports/${id}`),
+  exportReport: (id, format) => api.patch(`/reports/${id}/export/${format}`),
+  delete: (id) => api.delete(`/reports/${id}`),
+};
+
+// System / Admin API
+export const systemApi = {
+  // Dashboard
+  getDashboard: () => api.get('/system/dashboard'),
+  // Audit logs
+  getAuditLogs: (params) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/system/audit${qs ? `?${qs}` : ''}`);
+  },
+  getAuditStats: () => api.get('/system/audit/stats'),
+  exportAuditLogs: (params) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/system/audit/export${qs ? `?${qs}` : ''}`);
+  },
+  // System config
+  getAllConfigs: (group) => api.get(`/system/config${group ? `?group=${group}` : ''}`),
+  getConfig: (key) => api.get(`/system/config/${key}`),
+  updateConfig: (key, value) => api.patch(`/system/config/${key}`, { value }),
+  updateConfigsBatch: (updates) => api.post('/system/config/batch', { updates }),
+  initializeConfigs: () => api.post('/system/config/initialize'),
+  // System settings
+  getSettings: () => api.get('/system/settings'),
+  updateSettings: (data) => api.patch('/system/settings', data),
+  // User management
+  getUsers: (params) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/system/users${qs ? `?${qs}` : ''}`);
+  },
+  updateUserRole: (id, data) => api.patch(`/system/users/${id}/role`, data),
+  resetUserPassword: (id, data) => api.patch(`/system/users/${id}/password`, data),
+  toggleUserStatus: (id) => api.patch(`/system/users/${id}/toggle`),
+  deleteUser: (id) => api.delete(`/system/users/${id}`),
 };

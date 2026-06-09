@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authApi } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isLoggingOut = useRef(false);
 
   const clearAuth = useCallback(() => {
     localStorage.removeItem('access_token');
@@ -14,15 +15,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async () => {
+    if (isLoggingOut.current) return;
+    isLoggingOut.current = true;
+
     try {
       const currentRefreshToken = localStorage.getItem('refresh_token');
       if (currentRefreshToken) {
         await authApi.logout(currentRefreshToken);
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      // Ignore logout API errors — clear local state anyway
     } finally {
       clearAuth();
+      isLoggingOut.current = false;
     }
   }, [clearAuth]);
 
@@ -38,7 +43,6 @@ export const AuthProvider = ({ children }) => {
             setUser(data.user);
           }
         } catch (error) {
-          console.error('Failed to verify token:', error);
           clearAuth();
         }
       }
@@ -90,8 +94,7 @@ export const AuthProvider = ({ children }) => {
       }
       throw new Error('Failed to refresh token');
     } catch (error) {
-      console.error('Token refresh error:', error);
-      logout();
+      clearAuth();
       throw error;
     }
   };

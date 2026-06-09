@@ -3,38 +3,88 @@ import mongoose from 'mongoose';
 const taskSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  category: {
+    type: String,
+    enum: ['Phục vụ', 'Thu ngân', 'Vệ sinh', 'Bảo dưỡng', 'Hành chính', 'Khác'],
+    default: 'Khác'
   },
   deadline: {
     type: String,
     required: true
   },
+  deadlineDate: {
+    type: Date,
+    default: null
+  },
   priority: {
     type: String,
-    required: true,
-    enum: ['high', 'medium', 'low'],
+    enum: ['urgent', 'high', 'medium', 'low'],
     default: 'medium'
   },
   assignedTo: {
     type: String,
     required: true
   },
+  assignedToId: {
+    type: String,
+    default: null
+  },
   status: {
     type: String,
-    required: true,
-    enum: ['pending', 'completed', 'in_progress'],
+    enum: ['pending', 'in_progress', 'completed', 'cancelled'],
     default: 'pending'
+  },
+  progress: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0
   },
   customer: {
     type: String,
     default: null
   },
-  description: {
+  notes: {
     type: String,
+    default: ''
+  },
+  createdBy: {
+    type: String,
+    required: true
+  },
+  createdByName: {
+    type: String,
+    required: true
+  },
+  completedAt: {
+    type: Date,
     default: null
   }
 }, {
   timestamps: true
+});
+
+taskSchema.index({ assignedTo: 1, status: 1 });
+taskSchema.index({ status: 1, priority: 1 });
+taskSchema.index({ createdBy: 1 });
+taskSchema.index({ deadlineDate: 1 });
+
+taskSchema.pre('save', function (next) {
+  if (this.status === 'completed' && !this.completedAt) {
+    this.completedAt = new Date();
+    this.progress = 100;
+  }
+  if (this.deadlineDate && this.status !== 'completed' && this.deadlineDate < new Date()) {
+    this._isOverdue = true;
+  }
+  next();
 });
 
 export default mongoose.model('Task', taskSchema);

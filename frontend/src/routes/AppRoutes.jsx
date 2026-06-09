@@ -17,6 +17,12 @@ import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import EmployeeManagement from '../pages/EmployeeManagement';
 import AccountApproval from '../pages/AccountApproval';
+import Payroll from '../pages/Payroll';
+import Notifications from '../pages/Notifications';
+import ScheduleGenerator from '../pages/ScheduleGenerator';
+import Reports from '../pages/Reports';
+import FaceRegistration from '../pages/FaceRegistration';
+import FaceManagement from '../pages/FaceManagement';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -81,15 +87,20 @@ export default function AppRoutes() {
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/attendance" element={<PrivateRoute><Attendance /></PrivateRoute>} />
       <Route path="/schedule" element={<PrivateRoute><Schedule /></PrivateRoute>} />
-      <Route path="/salary" element={<PrivateRoute><Salary /></PrivateRoute>} />
+      <Route path="/salary" element={<PrivateRoute><Payroll /></PrivateRoute>} />
       <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
+      <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
+      <Route path="/face-registration" element={<PrivateRoute><FaceRegistration /></PrivateRoute>} />
 
       <Route path="/staff-list" element={<AdminRoute><StaffList /></AdminRoute>} />
       <Route path="/inventory" element={<AdminRoute><Inventory /></AdminRoute>} />
       <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
       <Route path="/system-admin" element={<AdminRoute><SystemAdmin /></AdminRoute>} />
       <Route path="/employee-management" element={<AdminRoute><EmployeeManagement /></AdminRoute>} />
+      <Route path="/schedule-generator" element={<AdminRoute><ScheduleGenerator /></AdminRoute>} />
+      <Route path="/reports" element={<AdminRoute><Reports /></AdminRoute>} />
       <Route path="/account-approval" element={<ManagerRoute><AccountApproval /></ManagerRoute>} />
+      <Route path="/face-management" element={<ManagerRoute><FaceManagement /></ManagerRoute>} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

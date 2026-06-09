@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getTaskId } from '../services/api';
+import { payrollApi } from '../services/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState({ name: '', role: '', isAdmin: false });
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [taskStats, setTaskStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, overdue: 0, highPriority: 0 });
   const [tableStats, setTableStats] = useState({ total: 0, occupied: 0, available: 0 });
   const [tables, setTables] = useState([]);
   const [staffCount, setStaffCount] = useState({ total: 0, active: 0 });
   const [salaryPreview, setSalaryPreview] = useState(null);
+  const [swapPending, setSwapPending] = useState(0);
+  const [payrollStats, setPayrollStats] = useState({ totalEmployees: 0, totalNet: 0, paid: 0, draft: 0 });
 
   // Sync state with MainLayout or storage
   const syncClock = () => {
@@ -32,12 +36,16 @@ export default function Dashboard() {
         if (userInfo.name) {
           const taskData = await api.get(`/tasks?assignedTo=${encodeURIComponent(userInfo.name)}`);
           if (taskData.success) setTasks(taskData.data.slice(0, 3));
+          const statsData = await api.get('/tasks/stats');
+          if (statsData.success) setTaskStats(statsData.stats);
         }
         if (userInfo.isAdmin) {
-          const [staffData, tableData, statsData] = await Promise.all([
+          const [staffData, tableData, statsData, swapsData, payrollData] = await Promise.all([
             api.get('/staff'),
             api.get('/tables'),
-            api.get('/tables/stats/overview')
+            api.get('/tables/stats/overview'),
+            api.get('/schedule/swaps'),
+            payrollApi.getPayrollStats()
           ]);
           if (staffData.success) {
             setStaffCount({
@@ -47,6 +55,8 @@ export default function Dashboard() {
           }
           if (tableData.success) setTables(tableData.data);
           if (statsData.success) setTableStats(statsData.data);
+          if (swapsData.success) setSwapPending(swapsData.pendingCount || 0);
+          if (payrollData.success) setPayrollStats(payrollData.data);
         } else {
           try {
             const salaryData = await api.get('/salary/summary');
@@ -198,21 +208,30 @@ export default function Dashboard() {
             {/* Projected Salary Card */}
             <div className="glass-card" style={{ padding: '20px', position: 'relative' }}>
               <span className="badge" style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', fontSize: '11px' }}>
-                Tháng này
+                Tháng {payrollStats.month}/{payrollStats.year}
               </span>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>💵</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Thu nhập dự kiến</div>
-              <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff', margin: '4px 0 8px' }}>
-                {salaryPreview ? new Intl.NumberFormat('vi-VN').format(salaryPreview.netSalary) + ' VNĐ' : '0 VNĐ'}
-              </div>
-              
-              {/* Progress bar */}
-              <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', marginTop: '14px', overflow: 'hidden' }}>
-                <div style={{ width: '0%', height: '100%', background: 'linear-gradient(90deg, var(--primary), #fb7185)' }}></div>
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                0% mục tiêu tháng
-              </div>
+              {user.isAdmin ? (
+                <>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Quỹ lương tháng này</div>
+                  <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--success)', margin: '4px 0 8px' }}>
+                    {payrollStats.totalEmployees > 0 ? new Intl.NumberFormat('vi-VN').format(payrollStats.totalNet) + 'đ' : 'Chưa tính'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                    {payrollStats.totalEmployees} nhân viên · {payrollStats.paid} đã thanh toán
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Thu nhập dự kiến</div>
+                  <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff', margin: '4px 0 8px' }}>
+                    {salaryPreview ? new Intl.NumberFormat('vi-VN').format(salaryPreview.netSalary) + 'đ' : '0đ'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                    {salaryPreview ? `${salaryPreview.totalHours}h làm việc` : 'Chưa có dữ liệu'}
+                  </div>
+                </>
+              )}
             </div>
 
           </div>
@@ -520,16 +539,27 @@ export default function Dashboard() {
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
               ⚠️ Critical Alerts
             </h4>
-            
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--text-muted)' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔔</div>
-                <div style={{ fontSize: '13px' }}>Chưa có thông báo nào</div>
-              </div>
+              {swapPending > 0 ? (
+                <div style={{
+                  padding: '12px', background: 'rgba(225, 29, 72, 0.05)',
+                  border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '8px',
+                  cursor: 'pointer'
+                }} onClick={() => navigate('/schedule')}>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)' }}>
+                    {swapPending} yêu cầu đổi ca chờ duyệt
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Nhấn để xem chi tiết</div>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔔</div>
+                  <div style={{ fontSize: '13px' }}>Không có thông báo</div>
+                </div>
+              )}
             </div>
-            
-            <button className="btn-secondary" style={{ width: '100%', fontSize: '12px', padding: '8px', marginTop: '16px' }}>
-              View All Notifications
+            <button className="btn-secondary" style={{ width: '100%', fontSize: '12px', padding: '8px', marginTop: '16px' }} onClick={() => navigate('/schedule')}>
+              Quản lý đổi ca
             </button>
           </div>
 

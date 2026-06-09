@@ -1,194 +1,216 @@
 import FaceProfile from '../models/FaceProfile.js';
 import FaceVerificationLog from '../models/FaceVerificationLog.js';
 import User from '../models/User.js';
+import AuditLog from '../models/AuditLog.js';
 
-// Euclidean distance for face descriptor comparison
-const euclideanDistance = (descriptor1, descriptor2) => {
+const IP = (req) => req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null;
+const UA = (req) => req.headers['user-agent'] || null;
+
+const EUCLIDEAN_THRESHOLD = 0.55;
+
+const euclideanDistance = (d1, d2) => {
   let sum = 0;
-  for (let i = 0; i < descriptor1.length; i++) {
-    sum += Math.pow(descriptor1[i] - descriptor2[i], 2);
-  }
+  for (let i = 0; i < d1.length; i++) sum += Math.pow(d1[i] - d2[i], 2);
   return Math.sqrt(sum);
 };
 
-// Find best matching face profile
-const findBestMatch = (faceDescriptor, faceProfiles, threshold = 0.6) => {
-  let bestMatch = null;
-  let bestDistance = threshold;
-
-  for (const profile of faceProfiles) {
-    for (const storedDescriptor of profile.faceDescriptors) {
-      const distance = euclideanDistance(faceDescriptor, storedDescriptor);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestMatch = profile;
-      }
+const findBestMatch = (descriptor, profiles) => {
+  let best = null;
+  let bestDist = EUCLIDEAN_THRESHOLD;
+  for (const p of profiles) {
+    if (!p.isActive || p.isDeleted) continue;
+    for (const stored of p.faceDescriptors) {
+      const dist = euclideanDistance(descriptor, stored);
+      if (dist < bestDist) { bestDist = dist; best = p; }
     }
   }
-
-  return { bestMatch, bestDistance };
+  return { match: best, distance: bestDist };
 };
+
+// ─── Register Face ────────────────────────────────────────────────────────────
 
 export const registerFace = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { faceDescriptors } = req.body;
 
-    if (!faceDescriptors || !Array.isArray(faceDescriptors) || faceDescriptors.length < 3) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cần ít nhất 3 khuôn mặt để đăng ký'
-      });
+    if (!faceDescriptors || !Array.isArray(faceDescriptors) || faceDescriptors.length < 5) {
+      return res.status(400).json({ success: false, message: `Cần ít nhất 5 mẫu khuôn mặt (hiện tại: ${faceDescriptors?.length || 0})` });
+    }
+    if (faceDescriptors.length > 10) {
+      return res.status(400).json({ success: false, message: 'Tối đa 10 mẫu khuôn mặt' });
     }
 
-    // Validate each descriptor
-    for (const descriptor of faceDescriptors) {
-      if (!Array.isArray(descriptor) || descriptor.length !== 128) {
-        return res.status(400).json({
-          success: false,
-          message: 'Mỗi descriptor phải là mảng 128 số'
-        });
+    for (const d of faceDescriptors) {
+      if (!Array.isArray(d) || d.length !== 128) {
+        return res.status(400).json({ success: false, message: 'Mỗi descriptor phải là mảng 128 số' });
       }
     }
 
-    // Check if user already has a face profile
-    let faceProfile = await FaceProfile.findOne({ user: userId });
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy user' });
 
-    if (faceProfile) {
-      // Update existing profile
-      faceProfile.faceDescriptors = faceDescriptors;
-      faceProfile.captureCount = faceDescriptors.length;
-      faceProfile.registeredAt = new Date();
-      faceProfile.isActive = true;
-      await faceProfile.save();
-    } else {
-      // Create new profile
-      faceProfile = await FaceProfile.create({
-        user: userId,
-        faceDescriptors,
-        captureCount: faceDescriptors.length
-      });
+    // Check if already registered (duplicate prevention)
+    const existing = await FaceProfile.findOne({ user: userId, isDeleted: false });
+    if (existing) {
+      // Archive old profile
+      existing.isDeleted = true;
+      existing.replacedAt = new Date();
+      existing.captureAngle = 'replaced';
+      await existing.save();
     }
+
+    const profile = await FaceProfile.create({
+      user: userId,
+      faceDescriptors,
+      captureCount: faceDescriptors.length,
+      descriptorCount: faceDescriptors.length,
+      registeredAt: new Date(),
+      isActive: true,
+      isDeleted: false
+    });
+
+    await AuditLog.log({
+      action: 'FACE_REGISTER',
+      category: 'FACE',
+      description: `Đăng ký khuôn mặt với ${faceDescriptors.length} mẫu`,
+      performedBy: userId,
+      performedByName: user.name,
+      performedByRole: user.role,
+      targetType: 'FaceProfile',
+      targetId: String(profile._id),
+      targetName: user.name,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: 'SUCCESS',
+      metadata: { captureCount: faceDescriptors.length, isUpdate: !!existing },
+      severity: 'MEDIUM'
+    });
 
     return res.status(201).json({
       success: true,
-      message: 'Đăng ký khuôn mặt thành công',
+      message: existing ? 'Cập nhật khuôn mặt thành công' : 'Đăng ký khuôn mặt thành công',
       data: {
-        id: faceProfile._id,
-        captureCount: faceProfile.captureCount,
-        registeredAt: faceProfile.registeredAt
+        id: profile._id,
+        captureCount: profile.captureCount,
+        descriptorCount: profile.descriptorCount,
+        registeredAt: profile.registeredAt,
+        lastUsedAt: profile.lastUsedAt,
+        isActive: profile.isActive,
+        isUpdate: !!existing
       }
     });
   } catch (error) {
     next(error);
   }
 };
+
+// ─── Verify Face ──────────────────────────────────────────────────────────────
 
 export const verifyFace = async (req, res, next) => {
   try {
     const { faceDescriptor, verificationType } = req.body;
 
     if (!faceDescriptor || !Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
-      return res.status(400).json({
-        success: false,
-        message: 'Face descriptor không hợp lệ'
-      });
+      return res.status(400).json({ success: false, message: 'Face descriptor không hợp lệ' });
+    }
+    if (!['checkin', 'checkout'].includes(verificationType)) {
+      return res.status(400).json({ success: false, message: 'Loại xác thực không hợp lệ' });
     }
 
-    if (!verificationType || !['checkin', 'checkout'].includes(verificationType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Loại xác thực không hợp lệ'
-      });
+    const profiles = await FaceProfile.find({ isActive: true, isDeleted: false }).populate('user');
+    if (profiles.length === 0) {
+      return res.status(404).json({ success: false, message: 'Không có hồ sơ khuôn mặt nào được đăng ký' });
     }
 
-    // Get all active face profiles
-    const faceProfiles = await FaceProfile.find({ isActive: true }).populate('user');
+    const { match, distance } = findBestMatch(faceDescriptor, profiles);
 
-    if (faceProfiles.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không có hồ sơ khuôn mặt nào'
-      });
-    }
-
-    // Find best match
-    const { bestMatch, bestDistance } = findBestMatch(faceDescriptor, faceProfiles);
-
-    if (!bestMatch) {
-      // Log failed verification
+    if (!match) {
       await FaceVerificationLog.create({
-        user: null,
-        faceProfile: null,
-        verificationType,
-        success: false,
-        confidence: 0,
-        faceDescriptor,
+        user: null, faceProfile: null, verificationType,
+        success: false, confidence: 0, faceDescriptor,
         errorMessage: 'Không tìm thấy khuôn mặt phù hợp',
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent')
+        ipAddress: IP(req), userAgent: UA(req)
       });
-
-      return res.status(401).json({
-        success: false,
-        message: 'Không thể xác thực khuôn mặt',
-        confidence: 0
-      });
+      return res.status(401).json({ success: false, message: 'Không thể xác thực khuôn mặt', confidence: 0 });
     }
 
-    const confidence = (1 - bestDistance) * 100;
+    const confidence = Math.max(0, Math.min(100, ((1 - distance / EUCLIDEAN_THRESHOLD) * 100)));
 
-    // Log successful verification
     await FaceVerificationLog.create({
-      user: bestMatch.user._id,
-      faceProfile: bestMatch._id,
-      verificationType,
-      success: true,
-      confidence,
-      faceDescriptor,
-      ipAddress: req.ip,
-      userAgent: req.get('user-agent')
+      user: match.user._id, faceProfile: match._id, verificationType,
+      success: true, confidence, faceDescriptor,
+      ipAddress: IP(req), userAgent: UA(req)
     });
 
-    // Update last used timestamp
-    bestMatch.lastUsedAt = new Date();
-    await bestMatch.save();
+    match.lastUsedAt = new Date();
+    match.qualityScore = confidence;
+    await match.save();
+
+    await AuditLog.log({
+      action: 'FACE_VERIFY',
+      category: 'FACE',
+      description: `Xác minh khuôn mặt ${verificationType} — "${match.user.name}" (confidence: ${confidence.toFixed(1)}%)`,
+      performedBy: String(match.user._id),
+      performedByName: match.user.name,
+      performedByRole: match.user.role,
+      targetType: 'FaceProfile',
+      targetId: String(match._id),
+      targetName: match.user.name,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: 'SUCCESS',
+      metadata: { confidence, verificationType, distance: Number(distance.toFixed(4)) },
+      severity: confidence < 70 ? 'MEDIUM' : 'LOW'
+    });
 
     return res.status(200).json({
       success: true,
       message: 'Xác thực khuôn mặt thành công',
       data: {
-        user: bestMatch.user,
-        confidence: confidence.toFixed(2),
-        faceProfileId: bestMatch._id
+        user: {
+          _id: match.user._id,
+          name: match.user.name,
+          email: match.user.email,
+          role: match.user.role
+        },
+        confidence: Number(confidence.toFixed(2)),
+        faceProfileId: match._id
       }
     });
   } catch (error) {
     next(error);
   }
 };
+
+// ─── Get Own Profile ──────────────────────────────────────────────────────────
 
 export const getFaceProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    const profile = await FaceProfile.findOne({ user: userId, isDeleted: false })
+      .populate('user', 'name email role position');
 
-    const faceProfile = await FaceProfile.findOne({ user: userId }).populate('user', 'name email');
-
-    if (!faceProfile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy hồ sơ khuôn mặt'
-      });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Chưa đăng ký khuôn mặt' });
     }
 
     return res.status(200).json({
       success: true,
       data: {
-        id: faceProfile._id,
-        captureCount: faceProfile.captureCount,
-        registeredAt: faceProfile.registeredAt,
-        lastUsedAt: faceProfile.lastUsedAt,
-        isActive: faceProfile.isActive
+        id: profile._id,
+        captureCount: profile.captureCount,
+        descriptorCount: profile.descriptorCount,
+        registeredAt: profile.registeredAt,
+        updatedAt: profile.updatedAt,
+        lastUsedAt: profile.lastUsedAt,
+        isActive: profile.isActive,
+        qualityScore: profile.qualityScore,
+        user: profile.user ? {
+          name: profile.user.name,
+          email: profile.user.email,
+          role: profile.user.role
+        } : null
       }
     });
   } catch (error) {
@@ -196,92 +218,232 @@ export const getFaceProfile = async (req, res, next) => {
   }
 };
 
+// ─── Delete Own Profile ───────────────────────────────────────────────────────
+
 export const deleteFaceProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    const profile = await FaceProfile.findOne({ user: userId, isDeleted: false });
 
-    const faceProfile = await FaceProfile.findOneAndDelete({ user: userId });
-
-    if (!faceProfile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy hồ sơ khuôn mặt'
-      });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ khuôn mặt' });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Xóa hồ sơ khuôn mặt thành công'
+    profile.isDeleted = true;
+    profile.isActive = false;
+    await profile.save();
+
+    const user = await User.findById(userId);
+    await AuditLog.log({
+      action: 'FACE_DELETE',
+      category: 'FACE',
+      description: `Xóa hồ sơ khuôn mặt`,
+      performedBy: userId,
+      performedByName: user?.name,
+      performedByRole: user?.role,
+      targetType: 'FaceProfile',
+      targetId: String(profile._id),
+      targetName: user?.name,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: 'WARNING',
+      severity: 'LOW'
     });
+
+    return res.status(200).json({ success: true, message: 'Đã xóa hồ sơ khuôn mặt' });
   } catch (error) {
     next(error);
   }
 };
 
-export const getVerificationLogs = async (req, res, next) => {
-  try {
-    const { userId, verificationType, success, limit = 50 } = req.query;
-
-    const query = {};
-
-    if (userId) query.user = userId;
-    if (verificationType) query.verificationType = verificationType;
-    if (success !== undefined) query.success = success === 'true';
-
-    const logs = await FaceVerificationLog.find(query)
-      .populate('user', 'name email')
-      .populate('faceProfile')
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit));
-
-    return res.status(200).json({
-      success: true,
-      data: logs,
-      count: logs.length
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+// ─── Manager: Get All Profiles ───────────────────────────────────────────────
 
 export const getAllFaceProfiles = async (req, res, next) => {
   try {
-    const faceProfiles = await FaceProfile.find()
-      .populate('user', 'name email phone role position')
-      .sort({ registeredAt: -1 });
+    const { page = 1, limit = 20, status, search } = req.query;
+    const query = {};
+    if (status === 'active') query.isActive = true;
+    if (status === 'inactive') query.isActive = false;
+    if (search) {
+      query.$or = [
+        { 'user.name': { $regex: search, $options: 'i' } },
+        { 'user.email': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [profiles, total] = await Promise.all([
+      FaceProfile.find({ isDeleted: false })
+        .populate('user', 'name email role position phone')
+        .sort({ registeredAt: -1 })
+        .skip(skip).limit(parseInt(limit)),
+      FaceProfile.countDocuments({ isDeleted: false, ...query })
+    ]);
+
+    const stats = await FaceProfile.aggregate([
+      { $match: { isDeleted: false } },
+      { $group: {
+        _id: '$isActive',
+        count: { $sum: 1 },
+        totalDescriptors: { $sum: '$descriptorCount' }
+      }}
+    ]);
+
+    const totalRegistered = profiles.length;
+    const activeCount = profiles.filter(p => p.isActive).length;
 
     return res.status(200).json({
       success: true,
-      data: faceProfiles,
-      count: faceProfiles.length
+      data: {
+        profiles: profiles.map(p => ({
+          id: p._id,
+          user: p.user ? {
+            _id: p.user._id,
+            name: p.user.name,
+            email: p.user.email,
+            role: p.user.role,
+            position: p.user.position,
+            phone: p.user.phone
+          } : null,
+          captureCount: p.captureCount,
+          descriptorCount: p.descriptorCount,
+          registeredAt: p.registeredAt,
+          updatedAt: p.updatedAt,
+          lastUsedAt: p.lastUsedAt,
+          isActive: p.isActive,
+          qualityScore: p.qualityScore,
+          notes: p.notes
+        })),
+        stats: { total: totalRegistered, active: activeCount },
+        pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) }
+      }
     });
   } catch (error) {
     next(error);
   }
 };
+
+// ─── Manager: Toggle Profile ─────────────────────────────────────────────────
 
 export const toggleFaceProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const profile = await FaceProfile.findById(id);
+    if (!profile) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ' });
 
-    const faceProfile = await FaceProfile.findById(id);
+    const wasActive = profile.isActive;
+    profile.isActive = !profile.isActive;
+    await profile.save();
 
-    if (!faceProfile) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy hồ sơ khuôn mặt'
-      });
-    }
-
-    faceProfile.isActive = !faceProfile.isActive;
-    await faceProfile.save();
+    const user = await User.findById(profile.user);
+    await AuditLog.log({
+      action: 'FACE_TOGGLE',
+      category: 'FACE',
+      description: `${wasActive ? 'Vô hiệu hóa' : 'Kích hoạt'} hồ sơ khuôn mặt của "${user?.name}"`,
+      performedBy: req.user.id,
+      performedByName: req.user.name,
+      performedByRole: req.user.role,
+      targetType: 'FaceProfile',
+      targetId: id,
+      targetName: user?.name,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: wasActive ? 'WARNING' : 'SUCCESS',
+      severity: 'MEDIUM'
+    });
 
     return res.status(200).json({
       success: true,
-      message: faceProfile.isActive ? 'Kích hoạt hồ sơ thành công' : 'Vô hiệu hóa hồ sơ thành công',
+      message: profile.isActive ? 'Đã kích hoạt hồ sơ' : 'Đã vô hiệu hóa hồ sơ',
+      data: { id: profile._id, isActive: profile.isActive }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── Manager: Delete Profile ─────────────────────────────────────────────────
+
+export const deleteFaceProfileAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const profile = await FaceProfile.findById(id);
+    if (!profile) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ' });
+
+    const user = await User.findById(profile.user);
+    profile.isDeleted = true;
+    profile.isActive = false;
+    await profile.save();
+
+    await AuditLog.log({
+      action: 'FACE_DELETE_ADMIN',
+      category: 'FACE',
+      description: `Admin xóa hồ sơ khuôn mặt của "${user?.name}"`,
+      performedBy: req.user.id,
+      performedByName: req.user.name,
+      performedByRole: req.user.role,
+      targetType: 'FaceProfile',
+      targetId: id,
+      targetName: user?.name,
+      ipAddress: IP(req),
+      userAgent: UA(req),
+      status: 'WARNING',
+      severity: 'MEDIUM'
+    });
+
+    return res.status(200).json({ success: true, message: 'Đã xóa hồ sơ khuôn mặt' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── Manager: Get Verification Logs ──────────────────────────────────────────
+
+export const getVerificationLogs = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 50, userId, verificationType, success, dateFrom, dateTo } = req.query;
+    const query = {};
+    if (userId) query.user = userId;
+    if (verificationType) query.verificationType = verificationType;
+    if (success !== undefined) query.success = success === 'true';
+    if (dateFrom || dateTo) {
+      query.createdAt = {};
+      if (dateFrom) query.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) query.createdAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [logs, total] = await Promise.all([
+      FaceVerificationLog.find(query)
+        .populate('user', 'name email role')
+        .populate('faceProfile')
+        .sort({ createdAt: -1 })
+        .skip(skip).limit(parseInt(limit)),
+      FaceVerificationLog.countDocuments(query)
+    ]);
+
+    const stats = await FaceVerificationLog.aggregate([
+      { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } } },
+      { $group: {
+        _id: null,
+        total: { $sum: 1 },
+        success: { $sum: { $cond: ['$success', 1, 0] } },
+        failure: { $sum: { $cond: ['$success', 0, 1] } },
+        avgConfidence: { $avg: '$confidence' }
+      }}
+    ]);
+
+    return res.status(200).json({
+      success: true,
       data: {
-        id: faceProfile._id,
-        isActive: faceProfile.isActive
+        logs: logs.map(l => ({
+          id: l._id, user: l.user, verificationType: l.verificationType,
+          success: l.success, confidence: l.confidence,
+          errorMessage: l.errorMessage, ipAddress: l.ipAddress,
+          createdAt: l.createdAt
+        })),
+        stats: stats[0] || { total: 0, success: 0, failure: 0, avgConfidence: 0 },
+        pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) }
       }
     });
   } catch (error) {

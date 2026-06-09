@@ -1,5 +1,6 @@
 import LeaveRequest from '../models/LeaveRequest.js';
 import LeaveBalance from '../models/LeaveBalance.js';
+import Notification from '../models/Notification.js';
 
 const calculateBusinessDays = (startDate, endDate) => {
   let count = 0;
@@ -98,6 +99,14 @@ export const createLeaveRequest = async (req, res, next) => {
 
     const populatedRequest = await LeaveRequest.findById(leaveRequest._id)
       .populate('user', 'name email phone position');
+
+    await Notification.sendToAdmins({
+      type: 'leave_pending',
+      title: 'Yêu cầu nghỉ phép mới',
+      message: `${req.user.name} yêu cầu nghỉ ${leaveType} từ ${new Date(startDate).toLocaleDateString('vi-VN')} đến ${new Date(endDate).toLocaleDateString('vi-VN')} (${days} ngày).`,
+      data: { leaveRequestId: leaveRequest._id.toString(), userId: req.user.id },
+      priority: 'normal'
+    });
 
     return res.status(201).json({
       success: true,
@@ -241,6 +250,16 @@ export const approveLeaveRequest = async (req, res, next) => {
       .populate('user', 'name email')
       .populate('approvedBy', 'name');
 
+    await Notification.send({
+      recipientId: request.user.toString(),
+      recipientName: populatedRequest.user?.name || 'Nhân viên',
+      type: 'leave_approved',
+      title: 'Yêu cầu nghỉ phép được duyệt',
+      message: `Yêu cầu nghỉ ${request.leaveType} từ ${request.startDate.split('T')[0]} đến ${request.endDate.split('T')[0]} đã được duyệt bởi ${req.user.name}.`,
+      data: { leaveRequestId: request._id.toString() },
+      priority: 'normal'
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Phê duyệt yêu cầu nghỉ phép thành công',
@@ -282,6 +301,16 @@ export const rejectLeaveRequest = async (req, res, next) => {
     const populatedRequest = await LeaveRequest.findById(request._id)
       .populate('user', 'name email')
       .populate('approvedBy', 'name');
+
+    await Notification.send({
+      recipientId: request.user.toString(),
+      recipientName: populatedRequest.user?.name || 'Nhân viên',
+      type: 'leave_rejected',
+      title: 'Yêu cầu nghỉ phép bị từ chối',
+      message: `Yêu cầu nghỉ ${request.leaveType} đã bị từ chối. Lý do: ${reason || 'Không có'}.`,
+      data: { leaveRequestId: request._id.toString() },
+      priority: 'normal'
+    });
 
     return res.status(200).json({
       success: true,

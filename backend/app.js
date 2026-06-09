@@ -19,6 +19,9 @@ import tasksRoutes from './routes/tasks.js';
 import inventoryRoutes from './routes/inventory.js';
 import userRoutes from './routes/users.js';
 import approvalRoutes from './routes/approvals.js';
+import notificationRoutes from './routes/notifications.js';
+import reportRoutes from './routes/reports.js';
+import systemRoutes from './routes/system.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,6 +63,9 @@ app.use('/api/v1/tasks', tasksRoutes);
 app.use('/api/v1/inventory', inventoryRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/approvals', approvalRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/system', systemRoutes);
 
 // Base / Health Check Routes
 app.get('/api/health', (req, res) => {

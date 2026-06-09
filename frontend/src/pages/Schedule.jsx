@@ -20,77 +20,205 @@ const buildWeeklySchedule = (shifts) => {
 
     return {
       day: VN_DAYS[i],
+      dayKey: key,
       date: date.getDate(),
       shift: shift?.name || null,
       time: shift?.time || null,
+      role: shift?.role || null,
+      branch: shift?.branch || null,
+      assignedTo: shift?.assignedTo || null,
+      shiftId: shift?.id || null,
       status: isToday && shift ? 'ĐANG LÀM' : shift ? 'Đã phân công' : 'Nghỉ',
-      shiftId: shift?.id
+      isToday
     };
   });
+};
+
+const getUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user_info') || '{}');
+  } catch {
+    return {};
+  }
 };
 
 export default function Schedule() {
   const [viewMode, setViewMode] = useState('week');
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [weeklySchedule, setWeeklySchedule] = useState([]);
-  const [upcomingShifts, setUpcomingShifts] = useState([]);
-  const [availableShifts] = useState([]);
+  const [allShifts, setAllShifts] = useState([]);
   const [swapRequests, setSwapRequests] = useState([]);
-  const [swapForm, setSwapForm] = useState({ shiftId: '', targetStaff: '', reason: '' });
+  const [pendingCount, setPendingCount] = useState(0);
+  const [swapForm, setSwapForm] = useState({
+    requesterShiftId: '',
+    requesterShiftName: '',
+    requesterShiftTime: '',
+    requesterShiftDay: '',
+    targetStaffId: '',
+    targetStaffName: '',
+    targetShiftId: '',
+    targetShiftName: '',
+    targetShiftTime: '',
+    targetShiftDay: '',
+    reason: ''
+  });
+  const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [swapLoading, setSwapLoading] = useState(false);
 
-  const now = new Date();
-  const monthLabel = `Tháng ${now.getMonth() + 1}, ${now.getFullYear()}`;
+  const user = getUser();
+  const isAdmin = user.isAdmin;
 
   useEffect(() => {
-    const fetchSchedule = async () => {
+    const fetchData = async () => {
       try {
-        const data = await api.get('/schedule');
-        if (data.success) {
-          const schedule = buildWeeklySchedule(data.shifts);
-          setWeeklySchedule(schedule);
-          const upcoming = [];
+        const [scheduleData, swapsData, staffData] = await Promise.all([
+          api.get('/schedule'),
+          api.get('/schedule/swaps'),
+          api.get('/staff')
+        ]);
+        if (scheduleData.success) {
+          setWeeklySchedule(buildWeeklySchedule(scheduleData.shifts));
+          const flat = [];
           API_DAYS.forEach((key, i) => {
-            (data.shifts[key] || []).forEach(s => {
-              upcoming.push({
-                id: s.id,
-                date: VN_DAYS[i],
-                shift: s.name,
-                time: s.time,
-                day: i === 1 ? 'NGÀY MAI' : VN_DAYS[i],
-                branch: s.branch
-              });
+            (scheduleData.shifts[key] || []).forEach(s => {
+              flat.push({ ...s, dayKey: key, dayLabel: VN_DAYS[i] });
             });
           });
-          setUpcomingShifts(upcoming);
+          setAllShifts(flat);
         }
+        if (swapsData.success) {
+          setSwapRequests(swapsData.requests);
+          setPendingCount(swapsData.pendingCount || 0);
+        }
+        if (staffData.success) setStaffList(staffData.data);
       } catch {
         setWeeklySchedule(buildWeeklySchedule({}));
       } finally {
         setLoading(false);
       }
     };
-    fetchSchedule();
+    fetchData();
   }, []);
 
   const handleSwapSubmit = async () => {
-    if (!swapForm.shiftId || !swapForm.targetStaff || !swapForm.reason) {
+    if (!swapForm.requesterShiftId || !swapForm.targetStaffId || !swapForm.reason) {
       alert('Vui lòng điền đầy đủ thông tin đổi ca');
       return;
     }
+    setSwapLoading(true);
     try {
-      const data = await api.post('/schedule/swap', {
-        shiftId: Number(swapForm.shiftId),
-        targetStaff: swapForm.targetStaff,
-        reason: swapForm.reason
-      });
+      const data = await api.post('/schedule/swap', swapForm);
       if (data.success) {
         setSwapRequests([data.request, ...swapRequests]);
         setShowSwapModal(false);
-        setSwapForm({ shiftId: '', targetStaff: '', reason: '' });
+        setSwapForm({
+          requesterShiftId: '', requesterShiftName: '', requesterShiftTime: '', requesterShiftDay: '',
+          targetStaffId: '', targetStaffName: '', targetShiftId: '',
+          targetShiftName: '', targetShiftTime: '', targetShiftDay: '', reason: ''
+        });
       }
     } catch (err) {
       alert(err.message || 'Không thể gửi yêu cầu đổi ca');
+    } finally {
+      setSwapLoading(false);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    if (!confirm('Duyệt yêu cầu đổi ca này?')) return;
+    try {
+      const data = await api.patch(`/schedule/swaps/${id}/approve`);
+      if (data.success) {
+        setSwapRequests(swapRequests.map(r => r._id === id ? data.request : r));
+        setPendingCount(Math.max(0, pendingCount - 1));
+      }
+    } catch (err) {
+      alert(err.message || 'Không thể duyệt yêu cầu');
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!confirm('Từ chối yêu cầu đổi ca này?')) return;
+    try {
+      const data = await api.patch(`/schedule/swaps/${id}/reject`);
+      if (data.success) {
+        setSwapRequests(swapRequests.map(r => r._id === id ? data.request : r));
+        setPendingCount(Math.max(0, pendingCount - 1));
+      }
+    } catch (err) {
+      alert(err.message || 'Không thể từ chối yêu cầu');
+    }
+  };
+
+  const handleCancel = async (id) => {
+    if (!confirm('Hủy yêu cầu đổi ca này?')) return;
+    try {
+      const data = await api.patch(`/schedule/swaps/${id}/cancel`);
+      if (data.success) {
+        setSwapRequests(swapRequests.map(r => r._id === id ? data.request : r));
+      }
+    } catch (err) {
+      alert(err.message || 'Không thể hủy yêu cầu');
+    }
+  };
+
+  const openSwapModal = (shift) => {
+    if (!shift.shiftId) return;
+    setSwapForm({
+      requesterShiftId: shift.shiftId,
+      requesterShiftName: shift.shift,
+      requesterShiftTime: shift.time,
+      requesterShiftDay: `${shift.day} - ${shift.date}`,
+      targetStaffId: '',
+      targetStaffName: '',
+      targetShiftId: '',
+      targetShiftName: '',
+      targetShiftTime: '',
+      targetShiftDay: '',
+      reason: ''
+    });
+    setShowSwapModal(true);
+  };
+
+  const handleTargetStaffChange = (staffId) => {
+    const staff = staffList.find(s => s.id === staffId);
+    const staffShifts = allShifts.filter(s => s.assignedTo === staff?.name);
+    setSwapForm(prev => ({
+      ...prev,
+      targetStaffId: staffId,
+      targetStaffName: staff?.name || '',
+      targetShiftId: '',
+      targetShiftName: '',
+      targetShiftTime: '',
+      targetShiftDay: ''
+    }));
+  };
+
+  const handleTargetShiftChange = (shiftId) => {
+    const shift = allShifts.find(s => s.id === shiftId);
+    if (!shift) return;
+    setSwapForm(prev => ({
+      ...prev,
+      targetShiftId: shift.id,
+      targetShiftName: shift.name,
+      targetShiftTime: shift.time,
+      targetShiftDay: `${shift.dayLabel} - ${shift.date}`
+    }));
+  };
+
+  const myShifts = allShifts.filter(s => s.assignedTo === user.name);
+  const targetStaff = staffList.find(s => s.id === swapForm.targetStaffId);
+  const targetShifts = allShifts.filter(s => s.assignedTo === targetStaff?.name);
+  const now = new Date();
+  const monthLabel = `Tháng ${now.getMonth() + 1}, ${now.getFullYear()}`;
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'approved': return <span className="badge badge-success">Đã duyệt</span>;
+      case 'rejected': return <span className="badge badge-danger">Từ chối</span>;
+      case 'cancelled': return <span className="badge badge-muted">Đã hủy</span>;
+      default: return <span className="badge badge-warning">Chờ duyệt</span>;
     }
   };
 
@@ -100,28 +228,27 @@ export default function Schedule() {
 
   return (
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
-      
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
             Lịch Làm Việc
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-            Quản lý ca làm việc và đăng ký ca trống
+            Quản lý ca làm việc và đăng ký đổi ca
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm ca làm..." 
-            className="form-input" 
-            style={{ width: '220px', padding: '8px 12px', fontSize: '13px', background: 'rgba(0,0,0,0.15)' }}
-          />
+          {isAdmin && pendingCount > 0 && (
+            <span style={{
+              background: 'var(--primary)', color: '#fff', padding: '6px 14px', borderRadius: '8px',
+              fontSize: '12px', fontWeight: '600'
+            }}>
+              {pendingCount} yêu cầu đổi ca chờ duyệt
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
@@ -130,339 +257,314 @@ export default function Schedule() {
       }}>
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Tổng giờ làm tuần này
+            Ca của tôi tuần này
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>0</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Giờ</div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>{myShifts.length}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Ca</div>
         </div>
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
             Đổi ca chờ duyệt
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>0</div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: pendingCount > 0 ? 'var(--primary)' : '#fff' }}>{pendingCount}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Yêu cầu</div>
         </div>
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Lương dự kiến (Tạm tính)
+            Tổng ca tuần này
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>0₫</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Tháng này</div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>{allShifts.length}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Ca</div>
         </div>
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Ca làm hoàn thành
+            Nhân viên có mặt
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>0 <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>/ 0</span></div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Ca</div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+            {[...new Set(allShifts.map(s => s.assignedTo))].length}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Người</div>
         </div>
       </div>
 
-      {/* Main Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '2.5fr 1.3fr',
+        gridTemplateColumns: isAdmin ? '1.8fr 1.4fr' : '2.5fr 1.3fr',
         gap: '24px',
         alignItems: 'start'
       }}>
-        
-        {/* Left Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           {/* Work Schedule */}
           <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
                 Lịch Làm Việc
               </h3>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                {monthLabel}
-              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{monthLabel}</div>
             </div>
 
-            {/* View Mode Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <button 
-                onClick={() => setViewMode('week')}
-                style={{
-                  padding: '8px 16px',
-                  background: viewMode === 'week' ? 'var(--primary)' : 'transparent',
-                  color: viewMode === 'week' ? '#fff' : 'var(--text-secondary)',
-                  border: viewMode === 'week' ? 'none' : '1px solid var(--border-glass)',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
-              >
-                Tuần
-              </button>
-              <button 
-                onClick={() => setViewMode('month')}
-                style={{
-                  padding: '8px 16px',
-                  background: viewMode === 'month' ? 'var(--primary)' : 'transparent',
-                  color: viewMode === 'month' ? '#fff' : 'var(--text-secondary)',
-                  border: viewMode === 'month' ? 'none' : '1px solid var(--border-glass)',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
-              >
-                Tháng
-              </button>
-            </div>
-
-            {/* Weekly Schedule Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: '12px'
-            }}>
-              {weeklySchedule.map((day, index) => (
-                <div 
-                  key={index}
+              {['week', 'month'].map(mode => (
+                <button key={mode}
+                  onClick={() => setViewMode(mode)}
                   style={{
-                    background: day.status === 'ĐANG LÀM' ? 'rgba(225, 29, 72, 0.1)' : 'rgba(255,255,255,0.02)',
-                    border: day.status === 'ĐANG LÀM' ? '1px solid var(--primary)' : '1px solid var(--border-glass)',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    textAlign: 'center',
-                    minHeight: '100px'
-                  }}
-                >
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                    {day.day}
-                  </div>
-                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
-                    {day.date}
-                  </div>
-                  {day.shift ? (
-                    <div>
-                      <div style={{ fontSize: '12px', color: day.status === 'ĐANG LÀM' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: '600' }}>
-                        {day.shift}
-                      </div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        {day.time}
-                      </div>
-                      <div style={{ 
-                        fontSize: '10px', 
-                        color: day.status === 'ĐANG LÀM' ? 'var(--primary)' : day.status === 'Đã xong' ? 'var(--success)' : 'var(--text-muted)',
-                        marginTop: '4px',
-                        fontWeight: '600'
-                      }}>
-                        {day.status}
-                      </div>
-                    </div>
-                  ) : (
-                    <button 
-                      className="btn-secondary"
-                      style={{ 
-                        padding: '4px 8px', 
-                        fontSize: '10px', 
-                        marginTop: '8px',
-                        background: day.status === 'Đăng ký ca' ? 'var(--primary)' : ''
-                      }}
-                      onClick={() => alert(`Đăng ký ca cho ${day.day}`)}
-                    >
-                      {day.status === 'Đăng ký ca' ? 'Đăng ký ca' : 'Nghỉ'}
-                    </button>
-                  )}
-                </div>
+                    padding: '8px 16px',
+                    background: viewMode === mode ? 'var(--primary)' : 'transparent',
+                    color: viewMode === mode ? '#fff' : 'var(--text-secondary)',
+                    border: viewMode === mode ? 'none' : '1px solid var(--border-glass)',
+                    borderRadius: '6px', fontSize: '13px', cursor: 'pointer'
+                  }}>
+                  {mode === 'week' ? 'Tuần' : 'Tháng'}
+                </button>
               ))}
             </div>
+
+            {viewMode === 'week' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }}>
+                {weeklySchedule.map((day) => (
+                  <div key={day.dayKey}
+                    style={{
+                      background: day.isToday ? 'rgba(225, 29, 72, 0.1)' : 'rgba(255,255,255,0.02)',
+                      border: day.isToday ? '1px solid var(--primary)' : '1px solid var(--border-glass)',
+                      borderRadius: '8px', padding: '12px', textAlign: 'center', minHeight: '120px'
+                    }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>{day.day}</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: day.isToday ? 'var(--primary)' : '#fff', marginBottom: '8px' }}>{day.date}</div>
+                    {day.shift ? (
+                      <div>
+                        <div style={{ fontSize: '11px', color: day.isToday ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: '600' }}>{day.shift}</div>
+                        <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{day.time}</div>
+                        <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{day.assignedTo}</div>
+                        <div style={{ fontSize: '9px', color: day.isToday ? 'var(--primary)' : 'var(--success)', fontWeight: '600', marginTop: '4px' }}>{day.status}</div>
+                        {day.assignedTo === user.name && day.shiftId && (
+                          <button className="btn-secondary"
+                            style={{ marginTop: '6px', padding: '3px 6px', fontSize: '9px', width: '100%' }}
+                            onClick={() => openSwapModal(day)}>
+                            Đổi ca
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>Nghỉ</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {viewMode === 'month' && (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                Chế độ tháng - cần dữ liệu thực tế
+              </div>
+            )}
           </div>
 
           {/* Available Shifts */}
           <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
-                Ca trống có sẵn
+                Tất cả ca tuần này
               </h3>
-              <span className="badge badge-warning">Sắp hết chỗ</span>
+              <span className="badge badge-muted">{allShifts.length} ca</span>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {availableShifts.map((shift, index) => (
-                <div 
-                  key={index}
-                  style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    padding: '12px',
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid var(--border-glass)',
-                    borderRadius: '8px'
-                  }}
-                >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+              {allShifts.map((shift) => (
+                <div key={shift.id}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '12px', background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid var(--border-glass)', borderRadius: '8px'
+                  }}>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{shift.date}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{shift.shift} ({shift.time})</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>
+                      {shift.dayLabel} - {shift.date} · {shift.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {shift.time} · {shift.role} · {shift.assignedTo}
+                    </div>
                   </div>
-                  <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>
-                    Đăng ký
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{shift.branch}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+          {/* Upcoming Shifts - My Shifts */}
+          <div className="glass-card" style={{ padding: '20px' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
+              Ca của tôi
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {myShifts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  Bạn chưa có ca được phân công tuần này
+                </div>
+              ) : myShifts.map((shift) => (
+                <div key={shift.id}
+                  style={{
+                    padding: '12px',
+                    background: 'rgba(225, 29, 72, 0.05)',
+                    border: '1px solid rgba(225, 29, 72, 0.2)',
+                    borderRadius: '8px'
+                  }}>
+                  <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    {shift.dayLabel} - {shift.date}
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '2px' }}>{shift.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{shift.time} · {shift.role}</div>
+                  <button className="btn-secondary"
+                    style={{ width: '100%', padding: '4px 8px', fontSize: '11px' }}
+                    onClick={() => openSwapModal({ day: shift.dayLabel, date: shift.date, shift: shift.name, time: shift.time, shiftId: shift.id })}>
+                    Yêu cầu đổi ca
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Promotional Section */}
-          <div className="glass-card" style={{
-            background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.1), rgba(15, 18, 29, 0.9))',
-            border: '1px solid rgba(225, 29, 72, 0.2)',
-            padding: '24px',
-            borderRadius: '12px'
-          }}>
-            <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
-              Cần thêm thu nhập?
-            </h4>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-              Đăng ký ca đêm cuối tuần để nhận hệ số lương 1.5x
-            </p>
-            <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: '13px' }}>
-              Xem thêm ca thường
-            </button>
-          </div>
-
-        </div>
-
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          {/* Upcoming Shifts */}
+          {/* Swap Requests */}
           <div className="glass-card" style={{ padding: '20px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Ca làm sắp tới
+              Yêu cầu đổi ca
             </h4>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {upcomingShifts.map((shift, index) => (
-                <div 
-                  key={index}
-                  style={{ 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+              {swapRequests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  Chưa có yêu cầu đổi ca
+                </div>
+              ) : swapRequests.map((req) => (
+                <div key={req._id}
+                  style={{
                     padding: '12px',
-                    background: shift.day === 'NGÀY MAI' ? 'rgba(225, 29, 72, 0.05)' : 'rgba(255,255,255,0.02)',
-                    border: shift.day === 'NGÀY MAI' ? '1px solid rgba(225, 29, 72, 0.2)' : '1px solid var(--border-glass)',
+                    background: req.status === 'pending' && isAdmin ? 'rgba(225, 29, 72, 0.05)' : 'rgba(255,255,255,0.02)',
+                    border: req.status === 'pending' && isAdmin ? '1px solid rgba(225, 29, 72, 0.2)' : '1px solid var(--border-glass)',
                     borderRadius: '8px'
-                  }}
-                >
-                  {shift.day === 'NGÀY MAI' && (
-                    <span className="badge badge-danger" style={{ fontSize: '10px', marginBottom: '8px' }}>NGÀY MAI</span>
+                  }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      {req.requesterName}
+                    </div>
+                    {getStatusBadge(req.status)}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Từ ca</div>
+                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#fff' }}>{req.requesterShiftName}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{req.requesterShiftTime}</div>
+                    </div>
+                    <div style={{ color: 'var(--primary)', fontSize: '16px' }}>⇄</div>
+                    <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Sang ca</div>
+                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#fff' }}>{req.targetShiftName || req.targetStaffName}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{req.targetShiftTime || 'Chưa chọn'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    Lý do: &quot;{req.reason}&quot;
+                  </div>
+
+                  {isAdmin && req.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11px' }}
+                        onClick={() => handleApprove(req._id)}>
+                        Duyệt
+                      </button>
+                      <button className="btn-secondary" style={{ flex: 1, padding: '6px', fontSize: '11px', borderColor: 'var(--danger)', color: 'var(--danger)' }}
+                        onClick={() => handleReject(req._id)}>
+                        Từ chối
+                      </button>
+                    </div>
                   )}
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    {shift.date}
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>
-                    {shift.shift}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    {shift.time}
-                  </div>
-                  {shift.day === 'NGÀY MAI' && (
-                    <button 
-                      className="btn-secondary" 
-                      style={{ marginTop: '8px', padding: '4px 10px', fontSize: '11px', width: '100%' }}
-                      onClick={() => setShowSwapModal(true)}
-                    >
-                      Yêu cầu đổi
+
+                  {!isAdmin && req.status === 'pending' && req.requesterId === user.id && (
+                    <button className="btn-secondary"
+                      style={{ width: '100%', padding: '6px', fontSize: '11px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                      onClick={() => handleCancel(req._id)}>
+                      Hủy yêu cầu
                     </button>
                   )}
                 </div>
               ))}
             </div>
-
-            <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', padding: '8px', fontSize: '12px' }}>
-              Xem tất cả lịch trình
-            </button>
           </div>
-
-          {/* Shift Change Requests */}
-          <div className="glass-card" style={{ padding: '20px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Yêu cầu đổi ca
-            </h4>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {swapRequests.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                  Chưa có yêu cầu đổi ca
-                </div>
-              ) : swapRequests.map((request) => (
-                <div
-                  key={request.id}
-                  style={{
-                    padding: '12px',
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid var(--border-glass)',
-                    borderRadius: '8px'
-                  }}
-                >
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    Yêu cầu của bạn
-                  </div>
-                  <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>
-                    Đang gửi cho: {request.targetStaff}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    &quot;{request.reason}&quot;
-                  </div>
-                  <span className="badge badge-warning" style={{ fontSize: '10px' }}>{request.status}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       </div>
 
       {/* Swap Modal */}
       {showSwapModal && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000
         }}>
-          <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '450px', background: '#0d111a' }}>
+          <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '500px', background: '#0d111a' }}>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>
               Yêu cầu đổi ca
             </h3>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Ca muốn đổi</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{swapForm.requesterShiftName}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{swapForm.requesterShiftTime} · {swapForm.requesterShiftDay}</div>
+              </div>
+
               <div className="form-group">
-                <label className="form-label">Mã ca</label>
+                <label className="form-label">Chọn nhân viên đổi ca</label>
                 <select className="form-input" style={{ background: 'var(--bg-darker)' }}
-                  value={swapForm.shiftId}
-                  onChange={(e) => setSwapForm({ ...swapForm, shiftId: e.target.value })}>
-                  <option value="">Chọn ca...</option>
-                  {upcomingShifts.map(s => (
-                    <option key={s.id} value={s.id}>{s.shift} - {s.date} ({s.time})</option>
+                  value={swapForm.targetStaffId}
+                  onChange={(e) => handleTargetStaffChange(e.target.value)}>
+                  <option value="">Chọn nhân viên...</option>
+                  {staffList.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} - {s.dept}</option>
                   ))}
                 </select>
               </div>
+
+              {swapForm.targetStaffId && (
+                <div className="form-group">
+                  <label className="form-label">Chọn ca của nhân viên đổi (tùy chọn)</label>
+                  <select className="form-input" style={{ background: 'var(--bg-darker)' }}
+                    value={swapForm.targetShiftId}
+                    onChange={(e) => handleTargetShiftChange(e.target.value)}>
+                    <option value="">Đổi ca bất kỳ</option>
+                    {targetShifts.map(s => (
+                      <option key={s.id} value={s.id}>{s.dayLabel} - {s.date} · {s.name} ({s.time})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {swapForm.targetShiftId && (
+                <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Ca nhận đổi</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{swapForm.targetShiftName}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{swapForm.targetShiftTime} · {swapForm.targetShiftDay}</div>
+                </div>
+              )}
+
               <div className="form-group">
-                <label className="form-label">Chọn nhân viên muốn đổi</label>
-                <input type="text" className="form-input" placeholder="Tên nhân viên..."
-                  value={swapForm.targetStaff}
-                  onChange={(e) => setSwapForm({ ...swapForm, targetStaff: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Lý do</label>
+                <label className="form-label">Lý do đổi ca *</label>
                 <textarea className="form-input" rows="3" placeholder="Nhập lý do đổi ca..."
                   value={swapForm.reason}
                   onChange={(e) => setSwapForm({ ...swapForm, reason: e.target.value })} />
               </div>
             </div>
+
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button className="btn-secondary" style={{ flex: 1, padding: '10px' }} onClick={() => setShowSwapModal(false)}>Hủy</button>
-              <button className="btn-primary" style={{ flex: 1, padding: '10px' }} onClick={handleSwapSubmit}>Gửi yêu cầu</button>
+              <button className="btn-secondary" style={{ flex: 1, padding: '10px' }}
+                onClick={() => setShowSwapModal(false)} disabled={swapLoading}>Hủy</button>
+              <button className="btn-primary" style={{ flex: 1, padding: '10px' }}
+                onClick={handleSwapSubmit} disabled={swapLoading}>
+                {swapLoading ? 'Đang gửi...' : 'Gửi yêu cầu'}
+              </button>
             </div>
           </div>
         </div>

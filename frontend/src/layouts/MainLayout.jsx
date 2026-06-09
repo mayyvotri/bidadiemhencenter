@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import NotificationBell from '../components/NotificationBell';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function MainLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user: authUser, logout } = useAuth();
   const [user, setUser] = useState({ name: 'Minh Nguyễn', role: 'Nhân viên Phục vụ', isAdmin: false });
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+
+  // Sync auth user into local state
+  useEffect(() => {
+    if (authUser) {
+      const info = { ...authUser, name: authUser.name, role: authUser.role };
+      setUser(info);
+      localStorage.setItem('user_info', JSON.stringify(info));
+    } else {
+      const info = localStorage.getItem('user_info');
+      if (info) setUser(JSON.parse(info));
+    }
+  }, [authUser]);
 
   // Load user info and clock status on mount
   useEffect(() => {
@@ -26,9 +41,9 @@ export default function MainLayout({ children }) {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_info');
-    navigate('/login');
+    logout().then(() => {
+      navigate('/login', { replace: true });
+    });
   };
 
   const toggleClock = () => {
@@ -46,16 +61,20 @@ export default function MainLayout({ children }) {
     { label: 'ATTENDANCE', path: '/attendance', icon: '🕒' },
     { label: 'SHIFTS', path: '/schedule', icon: '📅' },
     { label: 'SALARY', path: '/salary', icon: '💰' },
-    { label: 'TASKS', path: '/tasks', icon: '📋' }
+    { label: 'TASKS', path: '/tasks', icon: '📋' },
+    { label: 'FACE REGISTRATION', path: '/face-registration', icon: '🧠' }
   ];
 
   const managerMenu = [
     { label: 'Dashboard', path: '/dashboard', icon: '📊' },
     { label: 'Staff List', path: '/staff-list', icon: '👥' },
     { label: 'Shift Schedule', path: '/schedule', icon: '📅' },
+    { label: 'AI Tạo Lịch', path: '/schedule-generator', icon: '🤖' },
+    { label: 'Báo cáo', path: '/reports', icon: '📊' },
     { label: 'Inventory', path: '/inventory', icon: '📦' },
     { label: 'Settings', path: '/settings', icon: '⚙️' },
-    { label: 'System Admin', path: '/system-admin', icon: '🖥️' }
+    { label: 'System Admin', path: '/system-admin', icon: '🖥️' },
+    { label: 'Face Management', path: '/face-management', icon: '🧠' }
   ];
 
   const menu = user.isAdmin ? managerMenu : staffMenu;
@@ -291,11 +310,13 @@ export default function MainLayout({ children }) {
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
               🕒 {currentTime || '--:--:--'}
             </span>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '16px' }} title="Thông báo">
-                🔔
-              </button>
-              <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '16px' }} title="Cài đặt">
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <NotificationBell userId={user.id || user._id} />
+              <button
+                onClick={() => navigate('/notifications')}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '16px' }}
+                title="Cài đặt thông báo"
+              >
                 ⚙️
               </button>
             </div>
