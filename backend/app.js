@@ -2,17 +2,31 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+
+// Load environment variables
+dotenv.config();
 
 // Import route modules (we will create these files next)
 import authRoutes from './routes/auth.js';
 import attendanceRoutes from './routes/attendance.js';
 import scheduleRoutes from './routes/schedule.js';
 import salaryRoutes from './routes/salary.js';
+import staffRoutes from './routes/staff.js';
+import tablesRoutes from './routes/tables.js';
+import tasksRoutes from './routes/tasks.js';
+import inventoryRoutes from './routes/inventory.js';
+import userRoutes from './routes/users.js';
+import approvalRoutes from './routes/approvals.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Connect to MongoDB
+connectDB();
 
 // Enable CORS
 app.use(cors({
@@ -40,6 +54,12 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/schedule', scheduleRoutes);
 app.use('/api/v1/salary', salaryRoutes);
+app.use('/api/v1/staff', staffRoutes);
+app.use('/api/v1/tables', tablesRoutes);
+app.use('/api/v1/tasks', tasksRoutes);
+app.use('/api/v1/inventory', inventoryRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/approvals', approvalRoutes);
 
 // Base / Health Check Routes
 app.get('/api/health', (req, res) => {
