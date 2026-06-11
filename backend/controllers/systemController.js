@@ -412,6 +412,64 @@ export const deleteUser = async (req, res, next) => {
   }
 };
 
+export const approveUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+
+    user.approvalStatus = 'approved';
+    user.isActive = true;
+    await user.save();
+
+    await AuditLog.logUser({
+      action: 'USER_APPROVE',
+      description: `Duyệt tài khoản "${user.name}"`,
+      performedBy: req.user.id,
+      performedByName: req.user.name,
+      performedByRole: req.user.role,
+      targetType: 'User',
+      targetId: id,
+      targetName: user.name,
+      status: 'SUCCESS',
+      severity: 'MEDIUM'
+    });
+
+    res.json({ success: true, data: user, message: 'Đã duyệt tài khoản.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rejectUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+
+    user.approvalStatus = 'rejected';
+    user.isActive = false;
+    await user.save();
+
+    await AuditLog.logUser({
+      action: 'USER_REJECT',
+      description: `Từ chối tài khoản "${user.name}"`,
+      performedBy: req.user.id,
+      performedByName: req.user.name,
+      performedByRole: req.user.role,
+      targetType: 'User',
+      targetId: id,
+      targetName: user.name,
+      status: 'WARNING',
+      severity: 'MEDIUM'
+    });
+
+    res.json({ success: true, data: user, message: 'Đã từ chối tài khoản.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ─── System Dashboard ─────────────────────────────────────────────────────────
 
 export const getSystemDashboard = async (req, res, next) => {

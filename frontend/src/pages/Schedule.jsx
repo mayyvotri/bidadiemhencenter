@@ -1,38 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { api } from '../services/api';
 
 const API_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const VN_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-
-const buildWeeklySchedule = (shifts) => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset);
-
-  return API_DAYS.map((key, i) => {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    const dayShifts = shifts?.[key] || [];
-    const shift = dayShifts[0];
-    const isToday = date.toDateString() === today.toDateString();
-
-    return {
-      day: VN_DAYS[i],
-      dayKey: key,
-      date: date.getDate(),
-      shift: shift?.name || null,
-      time: shift?.time || null,
-      role: shift?.role || null,
-      branch: shift?.branch || null,
-      assignedTo: shift?.assignedTo || null,
-      shiftId: shift?.id || null,
-      status: isToday && shift ? 'ĐANG LÀM' : shift ? 'Đã phân công' : 'Nghỉ',
-      isToday
-    };
-  });
-};
+const SHIFT_NAMES = ['Ca sáng', 'Ca tối', 'Ca khuya'];
+const DEFAULT_AREAS = ['Chi nhánh 1 Nguyễn Oanh', 'Quầy bi lỗ'];
 
 const getUser = () => {
   try {
@@ -42,185 +14,281 @@ const getUser = () => {
   }
 };
 
+// Build week dates from Monday
+const getWeekDates = (baseDate, weekOffset = 0) => {
+  try {
+    // Support Date object or 'YYYY-MM-DD' string
+    let year, month, day;
+    if (typeof baseDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(baseDate)) {
+      [year, month, day] = baseDate.split('-').map(Number);
+    } else if (baseDate instanceof Date && !Number.isNaN(baseDate.getTime())) {
+      year = baseDate.getFullYear();
+      month = baseDate.getMonth() + 1;
+      day = baseDate.getDate();
+    } else {
+      return API_DAYS.map((key, i) => ({ key, label: VN_DAYS[i], dateStr: '1970-01-01' }));
+    }
+
+    const date = new Date(year, month - 1, day);
+    if (Number.isNaN(date.getTime())) {
+      return API_DAYS.map((key, i) => ({ key, label: VN_DAYS[i], dateStr: '1970-01-01' }));
+    }
+
+    const dayOfWeek = date.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const mondayDate = new Date(year, month - 1, day + mondayOffset + weekOffset * 7);
+
+    return API_DAYS.map((key, i) => {
+      const d = new Date(mondayDate);
+      d.setDate(mondayDate.getDate() + i);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return { key, label: VN_DAYS[i], dateStr: `${y}-${m}-${dd}` };
+    });
+  } catch (e) {
+    console.error('[getWeekDates] error:', e);
+    return API_DAYS.map((key, i) => ({ key, label: VN_DAYS[i], dateStr: '1970-01-01' }));
+  }
+};
+
 export default function Schedule() {
-  const [viewMode, setViewMode] = useState('week');
-  const [showSwapModal, setShowSwapModal] = useState(false);
-  const [weeklySchedule, setWeeklySchedule] = useState([]);
-  const [allShifts, setAllShifts] = useState([]);
-  const [swapRequests, setSwapRequests] = useState([]);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [swapForm, setSwapForm] = useState({
-    requesterShiftId: '',
-    requesterShiftName: '',
-    requesterShiftTime: '',
-    requesterShiftDay: '',
-    targetStaffId: '',
-    targetStaffName: '',
-    targetShiftId: '',
-    targetShiftName: '',
-    targetShiftTime: '',
-    targetShiftDay: '',
-    reason: ''
-  });
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [scheduleData, setScheduleData] = useState(null);
   const [staffList, setStaffList] = useState([]);
+  const [workAreas, setWorkAreas] = useState(DEFAULT_AREAS);
   const [loading, setLoading] = useState(true);
-  const [swapLoading, setSwapLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savingSlot, setSavingSlot] = useState(null);
+  const [publishing, setPublishing] = useState(false);
+  const [weekDates, setWeekDates] = useState([]);
+  const [pendingChanges, setPendingChanges] = useState({});
+  const [hasChanges, setHasChanges] = useState(false);
 
   const user = getUser();
   const isAdmin = user.isAdmin;
 
   useEffect(() => {
+    const dates = getWeekDates(new Date(), weekOffset);
+    setWeekDates(dates);
+  }, [weekOffset]);
+
+  useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const [scheduleData, swapsData, staffData] = await Promise.all([
-          api.get('/schedule'),
-          api.get('/schedule/swaps'),
-          api.get('/staff')
-        ]);
-        if (scheduleData.success) {
-          setWeeklySchedule(buildWeeklySchedule(scheduleData.shifts));
-          const flat = [];
-          API_DAYS.forEach((key, i) => {
-            (scheduleData.shifts[key] || []).forEach(s => {
-              flat.push({ ...s, dayKey: key, dayLabel: VN_DAYS[i] });
+        if (isAdmin) {
+          const [staffRes, scheduleRes, settingsRes] = await Promise.all([
+            api.get('/staff'),
+            api.get(`/schedule/generator/schedule?weekOffset=${weekOffset}`),
+            api.get('/system/settings')
+          ]);
+
+          if (staffRes.success) setStaffList(staffRes.data);
+          if (scheduleRes.success) setScheduleData(scheduleRes.data);
+          if (settingsRes.success && settingsRes.data?.workAreas?.length > 0) {
+            setWorkAreas(settingsRes.data.workAreas);
+          }
+        } else {
+          if (weekDates.length !== 7 || !weekDates[0]?.dateStr) {
+            setLoading(false);
+            return;
+          }
+          const [myAssignmentsRes] = await Promise.all([
+            api.get(
+              `/shift-assignments/my?startDate=${weekDates[0].dateStr}&endDate=${weekDates[6].dateStr}`
+            ).catch(e => {
+              if (e.message.includes('403') || e.message.includes('forbidden')) {
+                console.warn('[Schedule] shift-assignments forbidden, using empty data');
+                return { success: true, data: [] };
+              }
+              throw e;
+            })
+          ]);
+
+          setWorkAreas(DEFAULT_AREAS);
+
+          if (myAssignmentsRes?.success) {
+            setScheduleData({
+              isMySchedule: true,
+              myAssignments: myAssignmentsRes.data
             });
-          });
-          setAllShifts(flat);
+          }
         }
-        if (swapsData.success) {
-          setSwapRequests(swapsData.requests);
-          setPendingCount(swapsData.pendingCount || 0);
-        }
-        if (staffData.success) setStaffList(staffData.data);
-      } catch {
-        setWeeklySchedule(buildWeeklySchedule({}));
+      } catch (e) {
+        console.error('[Schedule] fetchData error:', e);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
 
-  const handleSwapSubmit = async () => {
-    if (!swapForm.requesterShiftId || !swapForm.targetStaffId || !swapForm.reason) {
-      alert('Vui lòng điền đầy đủ thông tin đổi ca');
-      return;
+    if (isAdmin || weekDates.length === 7) {
+      fetchData();
     }
-    setSwapLoading(true);
+  }, [weekOffset, isAdmin, weekDates]); // weekDates triggers re-fetch once populated
+
+  const isMySchedule = scheduleData?.isMySchedule;
+  const myAssignments = scheduleData?.myAssignments || [];
+
+  const normalizeDateKey = (dateValue) => {
+    if (!dateValue) return null;
+    const str = String(dateValue).split('T')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    const date = new Date(dateValue);
+    return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-CA');
+  };
+
+  const buildStaffSlotMap = () => {
+    const map = {};
+    for (const assignment of myAssignments) {
+      const dateKey = normalizeDateKey(assignment.date);
+      const shiftName = assignment.shift?.name;
+      if (!dateKey || !shiftName) continue;
+
+      map[`${dateKey}-${shiftName}`] = {
+        assignedStaffId: assignment.user?._id || user.id,
+        assignedStaffName: assignment.user?.name || user.name,
+        shiftName,
+        shiftTime: assignment.shift
+          ? `${assignment.shift.startTime} - ${assignment.shift.endTime}`
+          : '',
+        notes: assignment.notes || ''
+      };
+    }
+    return map;
+  };
+
+  const handleGenerate = async () => {
+    if (!confirm('Tạo lịch mới cho tuần này? Lịch cũ (nếu có) sẽ được thay thế.')) return;
+    setLoading(true);
     try {
-      const data = await api.post('/schedule/swap', swapForm);
-      if (data.success) {
-        setSwapRequests([data.request, ...swapRequests]);
-        setShowSwapModal(false);
-        setSwapForm({
-          requesterShiftId: '', requesterShiftName: '', requesterShiftTime: '', requesterShiftDay: '',
-          targetStaffId: '', targetStaffName: '', targetShiftId: '',
-          targetShiftName: '', targetShiftTime: '', targetShiftDay: '', reason: ''
-        });
+      const res = await api.post('/schedule/generator/generate', { weekOffset });
+      if (res.success) {
+        setScheduleData(res.data);
+        alert('Đã tạo lịch trống cho tuần! Vui lòng gán nhân viên vào từng ca.');
       }
-    } catch (err) {
-      alert(err.message || 'Không thể gửi yêu cầu đổi ca');
+    } catch (e) {
+      alert('Lỗi khi tạo lịch: ' + (e.message || 'Vui lòng thử lại'));
     } finally {
-      setSwapLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!confirm('Duyệt yêu cầu đổi ca này?')) return;
+  const handleAssignStaff = async (slotId, staffId, branch) => {
+    if (!staffId) return;
+    setSavingSlot(slotId);
     try {
-      const data = await api.patch(`/schedule/swaps/${id}/approve`);
-      if (data.success) {
-        setSwapRequests(swapRequests.map(r => r._id === id ? data.request : r));
-        setPendingCount(Math.max(0, pendingCount - 1));
+      const staff = staffList.find(s => s._id === staffId);
+      const res = await api.patch(`/schedule/generator/${scheduleData._id}/slot`, {
+        slotId,
+        addStaffId: staffId,
+        addStaffName: staff?.name || null,
+        branch: branch || null,
+        reason: 'Phân công thủ công bởi quản lý'
+      });
+      if (res.success) {
+        setScheduleData(prev => ({
+          ...prev,
+          slots: prev.slots.map(s =>
+            (s._id?.toString() || s.dayKey + s.shiftName) === slotId
+              ? res.data.slots.find(rs => (rs._id?.toString() || rs.dayKey + rs.shiftName) === slotId) || s
+              : s
+          )
+        }));
       }
-    } catch (err) {
-      alert(err.message || 'Không thể duyệt yêu cầu');
+    } catch (e) {
+      console.error('[Schedule] handleAssignStaff error:', e);
+    } finally {
+      setSavingSlot(null);
     }
   };
 
-  const handleReject = async (id) => {
-    if (!confirm('Từ chối yêu cầu đổi ca này?')) return;
+  const handleRemoveStaffFromSlot = async (slotId, staffId) => {
+    setSavingSlot(slotId);
     try {
-      const data = await api.patch(`/schedule/swaps/${id}/reject`);
-      if (data.success) {
-        setSwapRequests(swapRequests.map(r => r._id === id ? data.request : r));
-        setPendingCount(Math.max(0, pendingCount - 1));
+      const res = await api.patch(`/schedule/generator/${scheduleData._id}/slot`, {
+        slotId,
+        removeStaffId: staffId,
+        reason: 'Xóa phân công thủ công bởi quản lý'
+      });
+      if (res.success) {
+        setScheduleData(prev => ({
+          ...prev,
+          slots: prev.slots.map(s =>
+            (s._id?.toString() || s.dayKey + s.shiftName) === slotId
+              ? res.data.slots.find(rs => (rs._id?.toString() || rs.dayKey + rs.shiftName) === slotId) || s
+              : s
+          )
+        }));
       }
-    } catch (err) {
-      alert(err.message || 'Không thể từ chối yêu cầu');
+    } catch (e) {
+      console.error('[Schedule] handleRemoveStaffFromSlot error:', e);
+    } finally {
+      setSavingSlot(null);
     }
   };
 
-  const handleCancel = async (id) => {
-    if (!confirm('Hủy yêu cầu đổi ca này?')) return;
+  const handleSaveSchedule = async () => {
+    if (!confirm('Lưu và xuất bản lịch tuần? Nhân viên sẽ nhìn thấy lịch của mình.')) return;
+    setSaving(true);
     try {
-      const data = await api.patch(`/schedule/swaps/${id}/cancel`);
-      if (data.success) {
-        setSwapRequests(swapRequests.map(r => r._id === id ? data.request : r));
+      // Publish the schedule
+      const res = await api.patch(`/schedule/generator/${scheduleData._id}/publish`);
+      if (res.success) {
+        setScheduleData(prev => ({ ...prev, status: 'published' }));
+        setPendingChanges({});
+        setHasChanges(false);
+        alert('Đã lưu và xuất bản lịch tuần! Nhân viên sẽ nhận được thông báo.');
       }
-    } catch (err) {
-      alert(err.message || 'Không thể hủy yêu cầu');
+    } catch (e) {
+      alert('Lỗi khi lưu lịch: ' + (e.message || 'Vui lòng thử lại'));
+    } finally {
+      setSaving(false);
     }
   };
 
-  const openSwapModal = (shift) => {
-    if (!shift.shiftId) return;
-    setSwapForm({
-      requesterShiftId: shift.shiftId,
-      requesterShiftName: shift.shift,
-      requesterShiftTime: shift.time,
-      requesterShiftDay: `${shift.day} - ${shift.date}`,
-      targetStaffId: '',
-      targetStaffName: '',
-      targetShiftId: '',
-      targetShiftName: '',
-      targetShiftTime: '',
-      targetShiftDay: '',
-      reason: ''
-    });
-    setShowSwapModal(true);
-  };
-
-  const handleTargetStaffChange = (staffId) => {
-    const staff = staffList.find(s => s.id === staffId);
-    const staffShifts = allShifts.filter(s => s.assignedTo === staff?.name);
-    setSwapForm(prev => ({
-      ...prev,
-      targetStaffId: staffId,
-      targetStaffName: staff?.name || '',
-      targetShiftId: '',
-      targetShiftName: '',
-      targetShiftTime: '',
-      targetShiftDay: ''
-    }));
-  };
-
-  const handleTargetShiftChange = (shiftId) => {
-    const shift = allShifts.find(s => s.id === shiftId);
-    if (!shift) return;
-    setSwapForm(prev => ({
-      ...prev,
-      targetShiftId: shift.id,
-      targetShiftName: shift.name,
-      targetShiftTime: shift.time,
-      targetShiftDay: `${shift.dayLabel} - ${shift.date}`
-    }));
-  };
-
-  const myShifts = allShifts.filter(s => s.assignedTo === user.name);
-  const targetStaff = staffList.find(s => s.id === swapForm.targetStaffId);
-  const targetShifts = allShifts.filter(s => s.assignedTo === targetStaff?.name);
-  const now = new Date();
-  const monthLabel = `Tháng ${now.getMonth() + 1}, ${now.getFullYear()}`;
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'approved': return <span className="badge badge-success">Đã duyệt</span>;
-      case 'rejected': return <span className="badge badge-danger">Từ chối</span>;
-      case 'cancelled': return <span className="badge badge-muted">Đã hủy</span>;
-      default: return <span className="badge badge-warning">Chờ duyệt</span>;
+  const handlePublish = async () => {
+    if (!confirm('Xuất bản lịch? Nhân viên sẽ nhận được thông báo.')) return;
+    setPublishing(true);
+    try {
+      const res = await api.patch(`/schedule/generator/${scheduleData._id}/publish`);
+      if (res.success) setScheduleData(prev => ({ ...prev, status: 'published' }));
+    } catch (e) {
+      alert('Lỗi khi xuất bản');
+    } finally {
+      setPublishing(false);
     }
   };
+
+  const handlePrevWeek = () => setWeekOffset(w => w - 1);
+  const handleNextWeek = () => setWeekOffset(w => w + 1);
+  const handleThisWeek = () => setWeekOffset(0);
+
+  // Build grid: [day][shift] => slot
+  const slotMap = isMySchedule ? buildStaffSlotMap() : {};
+  if (!isMySchedule && scheduleData?.slots) {
+    for (const s of scheduleData.slots) {
+      const key = `${s.dayKey}-${s.shiftName}`;
+      slotMap[key] = s;
+    }
+  }
+
+  const formatDateVN = (dateStr) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}`;
+  };
+  const formatDateRangeVN = (dateStr) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+  };
+
+  const dateRange = weekDates.length
+    ? `${formatDateVN(weekDates[0].dateStr)} – ${formatDateRangeVN(weekDates[6].dateStr)}`
+    : '';
+
+  const today = new Date();
 
   if (loading) {
     return <div style={{ color: 'var(--text-secondary)', padding: '40px' }}>Đang tải lịch làm việc...</div>;
@@ -228,344 +296,265 @@ export default function Schedule() {
 
   return (
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
             Lịch Làm Việc
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-            Quản lý ca làm việc và đăng ký đổi ca
+            {isAdmin ? 'Quản lý tạo lịch cho nhân viên' : 'Xem lịch làm việc của bạn'}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          {isAdmin && pendingCount > 0 && (
-            <span style={{
-              background: 'var(--primary)', color: '#fff', padding: '6px 14px', borderRadius: '8px',
-              fontSize: '12px', fontWeight: '600'
-            }}>
-              {pendingCount} yêu cầu đổi ca chờ duyệt
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {isAdmin && (
+            <>
+              <button className="btn-secondary" style={{ padding: '8px 16px' }} onClick={handleGenerate}>
+                Tạo lịch tuần
+              </button>
+              {scheduleData && (
+                <>
+                  <button
+                    className="btn-primary"
+                    style={{ padding: '8px 16px', background: hasChanges ? '#f59e0b' : undefined }}
+                    onClick={handleSaveSchedule}
+                    disabled={saving}
+                  >
+                    {saving ? 'Đang lưu...' : hasChanges ? '💾 Lưu bảng lịch' : '✓ Đã lưu'}
+                  </button>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '20px',
-        marginBottom: '24px'
-      }}>
-        <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Ca của tôi tuần này
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>{myShifts.length}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Ca</div>
+      {/* Week Navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={handlePrevWeek}>‹</button>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: '15px', fontWeight: '600', color: '#fff' }}>
+          Tuần {weekOffset === 0 ? 'này' : weekOffset === 1 ? 'tới' : weekOffset === -1 ? 'trước' : `+${weekOffset}`}
         </div>
-        <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Đổi ca chờ duyệt
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: pendingCount > 0 ? 'var(--primary)' : '#fff' }}>{pendingCount}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Yêu cầu</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Tổng ca tuần này
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>{allShifts.length}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Ca</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            Nhân viên có mặt
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>
-            {[...new Set(allShifts.map(s => s.assignedTo))].length}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Người</div>
-        </div>
+        <div style={{ flex: 2, textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)' }}>{dateRange}</div>
+        <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={handleNextWeek}>›</button>
+        {weekOffset !== 0 && (
+          <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={handleThisWeek}>
+            Tuần này
+          </button>
+        )}
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isAdmin ? '1.8fr 1.4fr' : '2.5fr 1.3fr',
-        gap: '24px',
-        alignItems: 'start'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Schedule Grid */}
+      {!scheduleData ? (
+        <div className="glass-card" style={{ padding: '48px', textAlign: 'center' }}>
+          <div style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+            Chưa có lịch cho tuần này
+          </div>
+          {isAdmin && (
+            <button className="btn-primary" style={{ padding: '10px 24px' }} onClick={handleGenerate}>
+              Tạo lịch tuần này
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto', margin: '0 -16px', padding: '0 16px' }}>
+          <div className="glass-card" style={{ padding: '16px', display: 'inline-block', minWidth: '100%' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, minmax(120px, 1fr))', gap: '8px', minWidth: '920px' }}>
+            {/* Header Row */}
+            <div></div>
+            {weekDates.map((day, i) => {
+              const isToday = day.dateStr === today.toLocaleDateString('en-CA');
+              return (
+                <div key={day.key} style={{
+                  textAlign: 'center',
+                  padding: '8px 4px',
+                  background: isToday ? 'rgba(225, 29, 72, 0.15)' : 'transparent',
+                  borderRadius: '6px',
+                  border: isToday ? '1px solid var(--primary)' : '1px solid transparent'
+                }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{day.label}</div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: isToday ? 'var(--primary)' : '#fff' }}>{day.dateStr.split('-')[2]}</div>
+                </div>
+              );
+            })}
 
-          {/* Work Schedule */}
-          <div className="glass-card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
-                Lịch Làm Việc
-              </h3>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{monthLabel}</div>
-            </div>
+            {/* Shift Rows */}
+            {SHIFT_NAMES.map(shiftName => (
+              <Fragment key={shiftName}>
+                {/* Shift Label */}
+                <div style={{
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                  padding: '8px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600'
+                }}>
+                  <div>{shiftName}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '400' }}>
+                    {shiftName === 'Ca sáng' && '08:00 - 16:00'}
+                    {shiftName === 'Ca tối' && '16:00 - 21:00'}
+                    {shiftName === 'Ca khuya' && '21:00 - 23:59'}
+                  </div>
+                </div>
 
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              {['week', 'month'].map(mode => (
-                <button key={mode}
-                  onClick={() => setViewMode(mode)}
-                  style={{
-                    padding: '8px 16px',
-                    background: viewMode === mode ? 'var(--primary)' : 'transparent',
-                    color: viewMode === mode ? '#fff' : 'var(--text-secondary)',
-                    border: viewMode === mode ? 'none' : '1px solid var(--border-glass)',
-                    borderRadius: '6px', fontSize: '13px', cursor: 'pointer'
-                  }}>
-                  {mode === 'week' ? 'Tuần' : 'Tháng'}
-                </button>
-              ))}
-            </div>
+                {/* Cells for each day */}
+                {weekDates.map(day => {
+                  const key = `${day.key}-${shiftName}`;
+                  const staffKey = `${day.dateStr}-${shiftName}`;
+                  const slot = isMySchedule ? slotMap[staffKey] : slotMap[key];
+                  const isToday = day.dateStr === today.toLocaleDateString('en-CA');
+                  const hasStaff = !!(slot?.assignedStaff && slot.assignedStaff.length > 0);
+                  const isSaving = savingSlot === (slot?._id?.toString() || key);
 
-            {viewMode === 'week' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }}>
-                {weeklySchedule.map((day) => (
-                  <div key={day.dayKey}
-                    style={{
-                      background: day.isToday ? 'rgba(225, 29, 72, 0.1)' : 'rgba(255,255,255,0.02)',
-                      border: day.isToday ? '1px solid var(--primary)' : '1px solid var(--border-glass)',
-                      borderRadius: '8px', padding: '12px', textAlign: 'center', minHeight: '120px'
+                  return (
+                    <div key={key} style={{
+                      padding: '8px',
+                      background: isToday
+                        ? hasStaff
+                          ? 'rgba(16, 185, 129, 0.08)'
+                          : 'rgba(225, 29, 72, 0.05)'
+                        : hasStaff
+                          ? 'rgba(255,255,255,0.03)'
+                          : 'rgba(255,255,255,0.02)',
+                      border: isToday
+                        ? hasStaff
+                          ? '1px solid rgba(16, 185, 129, 0.3)'
+                          : '1px solid rgba(225, 29, 72, 0.2)'
+                        : hasStaff
+                          ? '1px solid var(--border-glass)'
+                          : '1px solid rgba(255,255,255,0.04)',
+                      borderRadius: '8px',
+                      minHeight: '100px',
+                      position: 'relative'
                     }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>{day.day}</div>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: day.isToday ? 'var(--primary)' : '#fff', marginBottom: '8px' }}>{day.date}</div>
-                    {day.shift ? (
-                      <div>
-                        <div style={{ fontSize: '11px', color: day.isToday ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: '600' }}>{day.shift}</div>
-                        <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{day.time}</div>
-                        <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{day.assignedTo}</div>
-                        <div style={{ fontSize: '9px', color: day.isToday ? 'var(--primary)' : 'var(--success)', fontWeight: '600', marginTop: '4px' }}>{day.status}</div>
-                        {day.assignedTo === user.name && day.shiftId && (
-                          <button className="btn-secondary"
-                            style={{ marginTop: '6px', padding: '3px 6px', fontSize: '9px', width: '100%' }}
-                            onClick={() => openSwapModal(day)}>
-                            Đổi ca
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>Nghỉ</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {viewMode === 'month' && (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                Chế độ tháng - cần dữ liệu thực tế
-              </div>
-            )}
-          </div>
-
-          {/* Available Shifts */}
-          <div className="glass-card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
-                Tất cả ca tuần này
-              </h3>
-              <span className="badge badge-muted">{allShifts.length} ca</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
-              {allShifts.map((shift) => (
-                <div key={shift.id}
-                  style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '12px', background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid var(--border-glass)', borderRadius: '8px'
-                  }}>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>
-                      {shift.dayLabel} - {shift.date} · {shift.name}
+                      {isAdmin ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {/* Staff chips */}
+                          {(slot?.assignedStaff || []).length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '4px' }}>
+                              {slot.assignedStaff.map(a => (
+                                <span key={a.id} style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                  padding: '2px 6px', borderRadius: '4px',
+                                  background: 'rgba(16, 185, 129, 0.15)', fontSize: '10px', color: '#10b981'
+                                }}>
+                                  {a.name}
+                                  <button
+                                    onClick={() => handleRemoveStaffFromSlot(slot?._id?.toString() || key, a.id)}
+                                    disabled={saving}
+                                    style={{
+                                      background: 'none', border: 'none', color: '#10b981',
+                                      cursor: 'pointer', padding: '0', fontSize: '12px', lineHeight: 1
+                                    }}
+                                  >×</button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {/* Add staff dropdown */}
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                handleAssignStaff(slot?._id?.toString() || key, e.target.value, slot?.branch || '');
+                                e.target.value = '';
+                              }
+                            }}
+                            disabled={saving}
+                            style={{
+                              width: '100%',
+                              background: 'rgba(0,0,0,0.3)',
+                              border: '1px solid var(--border-glass)',
+                              borderRadius: '4px',
+                              color: 'var(--text-muted)',
+                              fontSize: '11px',
+                              padding: '4px 6px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="">+ Thêm nhân viên</option>
+                            {staffList
+                              .filter(s => s.role === 'staff' && !(slot?.assignedStaff || []).some(a => a.id === s._id))
+                              .map(s => (
+                                <option key={s._id} value={s._id}>{s.name}</option>
+                              ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '8px', gap: '2px' }}>
+                          {slot?.assignedStaffId === user.id ? (
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#10b981',
+                              fontWeight: '600',
+                              textAlign: 'center',
+                              padding: '4px 8px',
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              borderRadius: '4px'
+                            }}>
+                              ✓ Ca của bạn
+                            </div>
+                          ) : (
+                            <div style={{
+                              fontSize: '12px',
+                              color: 'var(--text-muted)',
+                              fontWeight: '400',
+                              textAlign: 'center'
+                            }}>
+                              {slot?.assignedStaffName || '—'}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {isSaving && (
+                        <div style={{
+                          position: 'absolute', top: '4px', right: '4px',
+                          fontSize: '9px', color: 'var(--primary)'
+                        }}>...</div>
+                      )}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      {shift.time} · {shift.role} · {shift.assignedTo}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{shift.branch}</div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </Fragment>
+            ))}
           </div>
         </div>
-
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-          {/* Upcoming Shifts - My Shifts */}
-          <div className="glass-card" style={{ padding: '20px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Ca của tôi
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {myShifts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                  Bạn chưa có ca được phân công tuần này
-                </div>
-              ) : myShifts.map((shift) => (
-                <div key={shift.id}
-                  style={{
-                    padding: '12px',
-                    background: 'rgba(225, 29, 72, 0.05)',
-                    border: '1px solid rgba(225, 29, 72, 0.2)',
-                    borderRadius: '8px'
-                  }}>
-                  <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    {shift.dayLabel} - {shift.date}
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '2px' }}>{shift.name}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{shift.time} · {shift.role}</div>
-                  <button className="btn-secondary"
-                    style={{ width: '100%', padding: '4px 8px', fontSize: '11px' }}
-                    onClick={() => openSwapModal({ day: shift.dayLabel, date: shift.date, shift: shift.name, time: shift.time, shiftId: shift.id })}>
-                    Yêu cầu đổi ca
-                  </button>
-                </div>
-              ))}
-            </div>
+        {/* Legend */}
+        <div style={{ display: 'flex', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            <div style={{ width: '12px', height: '12px', background: 'rgba(16, 185, 129, 0.3)', border: '1px solid rgba(16, 185, 129, 0.5)', borderRadius: '3px' }} />
+            Đã phân công
           </div>
-
-          {/* Swap Requests */}
-          <div className="glass-card" style={{ padding: '20px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Yêu cầu đổi ca
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
-              {swapRequests.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                  Chưa có yêu cầu đổi ca
-                </div>
-              ) : swapRequests.map((req) => (
-                <div key={req._id}
-                  style={{
-                    padding: '12px',
-                    background: req.status === 'pending' && isAdmin ? 'rgba(225, 29, 72, 0.05)' : 'rgba(255,255,255,0.02)',
-                    border: req.status === 'pending' && isAdmin ? '1px solid rgba(225, 29, 72, 0.2)' : '1px solid var(--border-glass)',
-                    borderRadius: '8px'
-                  }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                      {req.requesterName}
-                    </div>
-                    {getStatusBadge(req.status)}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Từ ca</div>
-                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#fff' }}>{req.requesterShiftName}</div>
-                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{req.requesterShiftTime}</div>
-                    </div>
-                    <div style={{ color: 'var(--primary)', fontSize: '16px' }}>⇄</div>
-                    <div style={{ textAlign: 'center', padding: '6px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Sang ca</div>
-                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#fff' }}>{req.targetShiftName || req.targetStaffName}</div>
-                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{req.targetShiftTime || 'Chưa chọn'}</div>
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    Lý do: &quot;{req.reason}&quot;
-                  </div>
-
-                  {isAdmin && req.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11px' }}
-                        onClick={() => handleApprove(req._id)}>
-                        Duyệt
-                      </button>
-                      <button className="btn-secondary" style={{ flex: 1, padding: '6px', fontSize: '11px', borderColor: 'var(--danger)', color: 'var(--danger)' }}
-                        onClick={() => handleReject(req._id)}>
-                        Từ chối
-                      </button>
-                    </div>
-                  )}
-
-                  {!isAdmin && req.status === 'pending' && req.requesterId === user.id && (
-                    <button className="btn-secondary"
-                      style={{ width: '100%', padding: '6px', fontSize: '11px', color: 'var(--danger)', borderColor: 'var(--danger)' }}
-                      onClick={() => handleCancel(req._id)}>
-                      Hủy yêu cầu
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            <div style={{ width: '12px', height: '12px', background: 'rgba(225, 29, 72, 0.1)', border: '1px solid rgba(225, 29, 72, 0.3)', borderRadius: '3px' }} />
+            Trống / Hôm nay
           </div>
+          {isAdmin && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <div style={{ width: '12px', height: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', borderRadius: '3px' }} />
+              Chọn nhân viên từ danh sách
+            </div>
+          )}
         </div>
       </div>
+      )}
 
-      {/* Swap Modal */}
-      {showSwapModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 1000
-        }}>
-          <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '500px', background: '#0d111a' }}>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>
-              Yêu cầu đổi ca
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ padding: '12px', background: 'rgba(225, 29, 72, 0.05)', border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '8px' }}>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Ca muốn đổi</div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{swapForm.requesterShiftName}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{swapForm.requesterShiftTime} · {swapForm.requesterShiftDay}</div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Chọn nhân viên đổi ca</label>
-                <select className="form-input" style={{ background: 'var(--bg-darker)' }}
-                  value={swapForm.targetStaffId}
-                  onChange={(e) => handleTargetStaffChange(e.target.value)}>
-                  <option value="">Chọn nhân viên...</option>
-                  {staffList.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} - {s.dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              {swapForm.targetStaffId && (
-                <div className="form-group">
-                  <label className="form-label">Chọn ca của nhân viên đổi (tùy chọn)</label>
-                  <select className="form-input" style={{ background: 'var(--bg-darker)' }}
-                    value={swapForm.targetShiftId}
-                    onChange={(e) => handleTargetShiftChange(e.target.value)}>
-                    <option value="">Đổi ca bất kỳ</option>
-                    {targetShifts.map(s => (
-                      <option key={s.id} value={s.id}>{s.dayLabel} - {s.date} · {s.name} ({s.time})</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {swapForm.targetShiftId && (
-                <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Ca nhận đổi</div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{swapForm.targetShiftName}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{swapForm.targetShiftTime} · {swapForm.targetShiftDay}</div>
-                </div>
-              )}
-
-              <div className="form-group">
-                <label className="form-label">Lý do đổi ca *</label>
-                <textarea className="form-input" rows="3" placeholder="Nhập lý do đổi ca..."
-                  value={swapForm.reason}
-                  onChange={(e) => setSwapForm({ ...swapForm, reason: e.target.value })} />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button className="btn-secondary" style={{ flex: 1, padding: '10px' }}
-                onClick={() => setShowSwapModal(false)} disabled={swapLoading}>Hủy</button>
-              <button className="btn-primary" style={{ flex: 1, padding: '10px' }}
-                onClick={handleSwapSubmit} disabled={swapLoading}>
-                {swapLoading ? 'Đang gửi...' : 'Gửi yêu cầu'}
-              </button>
-            </div>
+      {/* Staff list reference for admin */}
+      {isAdmin && staffList.length > 0 && (
+        <div className="glass-card" style={{ padding: '16px', marginTop: '16px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+            Danh sách nhân viên ({staffList.filter(s => s.role === 'staff').length} người)
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {staffList.filter(s => s.role === 'staff').map(s => (
+              <span key={s._id} style={{
+                padding: '4px 10px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                color: 'var(--text-secondary)'
+              }}>
+                {s.name} {s.position ? `· ${s.position}` : ''}
+              </span>
+            ))}
           </div>
         </div>
       )}

@@ -11,7 +11,7 @@ const payrollSchema = new mongoose.Schema({
   },
   dept: {
     type: String,
-    required: true
+    default: ''
   },
   month: {
     type: Number,
@@ -171,7 +171,7 @@ payrollSchema.index({ staffId: 1, month: 1, year: 1 }, { unique: true });
 payrollSchema.index({ month: 1, year: 1 });
 payrollSchema.index({ status: 1 });
 
-payrollSchema.pre('save', function (next) {
+payrollSchema.pre('save', async function () {
   const wagePerHour = this.baseWage / 176;
   this.overtimePay = Math.round(this.overtimeHours * wagePerHour * (this.overtimeRate - 1) * 100) / 100;
   this.nightShiftPay = Math.round(this.nightShiftHours * wagePerHour * (this.nightShiftRate - 1) * 100) / 100;
@@ -181,8 +181,6 @@ payrollSchema.pre('save', function (next) {
   this.baseSalary = Math.round(this.regularHours * wagePerHour * 100) / 100;
   this.grossSalary = Math.round((this.baseSalary + this.overtimePay + this.nightShiftPay + this.weekendPay + this.holidayPay + this.allowances) * 100) / 100;
   this.netSalary = Math.round((this.grossSalary + this.adjustmentTotal - this.deductions) * 100) / 100;
-
-  next();
 });
 
 export default mongoose.model('Payroll', payrollSchema);

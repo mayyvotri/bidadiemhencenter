@@ -7,7 +7,9 @@ import {
   getAllAttendance,
   updateAttendance,
   getStatistics,
-  getEmployeeStatistics
+  getEmployeeStatistics,
+  getTodayStatus,
+  getMyAttendanceHistory
 } from '../controllers/attendanceController.js';
 import { requireAuth, requireManager } from '../middlewares/authMiddleware.js';
 
@@ -17,6 +19,8 @@ router.use(requireAuth); // All attendance routes are protected
 
 // Employee routes
 router.get('/active', getActiveSession);
+router.get('/today-status', getTodayStatus);
+router.get('/my-history', getMyAttendanceHistory);
 router.post('/checkin', checkIn);
 router.post('/checkout', checkOut);
 router.get('/logs', getLogs);

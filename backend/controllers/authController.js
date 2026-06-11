@@ -42,13 +42,6 @@ export const login = async (req, res, next) => {
       });
     }
 
-    if (user.approvalStatus !== 'approved') {
-      return res.status(401).json({
-        success: false,
-        message: 'Tài khoản chưa được duyệt'
-      });
-    }
-
     const isPasswordValid = await user.comparePassword(password);
     
     if (!isPasswordValid) {
@@ -65,6 +58,8 @@ export const login = async (req, res, next) => {
         message: 'Email hoặc mật khẩu không chính xác'
       });
     }
+
+    const isPending = user.approvalStatus === 'pending';
 
     const accessToken = generateAccessToken({ userId: user._id, email: user.email, role: user.role });
     const refreshToken = generateRefreshToken({ userId: user._id });
@@ -95,6 +90,7 @@ export const login = async (req, res, next) => {
       success: true,
       accessToken,
       refreshToken,
+      pendingApproval: isPending,
       user: {
         id: user._id,
         name: user.name,
@@ -103,7 +99,8 @@ export const login = async (req, res, next) => {
         role: user.role,
         avatar: user.avatar,
         mustChangePassword: user.mustChangePassword,
-        isAdmin: user.role === 'manager' || user.role === 'admin'
+        isAdmin: user.role === 'manager' || user.role === 'admin',
+        approvalStatus: user.approvalStatus
       }
     });
   } catch (error) {

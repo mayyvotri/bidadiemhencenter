@@ -11,6 +11,7 @@ dotenv.config();
 // Import route modules (we will create these files next)
 import authRoutes from './routes/auth.js';
 import attendanceRoutes from './routes/attendance.js';
+import attendanceRequestRoutes from './routes/attendanceRequests.js';
 import scheduleRoutes from './routes/schedule.js';
 import salaryRoutes from './routes/salary.js';
 import staffRoutes from './routes/staff.js';
@@ -22,6 +23,7 @@ import approvalRoutes from './routes/approvals.js';
 import notificationRoutes from './routes/notifications.js';
 import reportRoutes from './routes/reports.js';
 import systemRoutes from './routes/system.js';
+import shiftAssignmentRoutes from './routes/shiftAssignments.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +57,7 @@ app.use((req, res, next) => {
 // Mount Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/attendance-requests', attendanceRequestRoutes);
 app.use('/api/v1/schedule', scheduleRoutes);
 app.use('/api/v1/salary', salaryRoutes);
 app.use('/api/v1/staff', staffRoutes);
@@ -66,6 +69,7 @@ app.use('/api/v1/approvals', approvalRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/system', systemRoutes);
+app.use('/api/v1/shift-assignments', shiftAssignmentRoutes);
 
 // Base / Health Check Routes
 app.get('/api/health', (req, res) => {

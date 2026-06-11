@@ -32,20 +32,15 @@ export const requireAuth = async (req, res, next) => {
       });
     }
 
-    if (user.approvalStatus !== 'approved') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access forbidden. Account is not approved.'
-      });
-    }
-
+    // Attach approvalStatus to req.user so downstream routes can check it
     req.user = {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
       mustChangePassword: user.mustChangePassword,
-      isAdmin: user.role === 'manager' || user.role === 'admin'
+      isAdmin: user.role === 'manager' || user.role === 'admin',
+      approvalStatus: user.approvalStatus
     };
 
     return next();
@@ -80,6 +75,7 @@ export const requireRole = (...allowedRoles) => {
 };
 
 export const requireManager = (req, res, next) => {
+  console.log('[requireManager] req.user:', req.user);
   if (!req.user || (req.user.role !== 'manager' && req.user.role !== 'admin')) {
     return res.status(403).json({
       success: false,

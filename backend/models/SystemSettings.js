@@ -35,6 +35,10 @@ const systemSettingsSchema = new mongoose.Schema({
   faceVerificationEnabled: {
     type: Boolean,
     default: true
+  },
+  workAreas: {
+    type: [String],
+    default: ['Chi nhánh 1 Nguyễn Oanh', 'Quầy bi lỗ']
   }
 }, {
   timestamps: true

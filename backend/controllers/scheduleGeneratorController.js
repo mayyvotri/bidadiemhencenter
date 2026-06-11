@@ -3,15 +3,17 @@ import Staff from '../models/Staff.js';
 import LeaveRequest from '../models/LeaveRequest.js';
 import Attendance from '../models/Attendance.js';
 import Notification from '../models/Notification.js';
+import SystemSettings from '../models/SystemSettings.js';
+import Shift from '../models/Shift.js';
+import ShiftAssignment from '../models/ShiftAssignment.js';
 
 const API_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const VN_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
 const SHIFT_TEMPLATES = [
-  { name: 'Ca sáng', time: '08:00 - 14:00', hours: 6, role: 'Phục vụ' },
-  { name: 'Ca chiều', time: '14:00 - 20:00', hours: 6, role: 'Phục vụ' },
-  { name: 'Ca tối', time: '18:00 - 23:30', hours: 5.5, role: 'Phục vụ' },
-  { name: 'Ca đêm', time: '22:00 - 06:00', hours: 8, role: 'Bảo vệ' },
+  { name: 'Ca sáng', time: '08:00 - 16:00', hours: 8, role: 'Phục vụ' },
+  { name: 'Ca tối', time: '16:00 - 21:00', hours: 5, role: 'Phục vụ' },
+  { name: 'Ca khuya', time: '21:00 - 23:59', hours: 3, role: 'Phục vụ' },
 ];
 
 const DEPT_ROLES = {
@@ -66,7 +68,7 @@ const aiEngine = {
     sunday.setHours(23, 59, 59, 999);
 
     const [activeStaff, approvedLeaves, recentAttendance] = await Promise.all([
-      Staff.find({ status: 'Đang làm' }),
+      Staff.find({ status: { $ne: 'Nghỉ' } }),
       LeaveRequest.find({
         status: 'approved',
         startDate: { $lte: sunday },
@@ -90,8 +92,9 @@ const aiEngine = {
       staffHoursMap[uid] += a.workingHours || 0;
     });
 
+    // Lọc chỉ role staff (không gán manager/admin vào ca)
     const availableStaff = activeStaff
-      .filter(s => !staffOnLeave.has(s.id))
+      .filter(s => !staffOnLeave.has(s.id) && s.role === 'staff')
       .map(s => ({
         id: s.id,
         name: s.name,
@@ -144,8 +147,8 @@ const aiEngine = {
 
         if (existingSchedule) {
           const existing = existingSchedule.find(s => s.dayKey === dayKey && s.shiftName === shift.name);
-          if (existing?.assignedStaffId) {
-            assigned = ctx.availableStaff.find(st => st.id === existing.assignedStaffId);
+          if (existing?.assignedStaff?.length > 0) {
+            assigned = ctx.availableStaff.find(st => st.id === existing.assignedStaff[0].id);
             reason = 'Giữ nguyên lịch cũ';
             status = 'manual';
           }
@@ -159,6 +162,7 @@ const aiEngine = {
           shiftTime: shift.time,
           role: shift.role,
           branch: 'Chi nhánh 1 Nguyễn Oanh',
+          assignedStaff: assigned ? [{ id: assigned.id, name: assigned.name }] : [],
           assignedStaffId: assigned?.id || null,
           assignedStaffName: assigned?.name || null,
           status,
@@ -207,6 +211,7 @@ const aiEngine = {
         const chosen = candidates[0];
         const existingSlot = assigned.find(s => s.dayKey === slot.dayKey && s.shiftName === slot.shiftName);
         if (existingSlot) {
+          existingSlot.assignedStaff = [{ id: chosen.id, name: chosen.name }];
           existingSlot.assignedStaffId = chosen.id;
           existingSlot.assignedStaffName = chosen.name;
           existingSlot.status = 'auto';
@@ -237,45 +242,48 @@ const aiEngine = {
   },
 
   analyzeFairness(ctx, slots) {
-    const stats = ctx.availableStaff.map(st => {
-      const staffSlots = slots.filter(s => s.assignedStaffId === st.id);
+    // Filter out null staff entries
+    const validStaff = ctx.availableStaff.filter(st => st.id && st.name);
+    
+    const stats = validStaff.map(st => {
+      const staffSlots = slots.filter(s => s.assignedStaff && s.assignedStaff.some(a => a.id === st.id));
       const totalHours = staffSlots.reduce((sum, s) => sum + parseHours(s.shiftTime), 0);
       const weekendShifts = staffSlots.filter(s => {
         const d = new Date(s.date.split('/').reverse().join('-'));
         return isWeekend(d);
       }).length;
 
-      const target = ctx.config.targetHours;
+      const target = ctx.config.targetHours || 40;
       const diff = Math.abs(totalHours - target);
       let fairnessScore = Math.max(0, 100 - diff * 2);
 
-      if (st.consecutiveDays > ctx.config.maxConsecutive) {
+      if (st.consecutiveDays > (ctx.config.maxConsecutive || 6)) {
         fairnessScore -= 20;
       }
 
       return {
         staffId: st.id,
         staffName: st.name,
-        dept: st.dept,
+        dept: st.dept || '',
         totalHours: Math.round(totalHours * 10) / 10,
         daysWorked: staffSlots.length,
         weekendShifts,
-        fairnessScore: Math.round(fairnessScore)
+        fairnessScore: isNaN(fairnessScore) ? 0 : Math.round(fairnessScore)
       };
     });
 
-    return stats.sort((a, b) => a.staffName.localeCompare(b.staffName));
+    return stats.sort((a, b) => (a.staffName || '').localeCompare(b.staffName || ''));
   },
 
   generateRecommendations(ctx, slots) {
     const recs = [];
     const stats = ctx.availableStaff.map(st => ({
       ...st,
-      slotCount: slots.filter(s => s.assignedStaffId === st.id).length,
-      hours: slots.filter(s => s.assignedStaffId === st.id).reduce((sum, s) => sum + parseHours(s.shiftTime), 0)
+      slotCount: slots.filter(s => s.assignedStaff && s.assignedStaff.some(a => a.id === st.id)).length,
+      hours: slots.filter(s => s.assignedStaff && s.assignedStaff.some(a => a.id === st.id)).reduce((sum, s) => sum + parseHours(s.shiftTime), 0)
     }));
 
-    const emptySlots = slots.filter(s => !s.assignedStaffId);
+    const emptySlots = slots.filter(s => !s.assignedStaff || s.assignedStaff.length === 0);
     if (emptySlots.length > 0) {
       recs.push({
         type: 'warning',
@@ -335,7 +343,7 @@ const aiEngine = {
 
   computeCoverage(slots) {
     const total = slots.length;
-    const filled = slots.filter(s => s.assignedStaffId).length;
+    const filled = slots.filter(s => s.assignedStaff && s.assignedStaff.length > 0).length;
     return {
       totalSlots: total,
       filledSlots: filled,
@@ -387,52 +395,86 @@ export const generateSchedule = async (req, res, next) => {
     }
 
     const { weekOffset = 0, config = {} } = req.body;
+    console.log('[generateSchedule] weekOffset:', weekOffset, 'config:', config);
 
     const baseMonday = getMonday();
     const monday = new Date(baseMonday);
     monday.setDate(monday.getDate() + weekOffset * 7);
     monday.setHours(0, 0, 0, 0);
+    console.log('[generateSchedule] monday:', monday.toISOString());
 
     const existing = await ScheduleGenerator.findOne({
       weekStart: monday,
       status: { $in: ['draft', 'published'] }
     });
+    console.log('[generateSchedule] existing:', existing?._id);
 
-    const ctx = await aiEngine.buildContext(monday, config);
-
-    if (ctx.availableStaff.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Không có nhân viên nào khả dụng để phân ca.'
-      });
+    // Tạo slots trống cho tuần (không tự động gán nhân viên)
+    const API_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const VN_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const SHIFT_DATA = [
+      { name: 'Ca sáng', time: '08:00 - 16:00' },
+      { name: 'Ca tối', time: '16:00 - 21:00' },
+      { name: 'Ca khuya', time: '21:00 - 23:59' }
+    ];
+    
+    const slots = [];
+    
+    for (let day = 0; day < 7; day++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + day);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      for (const shift of SHIFT_DATA) {
+        slots.push({
+          dayKey: API_DAYS[day],
+          dayLabel: VN_DAYS[day],
+          date: dateStr,
+          shiftName: shift.name,
+          shiftTime: shift.time,
+          role: 'Phục vụ',
+          branch: 'Chi nhánh 1 Nguyễn Oanh',
+          assignedStaffId: null,
+          assignedStaffName: null,
+          status: 'empty',
+          reason: ''
+        });
+      }
     }
+    
+    console.log('[generateSchedule] created empty slots count:', slots.length);
 
-    let slots = aiEngine.generateScheduleTemplate(ctx, existing?.slots || null);
-    slots = aiEngine.assignStaffToSlots(ctx, slots);
+    const coverageStats = {
+      totalSlots: slots.length,
+      filledSlots: 0,
+      emptySlots: slots.length,
+      coveragePercent: 0
+    };
 
-    const employeeStats = aiEngine.analyzeFairness(ctx, slots);
-    const recommendations = aiEngine.generateRecommendations(ctx, slots);
-    const coverageStats = aiEngine.computeCoverage(slots);
+    const employeeStats = [];
 
+    let saved;
     if (existing) {
       existing.slots = slots;
-      existing.recommendations = recommendations;
+      existing.recommendations = [];
       existing.coverageStats = coverageStats;
       existing.employeeStats = employeeStats;
       existing.config = { ...existing.config, ...config };
       existing.generatedBy = req.user.id;
       existing.generatedByName = req.user.name;
       existing.generatedAt = new Date();
-      await existing.save();
+      saved = await existing.save();
+      console.log('[generateSchedule] updated existing, id:', saved._id);
     } else {
       const sunday = new Date(monday);
       sunday.setDate(sunday.getDate() + 6);
+      console.log('[generateSchedule] creating new, weekStart:', monday, 'weekEnd:', sunday);
 
-      await ScheduleGenerator.create({
+      saved = await ScheduleGenerator.create({
         weekStart: monday,
         weekEnd: sunday,
         slots,
-        recommendations,
+        recommendations: [],
         coverageStats,
         employeeStats,
         config: {
@@ -447,17 +489,22 @@ export const generateSchedule = async (req, res, next) => {
         generatedByName: req.user.name,
         generatedAt: new Date()
       });
+      console.log('[generateSchedule] created new, id:', saved._id);
     }
+
+    console.log('[generateSchedule] returning success with _id:', saved._id);
 
     res.json({
       success: true,
       data: {
+        _id: saved._id,
         weekStart: monday.toISOString(),
         weekEnd: new Date(monday.getTime() + 6 * 86400000).toISOString(),
+        status: saved.status,
         slots,
-        recommendations,
-        coverageStats,
-        employeeStats
+        recommendations: saved?.recommendations || [],
+        coverageStats: saved?.coverageStats || null,
+        employeeStats: saved?.employeeStats || null
       }
     });
   } catch (error) {
@@ -477,16 +524,9 @@ export const getGeneratedSchedule = async (req, res, next) => {
     const sunday = new Date(monday);
     sunday.setDate(sunday.getDate() + 6);
 
-    let schedule = await ScheduleGenerator.findOne({
+    const schedule = await ScheduleGenerator.findOne({
       weekStart: monday
     });
-
-    if (!schedule) {
-      schedule = await ScheduleGenerator.findOne({
-        weekStart: { $lte: monday },
-        status: 'published'
-      }).sort({ weekStart: -1 });
-    }
 
     res.json({
       success: true,
@@ -514,7 +554,7 @@ export const updateSlot = async (req, res, next) => {
     }
 
     const { id } = req.params;
-    const { slotId, assignedStaffId, assignedStaffName, reason } = req.body;
+    const { slotId, addStaffId, addStaffName, removeStaffId, branch, reason } = req.body;
 
     const schedule = await ScheduleGenerator.findById(id);
     if (!schedule) {
@@ -526,14 +566,69 @@ export const updateSlot = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy ca.' });
     }
 
-    slot.assignedStaffId = assignedStaffId || null;
-    slot.assignedStaffName = assignedStaffName || null;
-    slot.status = assignedStaffId ? 'manual' : 'empty';
+    if (!slot.assignedStaff) slot.assignedStaff = [];
+
+    // Initialize array fields
+    if (addStaffId) {
+      const exists = slot.assignedStaff.some(a => a.id === addStaffId);
+      if (!exists) {
+        slot.assignedStaff.push({ id: addStaffId, name: addStaffName || addStaffId });
+      }
+    }
+
+    if (removeStaffId) {
+      slot.assignedStaff = slot.assignedStaff.filter(a => a.id !== removeStaffId);
+    }
+
+    // Sync scalar fallback fields (first staff as primary)
+    const first = slot.assignedStaff[0] || {};
+    slot.assignedStaffId = first.id || null;
+    slot.assignedStaffName = first.name || null;
+    slot.branch = branch || slot.branch || null;
+    slot.status = slot.assignedStaff.length > 0 ? 'manual' : 'empty';
     slot.reason = reason || 'Chỉnh sửa thủ công bởi quản lý';
+
+    // Find or create Shift
+    let shift = await Shift.findOne({ name: slot.shiftName });
+    if (!shift) {
+      const shiftTimeMap = {
+        'Ca sáng': { startTime: '08:00', endTime: '16:00' },
+        'Ca tối': { startTime: '16:00', endTime: '21:00' },
+        'Ca khuya': { startTime: '21:00', endTime: '23:59' }
+      };
+      const times = shiftTimeMap[slot.shiftName] || { startTime: '08:00', endTime: '16:00' };
+      shift = await Shift.create({
+        name: slot.shiftName,
+        startTime: times.startTime,
+        endTime: times.endTime,
+        isActive: true
+      });
+    }
+
+    // Parse date from slot
+    const [day, month, year] = slot.date.split('/');
+    const assignmentDate = new Date(`${year}-${month}-${day}`);
+    assignmentDate.setHours(0, 0, 0, 0);
+
+    // Sync ShiftAssignment: replace all with current assignedStaff
+    await ShiftAssignment.deleteMany({ shift: shift._id, date: assignmentDate });
+    for (const staff of slot.assignedStaff) {
+      await ShiftAssignment.findOneAndUpdate(
+        { user: staff.id, shift: shift._id, date: assignmentDate },
+        {
+          user: staff.id,
+          shift: shift._id,
+          date: assignmentDate,
+          assignedBy: req.user.id,
+          notes: reason || 'Phân công từ lịch tuần'
+        },
+        { upsert: true, new: true }
+      );
+    }
 
     schedule.coverageStats = aiEngine.computeCoverage(schedule.slots);
     schedule.employeeStats = aiEngine.analyzeFairness(
-      { availableStaff: schedule.slots.map(s => ({ id: s.assignedStaffId, name: s.assignedStaffName, dept: '', assignedSlots: [], currentHours: 0, consecutiveDays: 0, lastDayAssigned: null, weekendCount: 0 })), config: schedule.config },
+      { availableStaff: schedule.slots.flatMap(s => (s.assignedStaff || []).map(a => ({ id: a.id, name: a.name, dept: '', assignedSlots: [], currentHours: 0, consecutiveDays: 0, lastDayAssigned: null, weekendCount: 0 }))), config: schedule.config },
       schedule.slots
     );
 
@@ -561,9 +656,21 @@ export const batchUpdateSlots = async (req, res, next) => {
     for (const change of changes) {
       const slot = schedule.slots.find(s => (s._id?.toString() || '') === change.slotId);
       if (slot) {
-        slot.assignedStaffId = change.assignedStaffId || null;
-        slot.assignedStaffName = change.assignedStaffName || null;
-        slot.status = change.assignedStaffId ? 'manual' : 'empty';
+        if (!slot.assignedStaff) slot.assignedStaff = [];
+        if (change.addStaffId) {
+          const exists = slot.assignedStaff.some(a => a.id === change.addStaffId);
+          if (!exists) {
+            slot.assignedStaff.push({ id: change.addStaffId, name: change.addStaffName || change.addStaffId });
+          }
+        }
+        if (change.removeStaffId) {
+          slot.assignedStaff = slot.assignedStaff.filter(a => a.id !== change.removeStaffId);
+        }
+        const first = slot.assignedStaff[0] || {};
+        slot.assignedStaffId = first.id || null;
+        slot.assignedStaffName = first.name || null;
+        slot.branch = change.branch || null;
+        slot.status = slot.assignedStaff.length > 0 ? 'manual' : 'empty';
         slot.reason = change.reason || 'Chỉnh sửa thủ công';
       }
     }
@@ -589,18 +696,71 @@ export const publishSchedule = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy lịch biểu.' });
     }
 
+    const shiftTimeMap = {
+      'Ca sáng': { startTime: '08:00', endTime: '16:00' },
+      'Ca tối': { startTime: '16:00', endTime: '21:00' },
+      'Ca khuya': { startTime: '21:00', endTime: '23:59' }
+    };
+
+    const assignedSlots = schedule.slots.filter(slot => slot.assignedStaff && slot.assignedStaff.length > 0);
+    const shiftCache = new Map();
+
+    for (const slot of assignedSlots) {
+      let shift = shiftCache.get(slot.shiftName);
+      if (!shift) {
+        shift = await Shift.findOne({ name: slot.shiftName });
+        if (!shift) {
+          const times = shiftTimeMap[slot.shiftName] || { startTime: '08:00', endTime: '16:00' };
+          shift = await Shift.create({
+            name: slot.shiftName,
+            startTime: times.startTime,
+            endTime: times.endTime,
+            isActive: true
+          });
+        }
+        shiftCache.set(slot.shiftName, shift);
+      }
+
+      const assignmentDate = new Date(slot.date);
+      assignmentDate.setHours(0, 0, 0, 0);
+
+      // Create one ShiftAssignment per staff member
+      for (const staff of slot.assignedStaff) {
+        await ShiftAssignment.findOneAndUpdate(
+          {
+            user: staff.id,
+            shift: shift._id,
+            date: assignmentDate
+          },
+          {
+            user: staff.id,
+            shift: shift._id,
+            date: assignmentDate,
+            assignedBy: req.user.id,
+            notes: slot.reason || 'Phân công từ lịch tuần đã xuất bản'
+          },
+          {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true
+          }
+        );
+      }
+    }
+
     schedule.status = 'published';
     schedule.publishedAt = new Date();
     schedule.publishedBy = req.user.id;
     await schedule.save();
 
-    const staffAssigned = [...new Set(schedule.slots.filter(s => s.assignedStaffId).map(s => s.assignedStaffId))];
+    const staffAssigned = [...new Set(assignedSlots.flatMap(s => (s.assignedStaff || []).map(a => a.id)))];
     const notifications = staffAssigned.map(staffId => {
-      const staffSlots = schedule.slots.filter(s => s.assignedStaffId === staffId);
+      const staffSlots = assignedSlots.filter(s => s.assignedStaff && s.assignedStaff.some(a => a.id === staffId));
       const staffNames = staffSlots.map(s => `${s.dayLabel} - ${s.shiftName}`).join(', ');
+      const staffObj = assignedSlots.flatMap(s => s.assignedStaff || []).find(a => a.id === staffId);
       return {
         recipientId: staffId,
-        recipientName: staffSlots[0]?.assignedStaffName || 'Nhân viên',
+        recipientName: staffObj?.name || 'Nhân viên',
         type: 'schedule_change',
         title: 'Lịch làm việc tuần mới được công bố',
         message: `Lịch làm việc tuần ${schedule.weekStart.toLocaleDateString('vi-VN')} - ${schedule.weekEnd.toLocaleDateString('vi-VN')} đã được công bố. Các ca của bạn: ${staffNames || 'Chưa có ca'}.`,
@@ -674,7 +834,7 @@ export const getAvailabilityAnalysis = async (req, res, next) => {
     sunday.setDate(sunday.getDate() + 6);
 
     const [activeStaff, approvedLeaves, recentAttendance] = await Promise.all([
-      Staff.find({ status: 'Đang làm' }),
+      Staff.find({ status: { $ne: 'Nghỉ' } }),
       LeaveRequest.find({
         status: 'approved',
         startDate: { $lte: sunday },

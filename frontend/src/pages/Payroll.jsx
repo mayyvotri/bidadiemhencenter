@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { payrollApi } from '../services/api';
+import { payrollApi, attendanceApi } from '../services/api';
+import { onEvent, Events } from '../utils/events';
 
 const getUser = () => {
   try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch { return {}; }
@@ -44,6 +45,9 @@ export default function Payroll() {
     weekendRate: '1.5', holidayRate: '2.0', allowances: '0'
   });
   const [bulkWages, setBulkWages] = useState([]);
+  // Staff attendance history state
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [attendanceSummary, setAttendanceSummary] = useState({ totalDaysWorked: 0, totalHoursWorked: 0, lateCount: 0, overtimeHours: 0 });
 
   const fetchPayrolls = useCallback(async () => {
     try {
@@ -51,6 +55,18 @@ export default function Payroll() {
       if (data.success) setPayrolls(data.data);
     } catch { setPayrolls([]); } finally { setLoading(false); }
   }, [month, year]);
+
+  // Fetch attendance history for staff
+  const fetchAttendanceHistory = useCallback(async () => {
+    if (isAdmin) return; // Admin uses payroll data, not attendance history
+    try {
+      const data = await attendanceApi.getMyHistory({ month, year });
+      if (data.success && data.data) {
+        setAttendanceRecords(data.data.records || []);
+        setAttendanceSummary(data.data.summary || { totalDaysWorked: 0, totalHoursWorked: 0, lateCount: 0, overtimeHours: 0 });
+      }
+    } catch { setAttendanceRecords([]); }
+  }, [month, year, isAdmin]);
 
   const fetchWageConfigs = useCallback(async () => {
     try {
@@ -84,8 +100,28 @@ export default function Payroll() {
     if (isAdmin) {
       fetchWageConfigs();
       fetchStaffList();
+    } else {
+      // Staff: fetch attendance history instead of payroll
+      fetchAttendanceHistory();
     }
-  }, [fetchPayrolls, fetchWageConfigs, fetchStaffList, isAdmin]);
+
+    // Poll for updates every 30 seconds (when manager approves attendance)
+    const pollInterval = setInterval(() => {
+      fetchPayrolls();
+      if (!isAdmin) fetchAttendanceHistory();
+    }, 30000);
+
+    // Listen for payroll updates from other components (same tab)
+    const unsubscribe = onEvent(Events.PAYROLL_UPDATED, () => {
+      fetchPayrolls();
+      if (!isAdmin) fetchAttendanceHistory();
+    });
+
+    return () => {
+      clearInterval(pollInterval);
+      unsubscribe();
+    };
+  }, [fetchPayrolls, fetchWageConfigs, fetchStaffList, fetchAttendanceHistory, isAdmin]);
 
   const handleCalculate = async () => {
     if (!confirm(`Tính lương tháng ${month}/${year} cho tất cả nhân viên?`)) return;
@@ -262,6 +298,7 @@ export default function Payroll() {
           </div>
 
           {/* Stats */}
+          {isAdmin ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '20px' }}>
             {[
               { label: 'Tổng nhân viên', value: payrolls.length, color: '#fff' },
@@ -276,10 +313,27 @@ export default function Payroll() {
               </div>
             ))}
           </div>
+          ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+            {[
+              { label: 'Ngày làm việc', value: attendanceSummary.totalDaysWorked, color: '#fff' },
+              { label: 'Tổng giờ làm', value: attendanceSummary.totalHoursWorked + 'h', color: 'var(--primary)' },
+              { label: 'Số lần trễ', value: attendanceSummary.lateCount, color: '#eab308' },
+              { label: 'Giờ tăng ca', value: attendanceSummary.overtimeHours + 'h', color: '#22c55e' }
+            ].map(s => (
+              <div className="glass-card" key={s.label} style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '22px', fontWeight: '700', color: s.color }}>{s.value}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+          )}
 
           {/* Main Layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: selectedPayroll ? '1.5fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
-            {/* Payroll Table */}
+          <div style={{ display: 'grid', gridTemplateColumns: isAdmin && selectedPayroll ? '1.5fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+            
+            {/* Admin: Payroll Table */}
+            {isAdmin ? (
             <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table className="custom-table">
@@ -324,9 +378,84 @@ export default function Payroll() {
                 </table>
               </div>
             </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Staff: Salary Summary Card */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      💰
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tổng thu nhập tháng {month}/{year}</div>
+                      <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--success)' }}>
+                        {new Intl.NumberFormat('vi-VN').format(Math.round(attendanceSummary.totalHoursWorked * 30000))}đ
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                    <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>{attendanceSummary.totalDaysWorked}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Ngày làm</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>{attendanceSummary.totalHoursWorked?.toFixed(2).replace(/\.00$/, '') || 0}h</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Giờ làm</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#eab308' }}>{attendanceSummary.lateCount}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Lần trễ</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#22c55e' }}>{attendanceSummary.overtimeHours}h</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Tăng ca</div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--primary)', fontWeight: '600' }}>30,000đ/h</span> × {attendanceSummary.totalHoursWorked?.toFixed(2).replace(/\.00$/, '') || 0}h = <span style={{ color: 'var(--success)', fontWeight: '600' }}>{new Intl.NumberFormat('vi-VN').format(Math.round((attendanceSummary.totalHoursWorked || 0) * 30000))}đ</span>
+                  </div>
+                </div>
 
-            {/* Detail Panel */}
-            {selectedPayroll && (
+                {/* Attendance Table */}
+                <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>NGÀY</th>
+                        <th>CHECK-IN</th>
+                        <th>CHECK-OUT</th>
+                        <th>GIỜ</th>
+                        <th>CA</th>
+                        <th>TRẠNG THÁI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attendanceRecords.length === 0 ? (
+                        <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                          Chưa có lịch sử chấm công tháng này
+                        </td></tr>
+                      ) : attendanceRecords.map(r => (
+                        <tr key={r._id}>
+                          <td style={{ fontWeight: '500' }}>{new Date(r.date).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td>
+                          <td>{r.checkIn ? new Date(r.checkIn).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                          <td>{r.checkOut ? new Date(r.checkOut).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                          <td>{r.hours != null ? r.hours.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                          <td>{r.shift || '—'}</td>
+                          <td>
+                            <span className={`badge ${r.status === 'late' ? 'badge-warning' : r.status === 'on_time' ? 'badge-success' : 'badge-muted'}`}>
+                              {r.status === 'late' ? 'Trễ' : r.status === 'on_time' ? 'Đúng giờ' : r.status || 'Bình thường'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Admin: Detail Panel */}
+            {isAdmin && selectedPayroll && (
               <div className="glass-card animate-fade-in" style={{ padding: '20px', position: 'sticky', top: '84px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h4 style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'uppercase', margin: 0 }}>Chi tiết lương</h4>

@@ -569,19 +569,6 @@ const SystemSettingsSection = () => {
             </div>
           </div>
 
-          {/* Face Settings */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🧠 Nhận diện khuôn mặt</h4>
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input type="checkbox" checked={settings?.faceVerificationEnabled || false}
-                  onChange={e => setSettings(s => ({ ...s, faceVerificationEnabled: e.target.checked }))} />
-                Bật nhận diện khuôn mặt khi chấm công
-              </label>
-              <small style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Yêu cầu xác minh khuôn mặt trước khi check-in/out</small>
-            </div>
-          </div>
-
           {/* Location coords */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🗺️ Tọa độ địa lý</h4>

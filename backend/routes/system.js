@@ -15,7 +15,9 @@ import {
   toggleUserStatus,
   deleteUser,
   getSystemDashboard,
-  exportAuditLogs
+  exportAuditLogs,
+  approveUser,
+  rejectUser
 } from '../controllers/systemController.js';
 import { requireAuth, requireAdmin } from '../middlewares/authMiddleware.js';
 
@@ -45,6 +47,8 @@ router.get('/users', getAllUsers);
 router.patch('/users/:id/role', updateUserRole);
 router.patch('/users/:id/password', resetUserPassword);
 router.patch('/users/:id/toggle', toggleUserStatus);
+router.patch('/users/:id/approve', approveUser);
+router.patch('/users/:id/reject', rejectUser);
 router.delete('/users/:id', deleteUser);
 
 // Dashboard

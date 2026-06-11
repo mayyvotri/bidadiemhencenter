@@ -15,7 +15,6 @@ export default function BusinessLocationSettings() {
   const [address, setAddress] = useState('');
   const [allowedRadius, setAllowedRadius] = useState('');
   const [gpsVerificationEnabled, setGpsVerificationEnabled] = useState(true);
-  const [faceVerificationEnabled, setFaceVerificationEnabled] = useState(true);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -30,7 +29,6 @@ export default function BusinessLocationSettings() {
           setAddress(s.location?.address || '');
           setAllowedRadius(s.allowedRadius || 100);
           setGpsVerificationEnabled(s.gpsVerificationEnabled ?? true);
-          setFaceVerificationEnabled(s.faceVerificationEnabled ?? true);
         }
       } catch (err) {
         setError(err.message || 'Không thể tải cài đặt');
@@ -75,8 +73,7 @@ export default function BusinessLocationSettings() {
           address
         },
         allowedRadius: parseInt(allowedRadius),
-        gpsVerificationEnabled,
-        faceVerificationEnabled
+        gpsVerificationEnabled
       };
 
       const data = await systemSettingsApi.updateSettings(payload);
@@ -211,18 +208,6 @@ export default function BusinessLocationSettings() {
               />
             </label>
             <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>Yêu cầu nhân viên phải trong phạm vi địa điểm để điểm danh</p>
-          </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-              <span style={{ color: '#fff', fontSize: '14px' }}>Bật nhận diện khuôn mặt</span>
-              <input
-                type="checkbox"
-                checked={faceVerificationEnabled}
-                onChange={(e) => setFaceVerificationEnabled(e.target.checked)}
-                style={{ width: '20px', height: '20px' }}
-              />
-            </label>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>Cho phép nhân viên điểm danh bằng nhận diện khuôn mặt</p>
           </div>
         </div>
 

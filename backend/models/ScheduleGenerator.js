@@ -8,6 +8,10 @@ const shiftSlotSchema = new mongoose.Schema({
   shiftTime: { type: String, required: true },
   role: { type: String, default: 'Phục vụ' },
   branch: { type: String, default: 'Chi nhánh 1 Nguyễn Oanh' },
+  assignedStaff: [{
+    id: { type: String, default: null },
+    name: { type: String, default: null }
+  }],
   assignedStaffId: { type: String, default: null },
   assignedStaffName: { type: String, default: null },
   status: {

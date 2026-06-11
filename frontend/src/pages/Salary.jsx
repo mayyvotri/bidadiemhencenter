@@ -1,35 +1,67 @@
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { api, payrollApi } from '../services/api';
+import { onEvent, Events } from '../utils/events';
 
 export default function Salary() {
   const [salaryDetail, setSalaryDetail] = useState({
     baseRate: 0, totalHours: 0, baseSalary: 0,
     allowance: 0, bonus: 0, deduction: 0, netSalary: 0, period: ''
   });
-  const [history, setHistory] = useState([]);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  const fetchSalary = async () => {
+    try {
+      setLoading(true);
+      
+      // Get salary summary
+      const summaryData = await api.get('/salary/summary');
+      if (summaryData.success && summaryData.salary) {
+        setSalaryDetail(summaryData.salary);
+      }
+      
+      // Get attendance history (from approved check-in/check-out requests)
+      const attendanceData = await payrollApi.getAttendanceHistory({
+        month: currentMonth,
+        year: currentYear
+      });
+      
+      if (attendanceData.success && attendanceData.data) {
+        setAttendanceHistory(attendanceData.data.attendanceRecords || []);
+        
+        // Also update salaryDetail with live data from attendance
+        const summary = attendanceData.data.summary;
+        if (summary) {
+          setSalaryDetail(prev => ({
+            ...prev,
+            baseRate: summary.wagePerHour || 0,
+            totalHours: summary.totalHoursWorked || 0,
+            baseSalary: summary.baseSalary || 0,
+            allowance: summary.allowances || 0,
+            netSalary: summary.grossSalary || 0,
+            period: `Tháng ${currentMonth}/${currentYear}`
+          }));
+        }
+      }
+    } catch {
+      /* keep defaults */
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSalary = async () => {
-      try {
-        const [summaryData, historyData] = await Promise.all([
-          api.get('/salary/summary'),
-          api.get('/salary/history')
-        ]);
-        if (summaryData.success && summaryData.salary) {
-          setSalaryDetail(summaryData.salary);
-        }
-        if (historyData.success) {
-          setHistory(historyData.history || []);
-        }
-      } catch {
-        /* keep defaults */
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSalary();
-  }, []);
+    
+    // Listen for attendance updates
+    const unsubscribe = onEvent(Events.PAYROLL_UPDATED, () => {
+      fetchSalary();
+    });
+    
+    return () => unsubscribe();
+  }, [currentMonth, currentYear]);
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
@@ -98,7 +130,7 @@ export default function Salary() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Tổng số giờ làm:</span>
-              <span style={{ fontWeight: '500' }}>{salaryDetail.totalHours}h</span>
+              <span style={{ fontWeight: '500' }}>{salaryDetail.totalHours?.toFixed(2).replace(/\.00$/, '') || 0}h</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Lương cơ bản:</span>
@@ -125,38 +157,72 @@ export default function Salary() {
       </div>
 
       <div className="glass-card" style={{ padding: '24px' }}>
-        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', marginBottom: '20px' }}>
-          Lịch sử nhận lương
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px' }}>
+            Lịch sử chấm công - Tháng {currentMonth}/{currentYear}
+          </h3>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={() => {
+                if (currentMonth === 1) {
+                  setCurrentMonth(12);
+                  setCurrentYear(currentYear - 1);
+                } else {
+                  setCurrentMonth(currentMonth - 1);
+                }
+              }}
+              style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border-glass)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            >← Tháng trước</button>
+            <button 
+              onClick={() => fetchSalary()}
+              style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--primary)', background: 'transparent', color: 'var(--primary)', cursor: 'pointer' }}
+            >🔄 Làm mới</button>
+            <button 
+              onClick={() => {
+                if (currentMonth === 12) {
+                  setCurrentMonth(1);
+                  setCurrentYear(currentYear + 1);
+                } else {
+                  setCurrentMonth(currentMonth + 1);
+                }
+              }}
+              style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border-glass)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            >Tháng sau →</button>
+          </div>
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="custom-table">
             <thead>
               <tr>
-                <th>KỲ LƯƠNG</th>
+                <th>NGÀY</th>
+                <th>CHECK-IN</th>
+                <th>CHECK-OUT</th>
                 <th>GIỜ LÀM</th>
-                <th>LƯƠNG CƠ BẢN</th>
-                <th>PHỤ CẤP & THƯỞNG</th>
-                <th>THỰC LĨNH</th>
+                <th>CA</th>
                 <th>TRẠNG THÁI</th>
-                <th>NGÀY TT</th>
               </tr>
             </thead>
             <tbody>
-              {history.length === 0 ? (
+              {attendanceHistory.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
-                    Chưa có lịch sử lương
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                    Chưa có lịch sử chấm công cho tháng này
                   </td>
                 </tr>
-              ) : history.map((item, i) => (
+              ) : attendanceHistory.map((record, i) => (
                 <tr key={i}>
-                  <td style={{ fontWeight: '500' }}>{item.period}</td>
-                  <td>{item.hours}</td>
-                  <td>{item.base}</td>
-                  <td>{item.allowances}</td>
-                  <td style={{ fontWeight: '600', color: 'var(--primary)' }}>{item.net}</td>
-                  <td><span className="badge badge-success">{item.status}</span></td>
-                  <td>{item.date}</td>
+                  <td style={{ fontWeight: '500' }}>
+                    {new Date(record.date).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })}
+                  </td>
+                  <td>{record.checkIn ? new Date(record.checkIn).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                  <td>{record.checkOut ? new Date(record.checkOut).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                  <td>{record.hours != null ? record.hours.toFixed(2).replace(/\.00$/, '') + 'h' : '-'}</td>
+                  <td>{record.shift || 'Ca thường'}</td>
+                  <td>
+                    <span className={`badge ${record.status === 'late' ? 'badge-warning' : record.status === 'on_time' ? 'badge-success' : 'badge-muted'}`}>
+                      {record.status === 'late' ? 'Trễ' : record.status === 'on_time' ? 'Đúng giờ' : record.status || 'Bình thường'}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

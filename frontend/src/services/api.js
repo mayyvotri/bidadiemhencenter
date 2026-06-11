@@ -105,26 +105,10 @@ export const attendanceApi = {
     const queryString = new URLSearchParams(params).toString();
     return api.get(`/attendance/employee-statistics${queryString ? `?${queryString}` : ''}`);
   },
-  checkInWithFace: (data) => api.post('/attendance/checkin-face', data),
-  checkOutWithFace: (data) => api.post('/attendance/checkout-face', data),
-};
-
-// Face Recognition API
-export const faceRecognitionApi = {
-  registerFace: (faceDescriptors) => api.post('/face-recognition/register', { faceDescriptors }),
-  verifyFace: (faceDescriptor, verificationType) => api.post('/face-recognition/verify', { faceDescriptor, verificationType }),
-  getFaceProfile: () => api.get('/face-recognition/profile'),
-  deleteFaceProfile: () => api.delete('/face-recognition/profile'),
-  getVerificationLogs: (params = {}) => {
+  getMyHistory: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return api.get(`/face-recognition/verification-logs${queryString ? `?${queryString}` : ''}`);
+    return api.get(`/attendance/my-history${queryString ? `?${queryString}` : ''}`);
   },
-  getAllFaceProfiles: (params = {}) => {
-    const qs = new URLSearchParams(params).toString();
-    return api.get(`/face-recognition/all-profiles${qs ? `?${qs}` : ''}`);
-  },
-  toggleFaceProfile: (id) => api.patch(`/face-recognition/${id}/toggle`),
-  deleteFaceProfileAdmin: (id) => api.delete(`/face-recognition/${id}`),
 };
 
 // System Settings API
@@ -280,6 +264,10 @@ export const payrollApi = {
   getPayrollStats: () => api.get('/salary/stats'),
   getSalarySummary: () => api.get('/salary/summary'),
   getSalaryHistory: () => api.get('/salary/history'),
+  getAttendanceHistory: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/salary/attendance-history${queryString ? `?${queryString}` : ''}`);
+  },
 };
 
 // Notification API
@@ -356,5 +344,7 @@ export const systemApi = {
   updateUserRole: (id, data) => api.patch(`/system/users/${id}/role`, data),
   resetUserPassword: (id, data) => api.patch(`/system/users/${id}/password`, data),
   toggleUserStatus: (id) => api.patch(`/system/users/${id}/toggle`),
+  approveUser: (id) => api.patch(`/system/users/${id}/approve`),
+  rejectUser: (id) => api.patch(`/system/users/${id}/reject`),
   deleteUser: (id) => api.delete(`/system/users/${id}`),
 };

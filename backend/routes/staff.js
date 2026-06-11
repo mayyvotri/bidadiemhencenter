@@ -1,15 +1,21 @@
 import express from 'express';
-import Staff from '../models/Staff.js';
+import User from '../models/User.js';
+import { requireAuth } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// GET all staff
-router.get('/', async (req, res) => {
+// GET all staff (from User collection - for schedule assignment)
+router.get('/', requireAuth, async (req, res) => {
   try {
-    const staff = await Staff.find();
+    // Get all active users with staff/manager role
+    const users = await User.find({ 
+      role: { $in: ['staff', 'manager'] },
+      isActive: true
+    }).select('-password');
+    
     res.json({
       success: true,
-      data: staff
+      data: users
     });
   } catch (error) {
     res.status(500).json({
@@ -20,18 +26,18 @@ router.get('/', async (req, res) => {
 });
 
 // GET single staff by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireAuth, async (req, res) => {
   try {
-    const staff = await Staff.findOne({ id: req.params.id });
-    if (!staff) {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'Staff not found'
+        error: 'User not found'
       });
     }
     res.json({
       success: true,
-      data: staff
+      data: user
     });
   } catch (error) {
     res.status(500).json({
@@ -44,21 +50,21 @@ router.get('/:id', async (req, res) => {
 // POST create new staff
 router.post('/', async (req, res) => {
   try {
-    const lastStaff = await Staff.findOne().sort({ createdAt: -1 });
-    const lastNum = lastStaff ? parseInt(lastStaff.id.split('-')[1], 10) : 1000;
-    const newId = `DHB-${(Number.isNaN(lastNum) ? 1000 : lastNum) + 1}`;
+    const lastUser = await User.findOne().sort({ createdAt: -1 });
+    const newId = lastUser ? `DHB-${parseInt(lastUser._id.toString().slice(-4), 16)}` : 'DHB-1001';
 
     const { id: _ignoredId, joinDate: _ignoredJoinDate, ...body } = req.body;
 
-    const newStaff = await Staff.create({
+    const newUser = await User.create({
       ...body,
-      id: newId,
-      joinDate: new Date().toLocaleDateString('vi-VN')
+      role: body.role || 'staff',
+      approvalStatus: 'approved',
+      isActive: true
     });
     
     res.status(201).json({
       success: true,
-      data: newStaff
+      data: newUser
     });
   } catch (error) {
     res.status(500).json({
@@ -69,24 +75,37 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update staff
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
   try {
-    const staff = await Staff.findOneAndUpdate(
-      { id: req.params.id },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const allowedFields = [
+      'name', 'phone', 'role', 'position', 'avatar', 'isActive',
+      'status', 'workArea', 'address', 'dateOfBirth', 'emergencyContact',
+      'salary', 'notes', 'approvalStatus', 'mustChangePassword'
+    ];
     
-    if (!staff) {
+    const updateData = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+    
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+    
+    if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'Staff not found'
+        error: 'User not found'
       });
     }
     
     res.json({
       success: true,
-      data: staff
+      data: user
     });
   } catch (error) {
     res.status(500).json({
@@ -99,18 +118,18 @@ router.put('/:id', async (req, res) => {
 // DELETE staff
 router.delete('/:id', async (req, res) => {
   try {
-    const staff = await Staff.findOneAndDelete({ id: req.params.id });
+    const user = await User.findByIdAndDelete(req.params.id);
     
-    if (!staff) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'Staff not found'
+        error: 'User not found'
       });
     }
     
     res.json({
       success: true,
-      message: 'Staff deleted successfully'
+      message: 'User deleted successfully'
     });
   } catch (error) {
     res.status(500).json({

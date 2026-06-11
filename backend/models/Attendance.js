@@ -27,6 +27,15 @@ const attendanceSchema = new mongoose.Schema({
     enum: ['on_time', 'late', 'early_leave', 'absent'],
     default: 'on_time'
   },
+  shift: {
+    type: String,
+    default: ''
+  },
+  location: {
+    latitude: Number,
+    longitude: Number,
+    address: String
+  },
   notes: {
     type: String,
     default: ''
@@ -44,16 +53,20 @@ const attendanceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient queries
-attendanceSchema.index({ user: 1, date: 1 }, { unique: true });
+// Index for efficient queries (no unique index on user+date to allow multiple check-in/out per day)
+attendanceSchema.index({ user: 1, date: 1 }); // Removed unique: true
 attendanceSchema.index({ date: -1 });
 attendanceSchema.index({ user: 1, date: -1 });
+attendanceSchema.index({ user: 1, checkIn: -1 }); // For finding latest record
 
-// Calculate working hours before saving
+// Calculate working hours before saving (only if not already set)
 attendanceSchema.pre('save', function() {
   if (this.checkIn && this.checkOut) {
     const diff = new Date(this.checkOut).getTime() - new Date(this.checkIn).getTime();
-    this.workingHours = Math.round((diff / (1000 * 60 * 60)) * 100) / 100; // Round to 2 decimal places
+    // Only calculate if workingHours is 0/undefined, otherwise trust explicitly set value
+    if (!this.workingHours) {
+      this.workingHours = Math.round((diff / (1000 * 60 * 60)) * 100) / 100;
+    }
   }
 });
 

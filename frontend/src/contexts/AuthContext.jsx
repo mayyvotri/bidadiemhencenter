@@ -150,7 +150,8 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.isAdmin || false,
     isManager: user?.role === 'manager' || user?.role === 'admin',
     isStaff: user?.role === 'staff',
-    mustChangePassword: user?.mustChangePassword || false
+    mustChangePassword: user?.mustChangePassword || false,
+    approvalStatus: user?.approvalStatus || null
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

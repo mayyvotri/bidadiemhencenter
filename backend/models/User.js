@@ -74,6 +74,40 @@ const userSchema = new mongoose.Schema({
   lastPasswordChange: {
     type: Date,
     default: null
+  },
+  // Extended staff info
+  status: {
+    type: String,
+    enum: ['working', 'on_leave', 'suspended', 'resigned'],
+    default: 'working'
+  },
+  joinDate: {
+    type: Date,
+    default: null
+  },
+  workArea: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
+  dateOfBirth: {
+    type: Date,
+    default: null
+  },
+  emergencyContact: {
+    type: String,
+    default: ''
+  },
+  salary: {
+    type: Number,
+    default: 0
+  },
+  notes: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

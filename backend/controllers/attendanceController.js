@@ -1,14 +1,13 @@
 import Attendance from '../models/Attendance.js';
 import User from '../models/User.js';
-import FaceVerificationLog from '../models/FaceVerificationLog.js';
 import GPSVerificationLog from '../models/GPSVerificationLog.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { verifyLocation } from '../utils/gpsUtils.js';
 
 const getShiftName = (hour) => {
-  if (hour >= 6 && hour < 12) return 'Ca sáng';
-  if (hour >= 12 && hour < 18) return 'Ca chiều';
-  return 'Ca tối';
+  if (hour >= 8 && hour < 16) return 'Ca sáng';
+  if (hour >= 16 && hour < 21) return 'Ca tối';
+  return 'Ca khuya';
 };
 
 const getStatus = (checkInTime) => {
@@ -21,30 +20,29 @@ export const checkIn = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const { latitude, longitude, accuracy } = req.body;
 
-    // Check if already checked in today
+    // Find the last attendance record that hasn't been checked out yet
+    // This allows multiple check-in/out pairs per day
     const existingAttendance = await Attendance.findOne({
       user: userId,
-      date: todayStart
-    });
+      checkOut: null
+    }).sort({ checkIn: -1 });
 
-    if (existingAttendance && !existingAttendance.checkOut) {
+    if (existingAttendance) {
       return res.status(400).json({
         success: false,
-        message: 'Bạn đã check-in hôm nay. Vui lòng check-out trước khi check-in lại.'
+        message: 'Bạn chưa check-out ca trước. Vui lòng check-out trước khi check-in lại.'
       });
     }
 
-    // GPS Verification
     let gpsVerified = true;
     let gpsDistance = 0;
     let gpsMessage = '';
 
     if (latitude && longitude) {
       const settings = await SystemSettings.getSettings();
-      
+
       if (settings.gpsVerificationEnabled) {
         const verification = verifyLocation(
           { latitude, longitude },
@@ -58,7 +56,6 @@ export const checkIn = async (req, res, next) => {
           gpsVerified = false;
           gpsMessage = `Bạn đang ở cách địa điểm làm việc ${verification.distance.toFixed(0)}m. Bán kính cho phép là ${settings.allowedRadius}m.`;
 
-          // Log failed GPS verification
           await GPSVerificationLog.create({
             user: userId,
             verificationType: 'checkin',
@@ -82,7 +79,6 @@ export const checkIn = async (req, res, next) => {
           });
         }
 
-        // Log successful GPS verification
         await GPSVerificationLog.create({
           user: userId,
           verificationType: 'checkin',
@@ -99,6 +95,7 @@ export const checkIn = async (req, res, next) => {
 
     const shift = getShiftName(now.getHours());
     const status = getStatus(now);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const attendance = await Attendance.create({
       user: userId,
@@ -135,36 +132,29 @@ export const checkOut = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const { latitude, longitude, accuracy } = req.body;
 
+    // Find the last attendance record that hasn't been checked out yet
+    // This allows multiple check-in/out pairs per day
     const attendance = await Attendance.findOne({
       user: userId,
-      date: todayStart
-    });
+      checkOut: null
+    }).sort({ checkIn: -1 });
 
     if (!attendance) {
       return res.status(400).json({
         success: false,
-        message: 'Bạn chưa check-in hôm nay'
+        message: 'Bạn chưa check-in. Vui lòng check-in trước khi check-out.'
       });
     }
 
-    if (attendance.checkOut) {
-      return res.status(400).json({
-        success: false,
-        message: 'Bạn đã check-out hôm nay'
-      });
-    }
-
-    // GPS Verification
     let gpsVerified = true;
     let gpsDistance = 0;
     let gpsMessage = '';
 
     if (latitude && longitude) {
       const settings = await SystemSettings.getSettings();
-      
+
       if (settings.gpsVerificationEnabled) {
         const verification = verifyLocation(
           { latitude, longitude },
@@ -178,7 +168,6 @@ export const checkOut = async (req, res, next) => {
           gpsVerified = false;
           gpsMessage = `Bạn đang ở cách địa điểm làm việc ${verification.distance.toFixed(0)}m. Bán kính cho phép là ${settings.allowedRadius}m.`;
 
-          // Log failed GPS verification
           await GPSVerificationLog.create({
             user: userId,
             verificationType: 'checkout',
@@ -202,7 +191,6 @@ export const checkOut = async (req, res, next) => {
           });
         }
 
-        // Log successful GPS verification
         await GPSVerificationLog.create({
           user: userId,
           verificationType: 'checkout',
@@ -276,13 +264,18 @@ export const getActiveSession = async (req, res, next) => {
     const userId = req.user.id;
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(todayStart);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
     const attendance = await Attendance.findOne({
       user: userId,
-      date: todayStart
-    }).populate('user', 'name email');
+      date: { $gte: todayStart, $lt: tomorrow },
+      checkOut: null
+    })
+      .sort({ checkIn: -1 })
+      .populate('user', 'name email');
 
-    if (!attendance || attendance.checkOut) {
+    if (!attendance) {
       return res.status(200).json({
         success: true,
         active: false,
@@ -386,7 +379,7 @@ export const getStatistics = async (req, res, next) => {
       late: attendances.filter(a => a.status === 'late').length,
       earlyLeave: attendances.filter(a => a.status === 'early_leave').length,
       absent: attendances.filter(a => a.status === 'absent').length,
-      averageWorkingHours: attendances.length > 0 
+      averageWorkingHours: attendances.length > 0
         ? (attendances.reduce((sum, a) => sum + (a.workingHours || 0), 0) / attendances.length).toFixed(2)
         : 0
     };
@@ -431,7 +424,7 @@ export const getEmployeeStatistics = async (req, res, next) => {
 
       employeeStats[att.user._id].totalDays++;
       employeeStats[att.user._id].totalWorkingHours += att.workingHours || 0;
-      
+
       if (att.status === 'on_time') employeeStats[att.user._id].onTime++;
       else if (att.status === 'late') employeeStats[att.user._id].late++;
       else if (att.status === 'early_leave') employeeStats[att.user._id].earlyLeave++;
@@ -453,241 +446,140 @@ export const getEmployeeStatistics = async (req, res, next) => {
   }
 };
 
-export const checkInWithFace = async (req, res, next) => {
+// GET /api/v1/attendance/today-status - Get today's attendance status
+export const getTodayStatus = async (req, res, next) => {
   try {
-    const { userId, faceDescriptor, confidence, latitude, longitude, accuracy } = req.body;
+    const userId = req.user.id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (!userId || !faceDescriptor || confidence === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'Thiếu thông tin cần thiết'
-      });
-    }
-
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    // Check if already checked in today
-    const existingAttendance = await Attendance.findOne({
+    // Get all attendance records for today (to support multiple check-in/out pairs)
+    const attendances = await Attendance.find({
       user: userId,
-      date: todayStart
-    });
+      date: { $gte: today, $lt: tomorrow }
+    }).sort({ checkIn: 1 });
 
-    if (existingAttendance && !existingAttendance.checkOut) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nhân viên đã check-in hôm nay'
-      });
-    }
+    // Find the latest open session for today and the latest record overall
+    const activeSession = await Attendance.findOne({
+      user: userId,
+      date: { $gte: today, $lt: tomorrow },
+      checkOut: null
+    }).sort({ checkIn: -1 });
 
-    // GPS Verification
-    let gpsVerified = true;
-    let gpsDistance = 0;
-    let gpsMessage = '';
+    const lastRecord = attendances.length > 0 ? attendances[attendances.length - 1] : null;
+    const hasActiveSession = Boolean(activeSession);
 
-    if (latitude && longitude) {
-      const settings = await SystemSettings.getSettings();
-      
-      if (settings.gpsVerificationEnabled) {
-        const verification = verifyLocation(
-          { latitude, longitude },
-          settings.location,
-          settings.allowedRadius
-        );
-
-        gpsDistance = verification.distance;
-
-        if (!verification.withinRadius) {
-          gpsVerified = false;
-          gpsMessage = `Nhân viên đang ở cách địa điểm làm việc ${verification.distance.toFixed(0)}m. Bán kính cho phép là ${settings.allowedRadius}m.`;
-
-          // Log failed GPS verification
-          await GPSVerificationLog.create({
-            user: userId,
-            verificationType: 'checkin',
-            success: false,
-            employeeLocation: { latitude, longitude, accuracy },
-            businessLocation: settings.location,
-            distance: verification.distance,
-            allowedRadius: settings.allowedRadius,
-            errorMessage: gpsMessage,
-            ipAddress: req.ip,
-            userAgent: req.get('user-agent')
-          });
-
-          return res.status(403).json({
-            success: false,
-            message: gpsMessage,
-            data: {
-              distance: verification.distance,
-              allowedRadius: settings.allowedRadius
-            }
-          });
-        }
-
-        // Log successful GPS verification
-        await GPSVerificationLog.create({
-          user: userId,
-          verificationType: 'checkin',
-          success: true,
-          employeeLocation: { latitude, longitude, accuracy },
-          businessLocation: settings.location,
-          distance: verification.distance,
-          allowedRadius: settings.allowedRadius,
-          ipAddress: req.ip,
-          userAgent: req.get('user-agent')
-        });
+    // Calculate total hours worked today from completed sessions
+    let totalHoursToday = 0;
+    let sessionsCount = 0;
+    attendances.forEach(a => {
+      if (a.workingHours && a.workingHours > 0) {
+        totalHoursToday += a.workingHours;
+        sessionsCount++;
       }
-    }
-
-    const shift = getShiftName(now.getHours());
-    const status = getStatus(now);
-
-    const attendance = await Attendance.create({
-      user: userId,
-      date: todayStart,
-      checkIn: now,
-      status,
-      location: { latitude, longitude }
     });
 
-    const user = await User.findById(userId).select('name email');
-
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: 'Check-in bằng khuôn mặt thành công',
-      data: {
-        id: attendance._id,
-        date: attendance.date,
-        checkIn: attendance.checkIn,
-        checkOut: attendance.checkOut,
-        workingHours: attendance.workingHours,
-        status: attendance.status,
-        shift,
-        user,
-        confidence,
-        gpsVerified,
-        gpsDistance
-      }
+      isClockedIn: hasActiveSession,
+      hasCheckedIn: attendances.length > 0,
+      hasCheckedOut: attendances.some(a => a.checkOut),
+      checkInTime: activeSession ? activeSession.checkIn : (lastRecord ? lastRecord.checkIn : null),
+      checkOutTime: activeSession ? null : (lastRecord ? lastRecord.checkOut : null),
+      activeSession,
+      totalSessionsToday: attendances.length,
+      totalHoursToday: Math.round(totalHoursToday * 100) / 100,
+      attendances: attendances
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const checkOutWithFace = async (req, res, next) => {
+// GET /api/v1/attendance/my-history - Get my attendance history (for staff salary page)
+export const getMyAttendanceHistory = async (req, res, next) => {
   try {
-    const { userId, faceDescriptor, confidence, latitude, longitude, accuracy } = req.body;
+    const userId = req.user.id;
+    const { month, year } = req.query;
 
-    if (!userId || !faceDescriptor || confidence === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'Thiếu thông tin cần thiết'
-      });
+    let dateQuery = {};
+    if (month && year) {
+      const startDate = new Date(Number(year), Number(month) - 1, 1);
+      const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
+      dateQuery = { date: { $gte: startDate, $lte: endDate } };
+    } else {
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      dateQuery = { date: { $gte: startDate, $lte: endDate } };
     }
 
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    const attendance = await Attendance.findOne({
+    const records = await Attendance.find({
       user: userId,
-      date: todayStart
-    });
+      ...dateQuery
+    }).sort({ date: 1 });
 
-    if (!attendance) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nhân viên chưa check-in hôm nay'
-      });
-    }
+    // Calculate summary (recalculate hours from times if needed)
+    let totalHours = 0;
+    let totalDays = 0;
+    let lateCount = 0;
+    let overtimeHours = 0;
+    const REGULAR_DAY_HOURS = 8;
 
-    if (attendance.checkOut) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nhân viên đã check-out hôm nay'
-      });
-    }
-
-    // GPS Verification
-    let gpsVerified = true;
-    let gpsDistance = 0;
-    let gpsMessage = '';
-
-    if (latitude && longitude) {
-      const settings = await SystemSettings.getSettings();
-      
-      if (settings.gpsVerificationEnabled) {
-        const verification = verifyLocation(
-          { latitude, longitude },
-          settings.location,
-          settings.allowedRadius
-        );
-
-        gpsDistance = verification.distance;
-
-        if (!verification.withinRadius) {
-          gpsVerified = false;
-          gpsMessage = `Nhân viên đang ở cách địa điểm làm việc ${verification.distance.toFixed(0)}m. Bán kính cho phép là ${settings.allowedRadius}m.`;
-
-          // Log failed GPS verification
-          await GPSVerificationLog.create({
-            user: userId,
-            verificationType: 'checkout',
-            success: false,
-            employeeLocation: { latitude, longitude, accuracy },
-            businessLocation: settings.location,
-            distance: verification.distance,
-            allowedRadius: settings.allowedRadius,
-            errorMessage: gpsMessage,
-            ipAddress: req.ip,
-            userAgent: req.get('user-agent')
-          });
-
-          return res.status(403).json({
-            success: false,
-            message: gpsMessage,
-            data: {
-              distance: verification.distance,
-              allowedRadius: settings.allowedRadius
-            }
-          });
+    records.forEach(r => {
+      // Calculate hours from times if workingHours is 0
+      let hours = r.workingHours || 0;
+      if ((hours === 0) && r.checkIn && r.checkOut) {
+        const checkInTime = new Date(r.checkIn);
+        const checkOutTime = new Date(r.checkOut);
+        if (checkOutTime > checkInTime) {
+          hours = Math.round((checkOutTime - checkInTime) / (1000 * 60 * 60) * 100) / 100;
         }
-
-        // Log successful GPS verification
-        await GPSVerificationLog.create({
-          user: userId,
-          verificationType: 'checkout',
-          success: true,
-          employeeLocation: { latitude, longitude, accuracy },
-          businessLocation: settings.location,
-          distance: verification.distance,
-          allowedRadius: settings.allowedRadius,
-          ipAddress: req.ip,
-          userAgent: req.get('user-agent')
-        });
       }
-    }
 
-    attendance.checkOut = now;
-    attendance.location = { latitude, longitude };
-    await attendance.save();
-
-    const user = await User.findById(userId).select('name email');
+      if (r.status !== 'absent') {
+        totalHours += hours;
+        totalDays++;
+      }
+      if (r.status === 'late') lateCount++;
+      if (hours > REGULAR_DAY_HOURS) {
+        overtimeHours += hours - REGULAR_DAY_HOURS;
+      }
+    });
 
     return res.status(200).json({
       success: true,
-      message: 'Check-out bằng khuôn mặt thành công',
       data: {
-        id: attendance._id,
-        date: attendance.date,
-        checkIn: attendance.checkIn,
-        checkOut: attendance.checkOut,
-        workingHours: attendance.workingHours,
-        status: attendance.status,
-        user,
-        confidence,
-        gpsVerified,
-        gpsDistance
+        month: month ? Number(month) : new Date().getMonth() + 1,
+        year: year ? Number(year) : new Date().getFullYear(),
+        records: records.map(r => {
+          // Calculate hours from times if not set
+          let hours = r.workingHours || 0;
+          if ((hours === 0) && r.checkIn && r.checkOut) {
+            const checkInTime = new Date(r.checkIn);
+            const checkOutTime = new Date(r.checkOut);
+            if (checkOutTime > checkInTime) {
+              hours = Math.round((checkOutTime - checkInTime) / (1000 * 60 * 60) * 100) / 100;
+            }
+          }
+          return {
+            _id: r._id,
+            date: r.date,
+            checkIn: r.checkIn,
+            checkOut: r.checkOut,
+            hours,
+            status: r.status,
+            shift: r.shift
+          };
+        }),
+        summary: {
+          totalDaysWorked: totalDays,
+          totalHoursWorked: Math.round(totalHours * 100) / 100,
+          lateCount,
+          overtimeHours: Math.round(overtimeHours * 100) / 100
+        }
       }
     });
   } catch (error) {

@@ -270,19 +270,34 @@ export const deleteAssignment = async (req, res, next) => {
 
 export const getMyAssignments = async (req, res, next) => {
   try {
-    const userId = req.user.id;
     const { startDate, endDate } = req.query;
+    const userId = req.user.id;
+
     const query = { user: userId };
 
     if (startDate || endDate) {
       query.date = {};
-      if (startDate) query.date.$gte = new Date(startDate);
-      if (endDate) query.date.$lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
     }
 
+    console.log('[getMyAssignments] userId:', userId, 'query:', JSON.stringify(query));
+
     const assignments = await ShiftAssignment.find(query)
+      .populate('user', 'name email phone position')
       .populate('shift')
+      .populate('assignedBy', 'name')
       .sort({ date: 1, 'shift.startTime': 1 });
+
+    console.log('[getMyAssignments] found count:', assignments.length, 'data:', JSON.stringify(assignments.map(a => ({ user: a.user?._id, shift: a.shift?._id, date: a.date }))));
 
     return res.status(200).json({
       success: true,

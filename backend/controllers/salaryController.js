@@ -583,3 +583,109 @@ export const getSalaryHistory = async (req, res, next) => {
     next(error);
   }
 };
+
+// ─── Attendance History for Staff (view as salary) ────────────────────────────
+
+export const getAttendanceHistory = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { month, year } = req.query;
+
+    // Get wage config for this staff
+    const wageConfig = await WageConfig.findOne({ staffId: userId });
+    const wagePerHour = wageConfig ? wageConfig.baseWage / STANDARD_HOURS_PER_MONTH : 0;
+
+    // Build query for attendance
+    let dateQuery = {};
+    if (month && year) {
+      const startDate = new Date(Number(year), Number(month) - 1, 1);
+      const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
+      dateQuery = { date: { $gte: startDate, $lte: endDate } };
+    } else {
+      // Default: current month
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      dateQuery = { date: { $gte: startDate, $lte: endDate } };
+    }
+
+    // Get attendance records for this user
+    const attendanceRecords = await Attendance.find({
+      user: userId,
+      ...dateQuery
+    }).sort({ date: 1 });
+
+    // Calculate summary from attendance (recalculate hours from times if needed)
+    let totalHours = 0;
+    let totalDays = 0;
+    let lateCount = 0;
+    let overtimeHours = 0;
+
+    attendanceRecords.forEach(record => {
+      // Calculate hours from times if workingHours is not set
+      let hours = record.workingHours || 0;
+      if ((hours === 0) && record.checkIn && record.checkOut) {
+        const checkInTime = new Date(record.checkIn);
+        const checkOutTime = new Date(record.checkOut);
+        if (checkOutTime > checkInTime) {
+          hours = Math.round((checkOutTime - checkInTime) / (1000 * 60 * 60) * 100) / 100;
+        }
+      }
+
+      if (record.status !== 'absent') {
+        totalHours += hours;
+        totalDays++;
+      }
+      if (record.status === 'late') lateCount++;
+      if (hours > REGULAR_DAY_HOURS) {
+        overtimeHours += hours - REGULAR_DAY_HOURS;
+      }
+    });
+
+    const baseSalary = Math.round(totalHours * wagePerHour * 100) / 100;
+    const overtimePay = Math.round(overtimeHours * wagePerHour * 1.5 * 100) / 100;
+    const grossSalary = baseSalary + overtimePay + (wageConfig?.allowances || 0);
+
+    res.json({
+      success: true,
+      data: {
+        month: month ? Number(month) : new Date().getMonth() + 1,
+        year: year ? Number(year) : new Date().getFullYear(),
+        attendanceRecords: attendanceRecords.map(r => {
+          // Calculate hours from check-in/check-out if not set
+          let hours = r.workingHours;
+          if ((hours == null || hours === 0) && r.checkIn && r.checkOut) {
+            const checkInTime = new Date(r.checkIn);
+            const checkOutTime = new Date(r.checkOut);
+            if (checkOutTime > checkInTime) {
+              hours = Math.round((checkOutTime - checkInTime) / (1000 * 60 * 60) * 100) / 100;
+            }
+          }
+          return {
+            date: r.date,
+            checkIn: r.checkIn,
+            checkOut: r.checkOut,
+            hours: hours || 0,
+            status: r.status,
+            shift: r.shift
+          };
+        }),
+        summary: {
+          totalDaysWorked: totalDays,
+          totalHoursWorked: Math.round(totalHours * 100) / 100,
+          lateCount,
+          overtimeHours: Math.round(overtimeHours * 100) / 100,
+          baseWage: wageConfig?.baseWage || 0,
+          wagePerHour: Math.round(wagePerHour * 100) / 100,
+          baseSalary,
+          overtimePay,
+          allowances: wageConfig?.allowances || 0,
+          grossSalary: Math.round(grossSalary * 100) / 100,
+          netSalary: Math.round(grossSalary * 100) / 100
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

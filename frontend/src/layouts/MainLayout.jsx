@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import { useAuth } from '../contexts/AuthContext';
@@ -59,22 +59,20 @@ export default function MainLayout({ children }) {
   const staffMenu = [
     { label: 'DASHBOARD', path: '/dashboard', icon: '📊' },
     { label: 'ATTENDANCE', path: '/attendance', icon: '🕒' },
+    { label: 'HISTORY', path: '/attendance-history', icon: '📋' },
     { label: 'SHIFTS', path: '/schedule', icon: '📅' },
     { label: 'SALARY', path: '/salary', icon: '💰' },
-    { label: 'TASKS', path: '/tasks', icon: '📋' },
-    { label: 'FACE REGISTRATION', path: '/face-registration', icon: '🧠' }
+    { label: 'TASKS', path: '/tasks', icon: '📋' }
   ];
 
   const managerMenu = [
     { label: 'Dashboard', path: '/dashboard', icon: '📊' },
     { label: 'Staff List', path: '/staff-list', icon: '👥' },
     { label: 'Shift Schedule', path: '/schedule', icon: '📅' },
-    { label: 'AI Tạo Lịch', path: '/schedule-generator', icon: '🤖' },
+    { label: 'Duyệt Chấm Công', path: '/attendance-approval', icon: '✅' },
     { label: 'Báo cáo', path: '/reports', icon: '📊' },
-    { label: 'Inventory', path: '/inventory', icon: '📦' },
     { label: 'Settings', path: '/settings', icon: '⚙️' },
-    { label: 'System Admin', path: '/system-admin', icon: '🖥️' },
-    { label: 'Face Management', path: '/face-management', icon: '🧠' }
+    { label: 'System Admin', path: '/system-admin', icon: '🖥️' }
   ];
 
   const menu = user.isAdmin ? managerMenu : staffMenu;
@@ -86,6 +84,26 @@ export default function MainLayout({ children }) {
       background: 'var(--bg-main)',
       color: 'var(--text-primary)'
     }}>
+      {/* Pending Approval Warning Banner */}
+      {user?.approvalStatus === 'pending' && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          background: 'rgba(234, 179, 8, 0.95)',
+          color: '#1a1a1a',
+          padding: '10px 16px',
+          textAlign: 'center',
+          fontSize: '13px',
+          fontWeight: '600',
+          backdropFilter: 'blur(8px)'
+        }}>
+          ⏳ Tài khoản của bạn đang chờ được quản lý duyệt. Một số chức năng có thể bị hạn chế.
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside style={{
         width: '260px',
