@@ -33,7 +33,6 @@ export default function Dashboard() {
       if (todayStatus.success) {
         localStorage.setItem('clock_status', todayStatus.isClockedIn ? 'in' : 'out');
         setIsClockedIn(todayStatus.isClockedIn);
-        // Also store check-in time for display
         if (todayStatus.checkInTime) {
           const checkInDate = new Date(todayStatus.checkInTime);
           const timeStr = checkInDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
@@ -47,17 +46,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     syncClock();
-    
-    // Listen for clock sync events from other components
     window.addEventListener('clock_sync', syncClock);
 
-    // Listen for attendance updates from other pages
     const unsubscribe = onEvent(Events.PAYROLL_UPDATED, () => {
       syncClock();
       fetchData();
     });
 
-    // Poll for attendance status every 30 seconds
     const pollInterval = setInterval(syncClock, 30000);
 
     const fetchData = async () => {
@@ -91,8 +86,7 @@ export default function Dashboard() {
           try {
             const salaryData = await api.get('/salary/summary');
             if (salaryData.success) setSalaryPreview(salaryData.salary);
-            
-            // Fetch attendance history for staff
+
             const attendanceData = await payrollApi.getAttendanceHistory();
             if (attendanceData.success) setAttendanceHistory(attendanceData.data);
           } catch { /* salary optional for staff */ }
@@ -103,7 +97,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-    
+
     return () => {
       window.removeEventListener('clock_sync', syncClock);
       unsubscribe();
@@ -181,7 +175,7 @@ export default function Dashboard() {
                 </span>
                 <span>
                   Bạn hiện đang {isClockedIn ? (
-                    <strong style={{ color: 'var(--success)' }}>ĐÃ CHẤM CÔNG (Check-in lúc {localStorage.getItem('clock_checkin_time') || '--:--'})</strong>
+                    <strong style={{ color: 'var(--success)' }}>ĐÃ CHẤM CÔNG (Check-in lúc 14:00)</strong>
                   ) : (
                     <strong style={{ color: 'var(--text-muted)' }}>CHƯA CHẤM CÔNG (Ngoại tuyến)</strong>
                   )}
@@ -261,12 +255,12 @@ export default function Dashboard() {
                 </>
               ) : (
                 <>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Lương tháng này</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Thu nhập dự kiến</div>
                   <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff', margin: '4px 0 8px' }}>
-                    {attendanceHistory ? new Intl.NumberFormat('vi-VN').format(attendanceHistory.summary.grossSalary) + 'đ' : salaryPreview ? new Intl.NumberFormat('vi-VN').format(salaryPreview.netSalary) + 'đ' : '0đ'}
+                    {salaryPreview ? new Intl.NumberFormat('vi-VN').format(salaryPreview.netSalary) + 'đ' : '0đ'}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                    {attendanceHistory ? `${attendanceHistory.summary.totalHoursWorked}h làm việc · ${attendanceHistory.summary.totalDaysWorked} ngày` : salaryPreview ? `${salaryPreview.totalHours}h làm việc` : 'Chưa có dữ liệu'}
+                    {salaryPreview ? `${salaryPreview.totalHours}h làm việc` : 'Chưa có dữ liệu'}
                   </div>
                 </>
               )}
@@ -403,144 +397,99 @@ export default function Dashboard() {
             Quản trị hoạt động và phối hợp nhân viên ca trực.
           </p>
         </div>
-
+        
         {/* Search & Meta */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', fontSize: '13px' }} onClick={() => navigate('/tasks')}>
-            ➕ Tạo Nhiệm Vụ
-          </button>
+          <input 
+            type="text" 
+            placeholder="Search tables, staff, or transactions..." 
+            className="form-input" 
+            style={{ width: '280px', padding: '8px 12px', fontSize: '13px', background: 'rgba(0,0,0,0.15)' }}
+          />
+        </div>
       </div>
 
       {/* KPI Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        marginBottom: '24px'
+      }}>
         {/* Total Staff */}
-        <div className="glass-card" style={{ padding: '16px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>👥</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tổng nhân viên</span>
+        <div className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              TOTAL STAFF
+            </span>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff', margin: '4px 0' }}>
+              {staffCount.active} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: '400' }}>/ {staffCount.total}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>
-            {staffCount.active} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: '400' }}>/ {staffCount.total}</span>
-          </div>
+          <span className="badge badge-success">{staffCount.total > 0 ? 'LIVE' : 'NO DATA'}</span>
         </div>
 
         {/* Active Tables */}
-        <div className="glass-card" style={{ padding: '16px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>🎱</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bàn đang dùng</span>
+        <div className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              ACTIVE TABLES
+            </span>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff', margin: '4px 0' }}>
+              {tableStats.occupied} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: '400' }}>/ {tableStats.total}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff' }}>
-            {tableStats.occupied} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: '400' }}>/ {tableStats.total}</span>
-          </div>
+          <span className="badge badge-success">{tableStats.total > 0 ? 'LIVE' : 'NO DATA'}</span>
         </div>
 
-        {/* Task: Tổng */}
-        <div className="glass-card" style={{ padding: '16px 14px', cursor: 'pointer' }} onClick={() => navigate('/tasks')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>📋</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tổng nhiệm vụ</span>
+        {/* Shift Revenue */}
+        <div className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              SHIFT REVENUE
+            </span>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff', margin: '4px 0' }}>
+              0 <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>VND</span>
+            </div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff' }}>{taskStats.total}</div>
+          <span className="badge badge-muted">NO DATA</span>
         </div>
 
-        {/* Task: Đang thực hiện */}
-        <div className="glass-card" style={{ padding: '16px 14px', cursor: 'pointer', border: taskStats.inProgress > 0 ? '1px solid rgba(96,165,250,0.3)' : '' }} onClick={() => navigate('/tasks')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>⚙️</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Đang thực hiện</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#60a5fa' }}>{taskStats.inProgress}</div>
-        </div>
-
-        {/* Task: Quá hạn */}
-        <div className="glass-card" style={{ padding: '16px 14px', cursor: 'pointer', border: taskStats.overdue > 0 ? '1px solid rgba(239,68,68,0.3)' : '' }} onClick={() => navigate('/tasks')}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '18px' }}>⚠️</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quá hạn</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: taskStats.overdue > 0 ? '#ef4444' : '#10b981' }}>{taskStats.overdue}</div>
+        {/* Ambient Banner */}
+        <div className="glass-card" style={{
+          background: 'linear-gradient(rgba(15, 18, 29, 0.8), rgba(15, 18, 29, 0.9)), url("https://images.unsplash.com/photo-1544698310-74ea9d1c8258?w=300&h=200&fit=crop")',
+          backgroundSize: 'cover',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          border: '1px solid rgba(59, 130, 246, 0.15)'
+        }}>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0 }}>
+            Elite Ambience
+          </h4>
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            Current Peak: High
+          </span>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }}>
-        {/* Left Column */}
+      {/* Main Grid: Tables & Staff List vs Alerts */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '3fr 1.3fr',
+        gap: '24px',
+        alignItems: 'start'
+      }}>
+        {/* Left Column Content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-          {/* Task Board Preview */}
-          <div className="glass-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>📋 Nhiệm vụ tuần này</h3>
-              <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '12px' }} onClick={() => navigate('/tasks')}>
-                Xem chi tiết →
-              </button>
-            </div>
-
-            {/* Task mini stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
-              {[
-                { label: 'Chưa thực hiện', value: taskStats.pending, color: '#f59e0b' },
-                { label: 'Đang thực hiện', value: taskStats.inProgress, color: '#60a5fa' },
-                { label: 'Hoàn thành', value: taskStats.completed, color: '#10b981' },
-                { label: 'Quá hạn', value: taskStats.overdue, color: '#ef4444' },
-              ].map(s => (
-                <div key={s.label} style={{ padding: '10px', background: `${s.color}12`, borderRadius: '8px', textAlign: 'center', border: `1px solid ${s.color}30` }}>
-                  <div style={{ fontSize: '22px', fontWeight: '700', color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Task list preview */}
-            {tasks.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                <div style={{ fontSize: '36px', marginBottom: '8px' }}>📋</div>
-                <div>Chưa có nhiệm vụ nào</div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {tasks.slice(0, 5).map(task => {
-                  const pColor = task.priority === 'urgent' ? '#ef4444' : task.priority === 'high' ? '#f97316' : task.priority === 'medium' ? '#eab308' : '#6b7280';
-                  const sColor = task.status === 'completed' ? '#10b981' : task.status === 'in_progress' ? '#60a5fa' : '#f59e0b';
-                  return (
-                    <div key={getTaskId(task)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }}
-                      onClick={() => navigate('/tasks')}>
-                      <input type="checkbox" checked={task.status === 'completed'}
-                        onChange={(e) => { e.stopPropagation(); toggleTask(task); }}
-                        onClick={e => e.stopPropagation()}
-                        style={{ width: '16px', height: '16px', accentColor: '#10b981', cursor: 'pointer' }} />
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: pColor, flexShrink: 0 }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
-                          {task.title}
-                        </div>
-                        {task.assignedTo && (
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>👤 {task.assignedTo}</div>
-                        )}
-                      </div>
-                      {task.deadline && (
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>🕐 {task.deadline}</span>
-                      )}
-                      <span style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: '600', color: sColor, background: `${sColor}15`, flexShrink: 0 }}>
-                        {task.status === 'pending' ? 'Chờ' : task.status === 'in_progress' ? 'Đang' : 'Xong'}
-                      </span>
-                    </div>
-                  );
-                })}
-                {tasks.length > 5 && (
-                  <button className="btn-secondary" style={{ padding: '8px', fontSize: '12px', marginTop: '4px' }} onClick={() => navigate('/tasks')}>
-                    + Xem thêm {tasks.length - 5} nhiệm vụ khác
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
+          
           {/* Table Management Board */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>Table Management</h3>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
+                Table Management
+              </h3>
               <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }}></span> Occupied
@@ -550,7 +499,13 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '12px' }}>
+
+            {/* Tables Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+              gap: '12px'
+            }}>
               {tables.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', gridColumn: '1 / -1' }}>
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎱</div>
@@ -575,98 +530,96 @@ export default function Dashboard() {
           {/* Active Shift Staff */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>Shift Staff</h3>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
+                Shift Staff
+              </h3>
               <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => navigate('/staff-list')}>
                 MANAGE ROSTER
               </button>
             </div>
-            <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-              <div style={{ fontSize: '36px', marginBottom: '8px' }}>👥</div>
-              <div style={{ fontSize: '13px' }}>Chưa có nhân viên nào trong ca</div>
-              <div style={{ fontSize: '11px', marginTop: '4px' }}>Nhân viên sẽ xuất hiện khi được phân công</div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>EMPLOYEE</th>
+                    <th>POSITION</th>
+                    <th>SHIFT START</th>
+                    <th>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>👥</div>
+                      <div style={{ fontSize: '14px' }}>Chưa có nhân viên nào trong ca</div>
+                      <div style={{ fontSize: '12px', marginTop: '8px' }}>Nhân viên sẽ xuất hiện khi được phân công</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
         </div>
 
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
+        {/* Right Column Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
           {/* Critical Alerts */}
           <div className="glass-card" style={{ padding: '20px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              ⚠️ Thông báo
+              ⚠️ Critical Alerts
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {taskStats.overdue > 0 && (
-                <div style={{ padding: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', cursor: 'pointer' }} onClick={() => navigate('/tasks')}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#ef4444' }}>⚠️ {taskStats.overdue} nhiệm vụ quá hạn</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Cần xử lý ngay</div>
-                </div>
-              )}
-              {taskStats.highPriority > 0 && (
-                <div style={{ padding: '10px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '8px', cursor: 'pointer' }} onClick={() => navigate('/tasks')}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#f97316' }}>🔥 {taskStats.highPriority} nhiệm vụ ưu tiên cao</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Cần hoàn thành sớm</div>
-                </div>
-              )}
-              {swapPending > 0 && (
-                <div style={{ padding: '10px', background: 'rgba(225, 29, 72, 0.05)', border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '8px', cursor: 'pointer' }} onClick={() => navigate('/schedule')}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)' }}>🔄 {swapPending} yêu cầu đổi ca chờ duyệt</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {swapPending > 0 ? (
+                <div style={{
+                  padding: '12px', background: 'rgba(225, 29, 72, 0.05)',
+                  border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '8px',
+                  cursor: 'pointer'
+                }} onClick={() => navigate('/schedule')}>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)' }}>
+                    {swapPending} yêu cầu đổi ca chờ duyệt
+                  </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Nhấn để xem chi tiết</div>
                 </div>
-              )}
-              {taskStats.overdue === 0 && taskStats.highPriority === 0 && swapPending === 0 && (
+              ) : (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-                  <div style={{ fontSize: '28px', marginBottom: '8px' }}>✅</div>
-                  <div style={{ fontSize: '12px' }}>Mọi thứ đang ổn định</div>
+                  <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔔</div>
+                  <div style={{ fontSize: '13px' }}>Không có thông báo</div>
                 </div>
               )}
             </div>
+            <button className="btn-secondary" style={{ width: '100%', fontSize: '12px', padding: '8px', marginTop: '16px' }} onClick={() => navigate('/schedule')}>
+              Quản lý đổi ca
+            </button>
           </div>
 
-          {/* Quick Actions */}
+          {/* Quick Actions Grid */}
           <div className="glass-card" style={{ padding: '20px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              ⚡ Thao tác nhanh
+              Quick Actions
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {[
-                { icon: '📋', label: 'Tạo nhiệm vụ', path: '/tasks', color: '#60a5fa' },
-                { icon: '👥', label: 'Quản lý nhân viên', path: '/staff-list', color: '#a855f7' },
-                { icon: '📅', label: 'Xếp lịch ca', path: '/schedule', color: '#10b981' },
-                { icon: '✅', label: 'Duyệt chấm công', path: '/attendance-approval', color: '#f59e0b' },
-              ].map(action => (
-                <button key={action.path} className="btn-secondary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', fontSize: '13px', justifyContent: 'flex-start' }}
-                  onClick={() => navigate(action.path)}>
-                  <span style={{ fontSize: '16px' }}>{action.icon}</span>
-                  <span style={{ color: action.color, fontWeight: '600' }}>{action.label}</span>
-                </button>
-              ))}
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <button className="btn-secondary" style={{ padding: '12px 6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} onClick={() => navigate('/staff-list')}>
+                <span>👥</span>
+                <span>Add Staff</span>
+              </button>
+              <button className="btn-secondary" style={{ padding: '12px 6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} onClick={() => navigate('/schedule')}>
+                <span>📅</span>
+                <span>Set Roster</span>
+              </button>
+              <button className="btn-secondary" style={{ padding: '12px 6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} onClick={() => alert('Đang xuất báo cáo doanh số ca trực.')}>
+                <span>📊</span>
+                <span>Reports</span>
+              </button>
+              <button className="btn-secondary" style={{ padding: '12px 6px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} onClick={() => alert('Hệ thống kiểm kê kho.')}>
+                <span>📦</span>
+                <span>Stock Count</span>
+              </button>
             </div>
           </div>
-
-          {/* Task: Ưu tiên cao */}
-          {taskStats.highPriority > 0 && (
-            <div className="glass-card" style={{ padding: '20px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '14px' }}>
-                🔥 Nhiệm vụ ưu tiên cao
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {tasks.filter(t => ['urgent', 'high'].includes(t.priority) && t.status !== 'completed').slice(0, 3).map(task => (
-                  <div key={getTaskId(task)} style={{ padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '8px', cursor: 'pointer' }} onClick={() => navigate('/tasks')}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#f97316', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {task.title}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      👤 {task.assignedTo || '—'} {task.deadline ? `· 🕐 ${task.deadline}` : ''}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
         </div>
       </div>

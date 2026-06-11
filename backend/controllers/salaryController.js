@@ -689,3 +689,91 @@ export const getAttendanceHistory = async (req, res, next) => {
     next(error);
   }
 };
+
+// ─── Get Staff Attendance for Admin (any staff, any month) ─────────────────────
+
+export const getStaffAttendance = async (req, res, next) => {
+  try {
+    const { staffId } = req.params;
+    const { month, year } = req.query;
+
+    const Staff = (await import('../models/User.js')).default;
+    const WageConfig = (await import('../models/WageConfig.js')).default;
+
+    const staff = await Staff.findById(staffId).select('name email dept role');
+    if (!staff) return res.status(404).json({ success: false, message: 'Không tìm thấy nhân viên' });
+
+    const wageConfig = await WageConfig.findOne({ staffId });
+    const wagePerHour = wageConfig ? wageConfig.baseWage / STANDARD_HOURS_PER_MONTH : 0;
+
+    let startDate, endDate;
+    if (month && year) {
+      startDate = new Date(Number(year), Number(month) - 1, 1);
+      endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
+    } else {
+      const now = new Date();
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    }
+
+    const attendanceRecords = await Attendance.find({
+      user: staffId,
+      date: { $gte: startDate, $lte: endDate }
+    }).sort({ date: 1 });
+
+    let totalHours = 0, totalDays = 0, lateCount = 0, overtimeHours = 0;
+    const records = attendanceRecords.map(r => {
+      let hours = r.workingHours || 0;
+      if ((hours === 0) && r.checkIn && r.checkOut) {
+        const checkInTime = new Date(r.checkIn);
+        const checkOutTime = new Date(r.checkOut);
+        if (checkOutTime > checkInTime) {
+          hours = Math.round((checkOutTime - checkInTime) / (1000 * 60 * 60) * 100) / 100;
+        }
+      }
+      if (r.status !== 'absent') { totalHours += hours; totalDays++; }
+      if (r.status === 'late') lateCount++;
+      if (hours > REGULAR_DAY_HOURS) overtimeHours += hours - REGULAR_DAY_HOURS;
+
+      return {
+        date: r.date,
+        checkIn: r.checkIn,
+        checkOut: r.checkOut,
+        hours: hours || 0,
+        status: r.status,
+        shift: r.shift,
+        note: r.note
+      };
+    });
+
+    const baseSalary = Math.round(totalHours * wagePerHour * 100) / 100;
+    const overtimePay = Math.round(overtimeHours * wagePerHour * 1.5 * 100) / 100;
+    const grossSalary = baseSalary + overtimePay + (wageConfig?.allowances || 0);
+
+    res.json({
+      success: true,
+      data: {
+        staff: { id: staff._id, name: staff.name, email: staff.email, dept: staff.dept, role: staff.role },
+        month: month ? Number(month) : new Date().getMonth() + 1,
+        year: year ? Number(year) : new Date().getFullYear(),
+        attendanceRecords: records,
+        summary: {
+          totalDaysWorked: totalDays,
+          totalHoursWorked: Math.round(totalHours * 100) / 100,
+          lateCount,
+          overtimeHours: Math.round(overtimeHours * 100) / 100,
+          baseWage: wageConfig?.baseWage || 0,
+          wagePerHour: Math.round(wagePerHour * 100) / 100,
+          baseSalary,
+          overtimePay,
+          allowances: wageConfig?.allowances || 0,
+          grossSalary: Math.round(grossSalary * 100) / 100,
+          netSalary: Math.round(grossSalary * 100) / 100
+        }
+      }
+    });
+  } catch (err) {
+    console.error('getStaffAttendance error:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server: ' + err.message });
+  }
+};

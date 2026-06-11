@@ -15,7 +15,8 @@ import {
   getPayrollStats,
   getSalarySummary,
   getSalaryHistory,
-  getAttendanceHistory
+  getAttendanceHistory,
+  getStaffAttendance
 } from '../controllers/salaryController.js';
 import { requireAuth, requireAdmin } from '../middlewares/authMiddleware.js';
 
@@ -43,6 +44,7 @@ router.get('/stats', getPayrollStats);
 router.get('/summary', getSalarySummary);
 router.get('/history', getSalaryHistory);
 router.get('/attendance-history', getAttendanceHistory);
+router.get('/staff-attendance/:staffId', requireAdmin, getStaffAttendance);
 
 // ── Adjustments ─────────────────────────────────────────────────────────────
 router.patch('/:id/adjust', requireAdmin, adjustPayroll);

@@ -75,7 +75,6 @@ export default function AppRoutes() {
       <Route path="/attendance" element={<PrivateRoute><AttendanceRequest /></PrivateRoute>} />
       <Route path="/attendance-history" element={<PrivateRoute><AttendanceRequestHistory /></PrivateRoute>} />
       <Route path="/schedule" element={<PrivateRoute><Schedule /></PrivateRoute>} />
-      <Route path="/salary" element={<PrivateRoute><Payroll /></PrivateRoute>} />
       <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
       <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
 

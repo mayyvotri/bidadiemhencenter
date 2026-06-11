@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../services/api';
 
 export default function MainLayout({ children }) {
   const navigate = useNavigate();
@@ -10,6 +11,9 @@ export default function MainLayout({ children }) {
   const [user, setUser] = useState({ name: 'Minh Nguyễn', role: 'Nhân viên Phục vụ', isAdmin: false });
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+  const [showProfile, setShowProfile] = useState(false);
+  const [salaryInfo, setSalaryInfo] = useState(null);
+  const [salaryLoading, setSalaryLoading] = useState(false);
 
   // Sync auth user into local state
   useEffect(() => {
@@ -55,13 +59,41 @@ export default function MainLayout({ children }) {
     window.dispatchEvent(new Event('clock_sync'));
   };
 
+  const fetchSalaryInfo = async () => {
+    if (salaryInfo) return;
+    setSalaryLoading(true);
+    try {
+      if (user.isAdmin) {
+        // Admin: get payroll stats
+        const data = await api.get('/salary/stats');
+        if (data.success) {
+          setSalaryInfo({ isAdmin: true, stats: data.data });
+        }
+      } else {
+        // Staff: get personal salary summary
+        const data = await api.get('/salary/summary');
+        if (data.success && data.salary) {
+          setSalaryInfo(data.salary);
+        }
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setSalaryLoading(false);
+    }
+  };
+
+  const handleProfileClick = () => {
+    setShowProfile(!showProfile);
+    if (!showProfile) fetchSalaryInfo();
+  };
+
   // Menu options based on role
   const staffMenu = [
     { label: 'DASHBOARD', path: '/dashboard', icon: '📊' },
     { label: 'ATTENDANCE', path: '/attendance', icon: '🕒' },
     { label: 'HISTORY', path: '/attendance-history', icon: '📋' },
     { label: 'SHIFTS', path: '/schedule', icon: '📅' },
-    { label: 'SALARY', path: '/salary', icon: '💰' },
     { label: 'TASKS', path: '/tasks', icon: '📋' }
   ];
 
@@ -223,7 +255,7 @@ export default function MainLayout({ children }) {
             borderRadius: '10px',
             padding: '12px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={handleProfileClick}>
               <img
                 src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=faces'}
                 alt="Avatar"
@@ -243,7 +275,116 @@ export default function MainLayout({ children }) {
                   {user.role}
                 </div>
               </div>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', transition: 'transform 0.2s', transform: showProfile ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
             </div>
+
+            {/* Profile dropdown */}
+            {showProfile && (
+              <div style={{
+                marginTop: '12px',
+                paddingTop: '12px',
+                borderTop: '1px solid var(--border-glass)'
+              }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Thông tin lương
+                </div>
+                {salaryLoading ? (
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px' }}>Đang tải...</div>
+                ) : salaryInfo ? (
+                  user.isAdmin ? (
+                    // Admin: show summary stats
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tổng NV</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                          {salaryInfo.stats?.totalEmployees || 0}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Đã thanh toán</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--success)' }}>
+                          {salaryInfo.stats?.paid || 0}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Quỹ lương</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                          {salaryInfo.stats?.totalNet != null ? new Intl.NumberFormat('vi-VN').format(salaryInfo.stats.totalNet) + 'đ' : '—'}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => { navigate('/payroll'); setShowProfile(false); }}
+                        style={{
+                          marginTop: '6px',
+                          padding: '6px 10px',
+                          background: 'var(--primary)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          width: '100%',
+                          letterSpacing: '0.3px'
+                        }}
+                      >
+                        Xem chi tiết →
+                      </button>
+                    </div>
+                  ) : (
+                    // Staff: show personal salary
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Lương NET</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--success)' }}>
+                          {salaryInfo.netSalary != null ? new Intl.NumberFormat('vi-VN').format(salaryInfo.netSalary) + 'đ' : '—'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Lương GROSS</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                          {salaryInfo.grossSalary != null ? new Intl.NumberFormat('vi-VN').format(salaryInfo.grossSalary) + 'đ' : '—'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tổng giờ</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                          {salaryInfo.totalHours != null ? salaryInfo.totalHours.toFixed(1) + 'h' : '—'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tháng</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                          {salaryInfo.month ? `${salaryInfo.month}/${salaryInfo.year || new Date().getFullYear()}` : '—'}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => { navigate('/salary'); setShowProfile(false); }}
+                        style={{
+                          marginTop: '6px',
+                          padding: '6px 10px',
+                          background: 'var(--primary)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          width: '100%',
+                          letterSpacing: '0.3px'
+                        }}
+                      >
+                        Xem chi tiết →
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px' }}>
+                    Chưa có dữ liệu lương
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Staff Specific: Clock In / Clock Out Button */}
             {!user.isAdmin && (

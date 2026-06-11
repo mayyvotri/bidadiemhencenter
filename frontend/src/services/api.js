@@ -268,6 +268,10 @@ export const payrollApi = {
     const queryString = new URLSearchParams(params).toString();
     return api.get(`/salary/attendance-history${queryString ? `?${queryString}` : ''}`);
   },
+  getStaffAttendance: (staffId, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/salary/staff-attendance/${staffId}${queryString ? `?${queryString}` : ''}`);
+  },
 };
 
 // Notification API
