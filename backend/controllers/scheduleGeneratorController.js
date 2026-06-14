@@ -1,5 +1,6 @@
 import ScheduleGenerator from '../models/ScheduleGenerator.js';
 import Staff from '../models/Staff.js';
+import User from '../models/User.js';
 import LeaveRequest from '../models/LeaveRequest.js';
 import Attendance from '../models/Attendance.js';
 import Notification from '../models/Notification.js';
@@ -423,7 +424,10 @@ export const generateSchedule = async (req, res, next) => {
     for (let day = 0; day < 7; day++) {
       const date = new Date(monday);
       date.setDate(monday.getDate() + day);
-      const dateStr = date.toISOString().split('T')[0];
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${y}-${m}-${dd}`;
       
       for (const shift of SHIFT_DATA) {
         slots.push({
@@ -561,12 +565,27 @@ export const updateSlot = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy lịch biểu.' });
     }
 
-    const slot = schedule.slots.find(s => (s._id?.toString() || s.dayKey + s.shiftName) === slotId);
+    console.log('[updateSlot] slotId:', slotId);
+    console.log('[updateSlot] schedule._id:', schedule._id);
+    console.log('[updateSlot] schedule.slots count:', schedule.slots.length);
+    console.log('[updateSlot] schedule.slots sample:', schedule.slots.slice(0, 3).map(s => ({ _id: s._id?.toString(), dayKey: s.dayKey, shiftName: s.shiftName, assignedStaff: s.assignedStaff })));
+
+    const slot = schedule.slots.find(s => {
+      const idMatch = s._id?.toString() === slotId;
+      const keyMatch = `${s.dayKey}-${s.shiftName}` === slotId;
+      const altKeyMatch = `${s.dayKey}${s.shiftName}` === slotId;
+      return idMatch || keyMatch || altKeyMatch;
+    });
     if (!slot) {
+      console.log('[updateSlot] slot not found with slotId:', slotId);
       return res.status(404).json({ success: false, message: 'Không tìm thấy ca.' });
     }
+    
+    console.log('[updateSlot] slot found:', { dayKey: slot.dayKey, shiftName: slot.shiftName, date: slot.date, assignedStaff: slot.assignedStaff });
 
-    if (!slot.assignedStaff) slot.assignedStaff = [];
+    if (!slot.assignedStaff) {
+      slot.assignedStaff = [];
+    }
 
     // Initialize array fields
     if (addStaffId) {
@@ -605,10 +624,13 @@ export const updateSlot = async (req, res, next) => {
       });
     }
 
-    // Parse date from slot
-    const [day, month, year] = slot.date.split('/');
-    const assignmentDate = new Date(`${year}-${month}-${day}`);
-    assignmentDate.setHours(0, 0, 0, 0);
+    // Parse date from slot (format: YYYY-MM-DD) - use local timezone
+    // IMPORTANT: MongoDB stores in UTC. We need to adjust for local timezone offset.
+    const [y, m, d] = slot.date.split('-');
+    const assignmentDate = new Date(Number(y), Number(m) - 1, Number(d), 0, 0, 0, 0);
+    // Subtract local timezone offset so MongoDB stores the correct local date
+    assignmentDate.setHours(assignmentDate.getHours() - assignmentDate.getTimezoneOffset() / 60);
+    console.log('[updateSlot] FINAL - slot.date:', slot.date, '-> assignmentDate (local):', assignmentDate.toLocaleString('vi-VN'), 'UTC:', assignmentDate.toISOString());
 
     // Sync ShiftAssignment: replace all with current assignedStaff
     await ShiftAssignment.deleteMany({ shift: shift._id, date: assignmentDate });
@@ -633,6 +655,21 @@ export const updateSlot = async (req, res, next) => {
     );
 
     await schedule.save();
+
+    // Gửi thông báo cho nhân viên bị xóa khỏi ca
+    if (removeStaffId) {
+      const removedStaff = await User.findById(removeStaffId).select('name');
+      await Notification.create({
+        recipientId: removeStaffId,
+        recipientName: removedStaff?.name || 'Nhân viên',
+        type: 'schedule_change',
+        title: 'Lịch làm việc được cập nhật',
+        message: `Ca ${slot.shiftName} ngày ${slot.dayLabel} đã được gỡ khỏi lịch làm việc của bạn. Vui lòng kiểm tra lịch mới.`,
+        priority: 'normal',
+        actionUrl: '/schedule'
+      });
+    }
+
     res.json({ success: true, data: schedule });
   } catch (error) {
     next(error);
@@ -721,8 +758,13 @@ export const publishSchedule = async (req, res, next) => {
         shiftCache.set(slot.shiftName, shift);
       }
 
-      const assignmentDate = new Date(slot.date);
-      assignmentDate.setHours(0, 0, 0, 0);
+      // Parse date YYYY-MM-DD using local timezone
+      // IMPORTANT: MongoDB stores in UTC. We need to adjust for local timezone offset.
+      const [y, m, d] = slot.date.split('-');
+      const assignmentDate = new Date(Number(y), Number(m) - 1, Number(d), 0, 0, 0, 0);
+      // Subtract local timezone offset so MongoDB stores the correct local date
+      assignmentDate.setHours(assignmentDate.getHours() - assignmentDate.getTimezoneOffset() / 60);
+      console.log('[publishSchedule] slot.date:', slot.date, '-> assignmentDate local:', assignmentDate.toLocaleString('vi-VN'), 'UTC:', assignmentDate.toISOString());
 
       // Create one ShiftAssignment per staff member
       for (const staff of slot.assignedStaff) {

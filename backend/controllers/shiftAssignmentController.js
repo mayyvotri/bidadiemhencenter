@@ -278,18 +278,22 @@ export const getMyAssignments = async (req, res, next) => {
     if (startDate || endDate) {
       query.date = {};
       if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
+        // Parse YYYY-MM-DD as local date and adjust for MongoDB UTC storage
+        const [y, m, d] = startDate.split('-');
+        const start = new Date(Number(y), Number(m) - 1, Number(d), 0, 0, 0, 0);
+        start.setHours(start.getHours() - start.getTimezoneOffset() / 60);
         query.date.$gte = start;
       }
       if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+        // Parse YYYY-MM-DD as local date and adjust for MongoDB UTC storage
+        const [y, m, d] = endDate.split('-');
+        const end = new Date(Number(y), Number(m) - 1, Number(d), 23, 59, 59, 999);
+        end.setHours(end.getHours() - end.getTimezoneOffset() / 60);
         query.date.$lte = end;
       }
     }
 
-    console.log('[getMyAssignments] userId:', userId, 'query:', JSON.stringify(query));
+    console.log('[getMyAssignments] userId:', userId, 'startDate:', startDate, 'endDate:', endDate);
 
     const assignments = await ShiftAssignment.find(query)
       .populate('user', 'name email phone position')
@@ -297,7 +301,7 @@ export const getMyAssignments = async (req, res, next) => {
       .populate('assignedBy', 'name')
       .sort({ date: 1, 'shift.startTime': 1 });
 
-    console.log('[getMyAssignments] found count:', assignments.length, 'data:', JSON.stringify(assignments.map(a => ({ user: a.user?._id, shift: a.shift?._id, date: a.date }))));
+    console.log('[getMyAssignments] found count:', assignments.length, 'dates:', assignments.map(a => a.date?.toISOString?.() || a.date));
 
     return res.status(200).json({
       success: true,
@@ -322,8 +326,19 @@ export const getAssignmentsByDateRange = async (req, res, next) => {
 
     const assignments = await ShiftAssignment.find({
       date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        // Parse YYYY-MM-DD as local date and adjust for MongoDB UTC storage
+        $gte: (() => {
+          const [y, m, d] = startDate.split('-');
+          const dt = new Date(Number(y), Number(m) - 1, Number(d), 0, 0, 0, 0);
+          dt.setHours(dt.getHours() - dt.getTimezoneOffset() / 60);
+          return dt;
+        })(),
+        $lte: (() => {
+          const [y, m, d] = endDate.split('-');
+          const dt = new Date(Number(y), Number(m) - 1, Number(d), 23, 59, 59, 999);
+          dt.setHours(dt.getHours() - dt.getTimezoneOffset() / 60);
+          return dt;
+        })()
       }
     })
       .populate('user', 'name email phone position')

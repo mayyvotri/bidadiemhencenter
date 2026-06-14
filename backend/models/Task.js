@@ -38,7 +38,7 @@ const taskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'in_progress', 'completed', 'cancelled'],
+    enum: ['pending', 'submitted', 'completed', 'cancelled'],
     default: 'pending'
   },
   progress: {
@@ -66,6 +66,34 @@ const taskSchema = new mongoose.Schema({
   completedAt: {
     type: Date,
     default: null
+  },
+  // Nhiệm vụ theo ca
+  isShiftTask: {
+    type: Boolean,
+    default: false
+  },
+  dayKey: {
+    type: String,
+    enum: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', null],
+    default: null
+  },
+  shiftName: {
+    type: String,
+    enum: ['Ca sáng', 'Ca tối', 'Ca khuya', null],
+    default: null
+  },
+  assignmentDate: {
+    type: Date,
+    default: null
+  },
+  // Ảnh hoàn thành
+  completionPhoto: {
+    type: String,
+    default: null
+  },
+  submittedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -76,7 +104,7 @@ taskSchema.index({ status: 1, priority: 1 });
 taskSchema.index({ createdBy: 1 });
 taskSchema.index({ deadlineDate: 1 });
 
-taskSchema.pre('save', function (next) {
+taskSchema.pre('save', async function () {
   if (this.status === 'completed' && !this.completedAt) {
     this.completedAt = new Date();
     this.progress = 100;
@@ -84,7 +112,6 @@ taskSchema.pre('save', function (next) {
   if (this.deadlineDate && this.status !== 'completed' && this.deadlineDate < new Date()) {
     this._isOverdue = true;
   }
-  next();
 });
 
 export default mongoose.model('Task', taskSchema);

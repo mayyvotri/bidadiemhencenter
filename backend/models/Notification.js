@@ -20,6 +20,7 @@ const notificationSchema = new mongoose.Schema({
       'leave_pending',
       'task_assigned',
       'task_updated',
+      'task_submitted',
       'task_completed',
       'payroll_calculated',
       'payroll_approved',
