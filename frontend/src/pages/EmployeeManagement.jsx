@@ -190,7 +190,7 @@ export default function EmployeeManagement() {
     setShowDetailDrawer(true);
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Loading...</div>;
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
 
   return (
     <div style={{ padding: '32px' }}>

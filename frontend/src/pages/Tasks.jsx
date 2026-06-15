@@ -7,10 +7,10 @@ const getUser = () => {
 
 const PRIORITY_ORDER = { urgent: 0, high: 1, medium: 2, low: 3 };
 const STATUS_CONFIG = {
-  pending:    { label: 'Chưa thực hiện', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' },
-  in_progress:{ label: 'Đang thực hiện', color: '#60a5fa', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.3)' },
-  completed:  { label: 'Hoàn thành',     color: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)' },
-  cancelled:  { label: 'Đã hủy',         color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.3)' },
+  pending:    { label: 'Chờ thực hiện', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' },
+  submitted:   { label: 'Chờ duyệt',    color: '#60a5fa', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.3)' },
+  completed:  { label: 'Hoàn thành',   color: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)' },
+  cancelled:  { label: 'Đã hủy',        color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.3)' },
 };
 const PRIORITY_CONFIG = {
   urgent: { label: 'Khẩn cấp', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
@@ -34,7 +34,8 @@ const Badge = ({ children, config, style = {} }) => (
 
 export default function Tasks() {
   const user = getUser();
-  const isAdmin = user.isAdmin;
+  const isAdmin = user.isAdmin || user.role === 'manager';
+  const userId = user.id || user._id;
   const [tasks, setTasks] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -44,19 +45,23 @@ export default function Tasks() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0, overdue: 0, highPriority: 0 });
-  const [viewMode, setViewMode] = useState('board'); // 'board' | 'table'
+  const [stats, setStats] = useState({ total: 0, pending: 0, submitted: 0, completed: 0, overdue: 0, highPriority: 0 });
+  const [viewMode, setViewMode] = useState('board');
 
   const [newTask, setNewTask] = useState({
     title: '', description: '', category: 'Khác', deadline: '', deadlineDate: '',
-    priority: 'medium', assignedTo: '', assignedToId: '', customer: '', notes: ''
+    priority: 'medium', assignedTo: '', assignedToId: '', notes: ''
   });
   const [editTask, setEditTask] = useState(null);
-  const [progressValue, setProgressValue] = useState(0);
+  const [submittingPhoto, setSubmittingPhoto] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
 
   const fetchTasks = useCallback(async () => {
     try {
-      const data = await api.get('/tasks');
+      // Staff only sees their own tasks, admin sees all
+      const data = isAdmin
+        ? await api.get('/tasks')
+        : await api.get('/tasks/my');
       if (data.success) {
         const sorted = [...data.data].sort((a, b) => {
           const po = (PRIORITY_ORDER[a.priority] ?? 9) - (PRIORITY_ORDER[b.priority] ?? 9);
@@ -66,7 +71,7 @@ export default function Tasks() {
         setTasks(sorted);
       }
     } catch { setTasks([]); } finally { setLoading(false); }
-  }, []);
+  }, [isAdmin]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -82,18 +87,18 @@ export default function Tasks() {
   }, [fetchTasks, fetchStats]);
 
   const filteredTasks = tasks.filter(task => {
+    // Backend /tasks/my already filters correctly for staff, no need to filter again
     const term = searchTerm.toLowerCase();
     const matchSearch = !term ||
       task.title.toLowerCase().includes(term) ||
       (task.assignedTo || '').toLowerCase().includes(term) ||
-      (task.customer || '').toLowerCase().includes(term) ||
       (task.description || '').toLowerCase().includes(term);
     const matchFilter = filter === 'all' ? true
       : filter === 'pending'     ? task.status === 'pending'
-      : filter === 'in_progress' ? task.status === 'in_progress'
-      : filter === 'completed'   ? task.status === 'completed'
+      : filter === 'submitted'   ? task.status === 'submitted'
+      : filter === 'completed'  ? task.status === 'completed'
       : filter === 'overdue'     ? task._isOverdue
-      : filter === 'high'       ? ['urgent', 'high'].includes(task.priority) && task.status !== 'completed'
+      : filter === 'high'        ? ['urgent', 'high'].includes(task.priority) && task.status !== 'completed'
       : true;
     const matchCategory = categoryFilter === 'Tất cả' || task.category === categoryFilter;
     return matchSearch && matchFilter && matchCategory;
@@ -117,7 +122,7 @@ export default function Tasks() {
         setTasks([data.data, ...tasks]);
         fetchStats();
         setShowAddModal(false);
-        setNewTask({ title: '', description: '', category: 'Khác', deadline: '', deadlineDate: '', priority: 'medium', assignedTo: '', assignedToId: '', customer: '', notes: '' });
+        setNewTask({ title: '', description: '', category: 'Khác', deadline: '', deadlineDate: '', priority: 'medium', assignedTo: '', assignedToId: '', notes: '' });
       }
     } catch (err) { alert(err.message || 'Không thể thêm nhiệm vụ'); }
     finally { setSubmitting(false); }
@@ -134,18 +139,44 @@ export default function Tasks() {
     } catch (err) { alert(err.message || 'Không thể cập nhật'); }
   };
 
-  const handleUpdateProgress = async (task, progress) => {
+  const handleSubmitCompletionPhoto = async (task) => {
+    if (!previewPhoto) {
+      alert('Vui lòng chọn ảnh hoàn thành');
+      return;
+    }
+    setSubmittingPhoto(true);
     try {
-      const data = await api.patch(`/tasks/${getTaskId(task)}/progress`, { progress });
+      const formData = new FormData();
+      formData.append('photo', previewPhoto);
+      formData.append('status', 'submitted');
+
+      const accessToken = localStorage.getItem('access_token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1'}/tasks/${getTaskId(task)}/submit-completion`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+      const data = await response.json();
+      console.log('[submit-completion] Response:', data);
+
       if (data.success) {
         setTasks(tasks.map(t => getTaskId(t) === getTaskId(task) ? data.data : t));
         fetchStats();
-        if (selectedTask && getTaskId(selectedTask) === getTaskId(task)) {
-          setSelectedTask(data.data);
-          setProgressValue(data.data.progress);
-        }
+        if (selectedTask && getTaskId(selectedTask) === getTaskId(task)) setSelectedTask(data.data);
+        setPreviewPhoto(null);
+        alert('Đã gửi ảnh hoàn thành, chờ quản lý duyệt!');
+      } else {
+        console.error('[submit-completion] Error:', data.message);
+        alert(data.message || 'Không thể gửi ảnh');
       }
-    } catch (err) { alert(err.message || 'Không thể cập nhật'); }
+    } catch (err) {
+      console.error('Submit error:', err);
+      alert(err.message || 'Không thể gửi ảnh');
+    } finally {
+      setSubmittingPhoto(false);
+    }
   };
 
   const handleDeleteTask = async (task) => {
@@ -188,18 +219,10 @@ export default function Tasks() {
 
   const selectTask = (task) => {
     setSelectedTask(task);
-    setProgressValue(task.progress || 0);
+    setPreviewPhoto(null);
   };
 
-  // Board view columns
-  const boardColumns = ['pending', 'in_progress', 'completed', 'cancelled'];
-
-  const progressColor = (task) => {
-    if (task.progress === 100) return '#10b981';
-    if (task.progress >= 60) return '#60a5fa';
-    if (task.progress >= 30) return '#eab308';
-    return '#ef4444';
-  };
+  const boardColumns = ['pending', 'submitted', 'completed', 'cancelled'];
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--text-muted)' }}>
@@ -219,7 +242,7 @@ export default function Tasks() {
             📋 Nhiệm vụ
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {isAdmin ? 'Tạo, giao và theo dõi nhiệm vụ cho nhân viên' : 'Theo dõi và cập nhật nhiệm vụ được giao'}
+            {isAdmin ? 'Tạo, giao và duyệt nhiệm vụ cho nhân viên' : 'Nhận nhiệm vụ và gửi ảnh hoàn thành'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -247,14 +270,13 @@ export default function Tasks() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
         {[
           { key: 'all',       label: 'Tổng',            value: stats.total,       color: '#ffffff', icon: '📋' },
-          { key: 'pending',   label: 'Chưa thực hiện', value: stats.pending,     color: '#f59e0b', icon: '⏳' },
-          { key: 'in_progress',label: 'Đang thực hiện', value: stats.inProgress,  color: '#60a5fa', icon: '⚙️' },
+          { key: 'pending',   label: 'Chờ thực hiện', value: stats.pending,     color: '#f59e0b', icon: '⏳' },
+          { key: 'submitted', label: 'Chờ duyệt',      value: stats.submitted,   color: '#60a5fa', icon: '📷' },
           { key: 'completed', label: 'Hoàn thành',      value: stats.completed,   color: '#10b981', icon: '✅' },
           { key: 'overdue',   label: 'Quá hạn',          value: stats.overdue,     color: '#ef4444', icon: '⚠️' },
-          { key: 'high',      label: 'Ưu tiên cao',      value: stats.highPriority,color: '#f97316', icon: '🔥' },
         ].map(s => (
           <div key={s.key} className="glass-card"
             style={{ padding: '14px 12px', cursor: 'pointer', border: filter === s.key ? `1px solid ${s.color}60` : '1px solid var(--border-glass)', background: filter === s.key ? `${s.color}12` : '' }}
@@ -272,7 +294,7 @@ export default function Tasks() {
       <div className="glass-card" style={{ padding: '14px 16px', marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
           <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>🔍</span>
-          <input type="text" placeholder="Tìm kiếm nhiệm vụ, nhân viên, khách hàng..." className="form-input"
+          <input type="text" placeholder="Tìm kiếm nhiệm vụ, nhân viên..." className="form-input"
             value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
             style={{ paddingLeft: '32px', padding: '8px 12px 8px 32px', fontSize: '13px', width: '100%' }} />
         </div>
@@ -356,27 +378,10 @@ export default function Tasks() {
                           {task.title}
                         </div>
 
-                        {/* Customer */}
-                        {task.customer && (
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            👤 {task.customer}
-                          </div>
-                        )}
-
-                        {/* Progress bar */}
-                        {(task.progress > 0 || task.status === 'in_progress') && (
-                          <div style={{ marginBottom: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                              <span>Tiến độ</span>
-                              <span style={{ color: progressColor(task), fontWeight: '600' }}>{task.progress || 0}%</span>
-                            </div>
-                            <div style={{ height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{
-                                width: `${task.progress || 0}%`, height: '100%',
-                                background: progressColor(task), borderRadius: '4px',
-                                transition: 'width 0.3s'
-                              }} />
-                            </div>
+                        {/* Completion photo indicator */}
+                        {task.completionPhoto && (
+                          <div style={{ fontSize: '10px', color: '#60a5fa', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            📷 Đã gửi ảnh
                           </div>
                         )}
 
@@ -396,10 +401,16 @@ export default function Tasks() {
                         {isAdmin && (
                           <div style={{ display: 'flex', gap: '6px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}
                             onClick={e => e.stopPropagation()}>
-                            {col !== 'completed' && col !== 'cancelled' && (
-                              <button onClick={() => handleUpdateStatus(task, col === 'pending' ? 'in_progress' : 'completed')}
+                            {col === 'submitted' && (
+                              <button onClick={() => handleUpdateStatus(task, 'completed')}
                                 style={{ flex: 1, padding: '4px', fontSize: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px', color: '#10b981', cursor: 'pointer' }}>
-                                {col === 'pending' ? '▶ Bắt đầu' : '✓ Hoàn thành'}
+                                ✅ Duyệt
+                              </button>
+                            )}
+                            {col !== 'completed' && col !== 'cancelled' && col !== 'submitted' && (
+                              <button onClick={() => handleUpdateStatus(task, 'cancelled')}
+                                style={{ flex: 1, padding: '4px', fontSize: '10px', background: 'rgba(107,114,128,0.15)', border: '1px solid rgba(107,114,128,0.3)', borderRadius: '4px', color: '#6b7280', cursor: 'pointer' }}>
+                                🚫 Hủy
                               </button>
                             )}
                             <button onClick={() => { setEditTask({ ...task }); }}
@@ -425,20 +436,18 @@ export default function Tasks() {
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th style={{ width: '36px' }}></th>
                   <th>NHIỆM VỤ</th>
                   <th>DANH MỤC</th>
                   <th>HẠN CHÓT</th>
                   <th>ƯU TIÊN</th>
                   <th>NGƯỜI THỰC HIỆN</th>
-                  <th>TIẾN ĐỘ</th>
                   <th>TRẠNG THÁI</th>
                   {isAdmin && <th style={{ width: '80px' }}></th>}
                 </tr>
               </thead>
               <tbody>
                 {filteredTasks.length === 0 ? (
-                  <tr><td colSpan={isAdmin ? 9 : 8} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
+                  <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>📋</div>
                     Không có nhiệm vụ nào
                   </td></tr>
@@ -453,16 +462,13 @@ export default function Tasks() {
                         cursor: 'pointer'
                       }}
                       onClick={() => selectTask(task)}>
-                      <td onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" checked={task.status === 'completed'}
-                          onChange={() => handleUpdateStatus(task, task.status === 'completed' ? 'pending' : 'completed')}
-                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#10b981' }} />
-                      </td>
                       <td>
                         <div style={{ fontWeight: '600', color: '#fff', textDecoration: task.status === 'completed' ? 'line-through' : 'none', maxWidth: '260px' }}>
                           {task.title}
                         </div>
-                        {task.customer && <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>👤 {task.customer}</div>}
+                        {task.completionPhoto && (
+                          <div style={{ fontSize: '11px', color: '#60a5fa', marginTop: '2px' }}>📷 Đã gửi ảnh</div>
+                        )}
                       </td>
                       <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{task.category || '—'}</td>
                       <td style={{ fontSize: '12px', color: task._isOverdue ? '#ef4444' : 'var(--text-secondary)' }}>
@@ -479,14 +485,6 @@ export default function Tasks() {
                       </td>
                       <td style={{ fontSize: '12px', color: '#fff' }}>{task.assignedTo || '—'}</td>
                       <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '80px' }}>
-                          <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div style={{ width: `${task.progress || 0}%`, height: '100%', background: progressColor(task), borderRadius: '4px' }}></div>
-                          </div>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', minWidth: '28px' }}>{task.progress || 0}%</span>
-                        </div>
-                      </td>
-                      <td>
                         <span style={{
                           padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600',
                           color: sCfg.color, background: sCfg.bg, border: `1px solid ${sCfg.border}`
@@ -497,6 +495,12 @@ export default function Tasks() {
                       {isAdmin && (
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: '4px' }}>
+                            {task.status === 'submitted' && (
+                              <button onClick={() => handleUpdateStatus(task, 'completed')}
+                                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px', color: '#10b981', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
+                                ✅
+                              </button>
+                            )}
                             <button onClick={() => { setEditTask({ ...task }); setSelectedTask(null); }}
                               style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '4px', color: '#60a5fa', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
                               ✏️
@@ -520,7 +524,7 @@ export default function Tasks() {
       {/* Detail Panel */}
       {selectedTask && (
         <div style={{
-          position: 'fixed', top: 0, right: 0, bottom: 0, width: '380px', zIndex: 200,
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', zIndex: 200,
           background: '#0d111a', borderLeft: '1px solid var(--border-glass)',
           padding: '24px', overflowY: 'auto', boxShadow: '-4px 0 24px rgba(0,0,0,0.4)'
         }} className="animate-fade-in">
@@ -546,7 +550,6 @@ export default function Tasks() {
               ['Người thực hiện', selectedTask.assignedTo || '—'],
               ['Người giao', selectedTask.createdByName || '—'],
               ['Hạn chót', selectedTask.deadline ? `${selectedTask.deadline}${selectedTask.deadlineDate ? ' — ' + new Date(selectedTask.deadlineDate).toLocaleDateString('vi-VN') : ''}` : (selectedTask.deadlineDate ? new Date(selectedTask.deadlineDate).toLocaleDateString('vi-VN') : '—')],
-              ['Khách hàng', selectedTask.customer || '—'],
             ].map(([label, value]) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{label}</span>
@@ -573,42 +576,62 @@ export default function Tasks() {
             </div>
           )}
 
-          {/* Progress */}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Tiến độ</span>
-              <span style={{ color: progressColor(selectedTask), fontWeight: '700' }}>{selectedTask.progress || 0}%</span>
-            </div>
-            <input type="range" min="0" max="100" value={progressValue}
-              onChange={e => setProgressValue(Number(e.target.value))}
-              onMouseUp={() => progressValue !== selectedTask.progress && handleUpdateProgress(selectedTask, progressValue)}
-              style={{ width: '100%', accentColor: progressColor(selectedTask), cursor: 'pointer', height: '6px' }} />
-          </div>
-
-          {/* Status Actions */}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>Cập nhật trạng thái</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {[
-                { key: 'pending', label: '⏳ Chưa thực hiện', cfg: STATUS_CONFIG.pending },
-                { key: 'in_progress', label: '⚙️ Đang thực hiện', cfg: STATUS_CONFIG.in_progress },
-                { key: 'completed', label: '✅ Hoàn thành', cfg: STATUS_CONFIG.completed },
-                { key: 'cancelled', label: '🚫 Hủy', cfg: STATUS_CONFIG.cancelled },
-              ].map(btn => (
-                <button key={btn.key}
-                  onClick={() => handleUpdateStatus(selectedTask, btn.key)}
-                  style={{
-                    padding: '8px 8px', fontSize: '11px', borderRadius: '8px', cursor: 'pointer',
-                    fontWeight: '600', border: `1px solid ${selectedTask.status === btn.key ? btn.cfg.color + '60' : 'rgba(255,255,255,0.08)'}`,
-                    background: selectedTask.status === btn.key ? btn.cfg.bg : 'rgba(255,255,255,0.03)',
-                    color: selectedTask.status === btn.key ? btn.cfg.color : 'var(--text-secondary)',
-                    transition: 'all 0.2s', textAlign: 'center'
-                  }}>
-                  {btn.label}
+          {/* Completion Photo Section */}
+          {(selectedTask.status === 'pending' || selectedTask.status === 'submitted') && !isAdmin && (
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                📷 Gửi ảnh hoàn thành
+              </div>
+              {previewPhoto ? (
+                <div style={{ position: 'relative' }}>
+                  <img src={URL.createObjectURL(previewPhoto)} alt="Preview"
+                    style={{ width: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }} />
+                  <button onClick={() => setPreviewPhoto(null)}
+                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <label style={{ display: 'block', padding: '20px', background: 'rgba(255,255,255,0.03)', border: '2px dashed rgba(255,255,255,0.15)', borderRadius: '8px', textAlign: 'center', cursor: 'pointer' }}>
+                  <input type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={e => e.target.files[0] && setPreviewPhoto(e.target.files[0])} />
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📷</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Click để chọn ảnh</div>
+                </label>
+              )}
+              {previewPhoto && (
+                <button onClick={() => handleSubmitCompletionPhoto(selectedTask)}
+                  disabled={submittingPhoto}
+                  style={{ width: '100%', marginTop: '10px', padding: '10px', background: '#60a5fa', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                  {submittingPhoto ? '⏳ Đang gửi...' : '📤 Gửi ảnh hoàn thành'}
                 </button>
-              ))}
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Show completion photo if exists */}
+          {selectedTask.completionPhoto && (
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                📷 Ảnh hoàn thành
+              </div>
+              <img src={selectedTask.completionPhoto} alt="Completion"
+                style={{ width: '100%', borderRadius: '8px', maxHeight: '250px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
+            </div>
+          )}
+
+          {/* Admin Actions - Duyệt nhiệm vụ */}
+          {isAdmin && selectedTask.status === 'submitted' && (
+            <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '12px' }}>
+              <div style={{ fontSize: '12px', color: '#10b981', fontWeight: '600', marginBottom: '12px' }}>
+                📷 Nhân viên đã gửi ảnh hoàn thành
+              </div>
+              <button onClick={() => handleUpdateStatus(selectedTask, 'completed')}
+                style={{ width: '100%', padding: '12px', background: '#10b981', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+                ✅ Duyệt hoàn thành
+              </button>
+            </div>
+          )}
 
           {/* Admin Actions */}
           {isAdmin && (
@@ -617,6 +640,12 @@ export default function Tasks() {
                 onClick={() => { setEditTask({ ...selectedTask }); setSelectedTask(null); }}>
                 ✏️ Sửa nhiệm vụ
               </button>
+              {selectedTask.status !== 'completed' && selectedTask.status !== 'cancelled' && (
+                <button style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontSize: '13px' }}
+                  onClick={() => handleUpdateStatus(selectedTask, 'cancelled')}>
+                  🚫
+                </button>
+              )}
               <button style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontSize: '13px' }}
                 onClick={() => handleDeleteTask(selectedTask)}>
                 🗑️
@@ -629,7 +658,7 @@ export default function Tasks() {
       {/* Add Task Modal */}
       {showAddModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>Thêm nhiệm vụ mới</h2>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
@@ -688,11 +717,6 @@ export default function Tasks() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Khách hàng (tùy chọn)</label>
-                <input type="text" className="form-input" placeholder="Tên khách hàng liên quan..." style={{ padding: '10px 14px', fontSize: '13px' }}
-                  value={newTask.customer} onChange={e => setNewTask({ ...newTask, customer: e.target.value })} />
-              </div>
-              <div className="form-group">
                 <label className="form-label">Ghi chú</label>
                 <textarea className="form-input" rows="2" placeholder="Ghi chú bổ sung..." style={{ padding: '10px 14px', fontSize: '13px', resize: 'vertical' }}
                   value={newTask.notes} onChange={e => setNewTask({ ...newTask, notes: e.target.value })} />
@@ -711,7 +735,7 @@ export default function Tasks() {
       {/* Edit Task Modal */}
       {editTask && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>Sửa nhiệm vụ</h2>
               <button onClick={() => setEditTask(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
@@ -771,9 +795,9 @@ export default function Tasks() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Khách hàng</label>
-                <input type="text" className="form-input" style={{ padding: '10px 14px', fontSize: '13px' }}
-                  value={editTask.customer || ''} onChange={e => setEditTask({ ...editTask, customer: e.target.value })} />
+                <label className="form-label">Ghi chú</label>
+                <textarea className="form-input" rows="2" style={{ padding: '10px 14px', fontSize: '13px', resize: 'vertical' }}
+                  value={editTask.notes || ''} onChange={e => setEditTask({ ...editTask, notes: e.target.value })} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>

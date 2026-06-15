@@ -11,6 +11,7 @@ import Payroll from '../pages/Payroll';
 import StaffList from '../pages/StaffList';
 import StaffManagement from '../pages/StaffManagement';
 import Tasks from '../pages/Tasks';
+import TaskManagement from '../pages/TaskManagement';
 import Settings from '../pages/Settings';
 import SystemAdmin from '../pages/SystemAdmin';
 import MainLayout from '../layouts/MainLayout';
@@ -23,7 +24,7 @@ import Reports from '../pages/Reports';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Đang tải...</div>;
   return isAuthenticated ? (
     <MainLayout>{children}</MainLayout>
   ) : (
@@ -33,7 +34,7 @@ const PrivateRoute = ({ children }) => {
 
 const AdminRoute = ({ children }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Đang tải...</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return <MainLayout>{children}</MainLayout>;
@@ -41,7 +42,7 @@ const AdminRoute = ({ children }) => {
 
 const ManagerRoute = ({ children }) => {
   const { isAuthenticated, isManager, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Đang tải...</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isManager) return <Navigate to="/dashboard" replace />;
   return <MainLayout>{children}</MainLayout>;
@@ -49,13 +50,13 @@ const ManagerRoute = ({ children }) => {
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Đang tải...</div>;
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
 };
 
 const ChangePasswordRoute = ({ children }) => {
   const { isAuthenticated, mustChangePassword, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Đang tải...</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!mustChangePassword) return <Navigate to="/dashboard" replace />;
   return <MainLayout>{children}</MainLayout>;
@@ -85,6 +86,7 @@ export default function AppRoutes() {
       <Route path="/account-approval" element={<ManagerRoute><AccountApproval /></ManagerRoute>} />
       <Route path="/attendance-approval" element={<ManagerRoute><AttendanceApproval /></ManagerRoute>} />
       <Route path="/staff-management" element={<ManagerRoute><StaffManagement /></ManagerRoute>} />
+      <Route path="/task-management" element={<ManagerRoute><TaskManagement /></ManagerRoute>} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

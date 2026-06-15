@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { api } from '../services/api';
+import { onEvent, emitEvent, Events } from '../utils/events';
 
 const API_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const VN_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -109,6 +110,7 @@ export default function Schedule() {
           setWorkAreas(DEFAULT_AREAS);
 
           if (myAssignmentsRes?.success) {
+            console.log('[Schedule] myAssignments:', myAssignmentsRes.data.map(a => ({ date: a.date, dateType: typeof a.date, shiftName: a.shift?.name })));
             setScheduleData({
               isMySchedule: true,
               myAssignments: myAssignmentsRes.data
@@ -127,25 +129,79 @@ export default function Schedule() {
     }
   }, [weekOffset, isAdmin, weekDates]); // weekDates triggers re-fetch once populated
 
+  // Lắng nghe sự kiện cập nhật lịch để tự refresh
+  useEffect(() => {
+    const handleScheduleUpdate = () => {
+      if (!isAdmin) {
+        // Nhân viên: refresh lịch của mình
+        const fetchMySchedule = async () => {
+          try {
+            const myAssignmentsRes = await api.get(
+              `/shift-assignments/my?startDate=${weekDates[0]?.dateStr}&endDate=${weekDates[6]?.dateStr}`
+            );
+            if (myAssignmentsRes?.success) {
+              setScheduleData({
+                isMySchedule: true,
+                myAssignments: myAssignmentsRes.data
+              });
+            }
+          } catch (e) {
+            console.error('[Schedule] handleScheduleUpdate error:', e);
+          }
+        };
+        if (weekDates.length === 7) {
+          fetchMySchedule();
+        }
+      }
+    };
+
+    const unsubscribe = onEvent(Events.SCHEDULE_UPDATED, handleScheduleUpdate);
+    return () => unsubscribe();
+  }, [isAdmin, weekDates]);
+
   const isMySchedule = scheduleData?.isMySchedule;
   const myAssignments = scheduleData?.myAssignments || [];
 
   const normalizeDateKey = (dateValue) => {
     if (!dateValue) return null;
-    const str = String(dateValue).split('T')[0];
-    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-    const date = new Date(dateValue);
-    return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-CA');
+
+    // If already a valid YYYY-MM-DD string
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return dateValue;
+    }
+
+    // Handle Date object or ISO string
+    let date;
+    if (dateValue instanceof Date) {
+      date = dateValue;
+    } else if (typeof dateValue === 'string') {
+      // Parse as local date (not UTC)
+      const [y, m, d] = dateValue.split('T')[0].split('-');
+      if (y && m && d) {
+        date = new Date(Number(y), Number(m) - 1, Number(d));
+      }
+    }
+
+    if (!date || Number.isNaN(date.getTime())) return null;
+
+    // Format as YYYY-MM-DD using local time
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
   };
 
   const buildStaffSlotMap = () => {
     const map = {};
+    console.log('[buildStaffSlotMap] myAssignments:', myAssignments.map(a => ({ date: a.date, shiftName: a.shift?.name, userName: a.user?.name })));
     for (const assignment of myAssignments) {
       const dateKey = normalizeDateKey(assignment.date);
       const shiftName = assignment.shift?.name;
       if (!dateKey || !shiftName) continue;
 
-      map[`${dateKey}-${shiftName}`] = {
+      const key = `${dateKey}-${shiftName}`;
+      console.log('[buildStaffSlotMap] adding key:', key);
+      map[key] = {
         assignedStaffId: assignment.user?._id || user.id,
         assignedStaffName: assignment.user?.name || user.name,
         shiftName,
@@ -176,6 +232,7 @@ export default function Schedule() {
 
   const handleAssignStaff = async (slotId, staffId, branch) => {
     if (!staffId) return;
+    console.log('[Schedule] handleAssignStaff - slotId:', slotId, 'staffId:', staffId, 'scheduleId:', scheduleData._id);
     setSavingSlot(slotId);
     try {
       const staff = staffList.find(s => s._id === staffId);
@@ -186,15 +243,18 @@ export default function Schedule() {
         branch: branch || null,
         reason: 'Phân công thủ công bởi quản lý'
       });
+      console.log('[Schedule] assign result:', res);
       if (res.success) {
         setScheduleData(prev => ({
           ...prev,
           slots: prev.slots.map(s =>
-            (s._id?.toString() || s.dayKey + s.shiftName) === slotId
-              ? res.data.slots.find(rs => (rs._id?.toString() || rs.dayKey + rs.shiftName) === slotId) || s
+            (s._id?.toString() || `${s.dayKey}-${s.shiftName}`) === slotId
+              ? res.data.slots.find(rs => (rs._id?.toString() || `${rs.dayKey}-${rs.shiftName}`) === slotId) || s
               : s
           )
         }));
+        // Thông báo cho tất cả staff refresh lịch
+        emitEvent(Events.SCHEDULE_UPDATED, { addedStaffId: staffId });
       }
     } catch (e) {
       console.error('[Schedule] handleAssignStaff error:', e);
@@ -204,6 +264,7 @@ export default function Schedule() {
   };
 
   const handleRemoveStaffFromSlot = async (slotId, staffId) => {
+    console.log('[Schedule] handleRemoveStaffFromSlot - slotId:', slotId, 'staffId:', staffId, 'scheduleId:', scheduleData._id);
     setSavingSlot(slotId);
     try {
       const res = await api.patch(`/schedule/generator/${scheduleData._id}/slot`, {
@@ -211,18 +272,28 @@ export default function Schedule() {
         removeStaffId: staffId,
         reason: 'Xóa phân công thủ công bởi quản lý'
       });
+      console.log('[Schedule] remove result:', res);
       if (res.success) {
+        // Update local state with the returned schedule data
         setScheduleData(prev => ({
           ...prev,
-          slots: prev.slots.map(s =>
-            (s._id?.toString() || s.dayKey + s.shiftName) === slotId
-              ? res.data.slots.find(rs => (rs._id?.toString() || rs.dayKey + rs.shiftName) === slotId) || s
-              : s
-          )
+          slots: res.data.slots || prev.slots
         }));
+        // Refresh all assignments from server to ensure consistency
+        const weekStart = weekDates[0]?.dateStr;
+        const weekEnd = weekDates[6]?.dateStr;
+        if (weekStart && weekEnd) {
+          const refreshRes = await api.get(`/schedule/generator/schedule?weekOffset=${weekOffset}`);
+          if (refreshRes.success && refreshRes.data) {
+            setScheduleData(refreshRes.data);
+          }
+        }
+        // Thông báo cho tất cả staff refresh lịch
+        emitEvent(Events.SCHEDULE_UPDATED, { removedStaffId: staffId });
       }
     } catch (e) {
       console.error('[Schedule] handleRemoveStaffFromSlot error:', e);
+      alert('Lỗi khi xóa: ' + (e.message || 'Vui lòng thử lại'));
     } finally {
       setSavingSlot(null);
     }

@@ -15,7 +15,7 @@ export default function MainLayout({ children }) {
   const [salaryInfo, setSalaryInfo] = useState(null);
   const [salaryLoading, setSalaryLoading] = useState(false);
 
-  // Sync auth user into local state
+  // Đồng bộ user từ auth vào state
   useEffect(() => {
     if (authUser) {
       const info = { ...authUser, name: authUser.name, role: authUser.role };
@@ -27,7 +27,7 @@ export default function MainLayout({ children }) {
     }
   }, [authUser]);
 
-  // Load user info and clock status on mount
+  // Tải thông tin user và trạng thái clock khi mount
   useEffect(() => {
     const info = localStorage.getItem('user_info');
     if (info) {
@@ -55,7 +55,7 @@ export default function MainLayout({ children }) {
     setIsClockedIn(nextState);
     localStorage.setItem('clock_status', nextState ? 'in' : 'out');
     
-    // Custom event to sync check-in status across components
+    // Sự kiện tùy chỉnh để đồng bộ trạng thái check-in giữa các component
     window.dispatchEvent(new Event('clock_sync'));
   };
 
@@ -64,20 +64,20 @@ export default function MainLayout({ children }) {
     setSalaryLoading(true);
     try {
       if (user.isAdmin) {
-        // Admin: get payroll stats
+        // Admin: lấy thống kê payroll
         const data = await api.get('/salary/stats');
         if (data.success) {
           setSalaryInfo({ isAdmin: true, stats: data.data });
         }
       } else {
-        // Staff: get personal salary summary
+        // Staff: lấy lương cá nhân
         const data = await api.get('/salary/summary');
         if (data.success && data.salary) {
           setSalaryInfo(data.salary);
         }
       }
     } catch {
-      /* ignore */
+      /* bỏ qua lỗi */
     } finally {
       setSalaryLoading(false);
     }
@@ -88,23 +88,24 @@ export default function MainLayout({ children }) {
     if (!showProfile) fetchSalaryInfo();
   };
 
-  // Menu options based on role
+  // Menu options dựa trên role
   const staffMenu = [
-    { label: 'DASHBOARD', path: '/dashboard', icon: '📊' },
-    { label: 'ATTENDANCE', path: '/attendance', icon: '🕒' },
-    { label: 'HISTORY', path: '/attendance-history', icon: '📋' },
-    { label: 'SHIFTS', path: '/schedule', icon: '📅' },
-    { label: 'TASKS', path: '/tasks', icon: '📋' }
+    { label: 'TRANG CHỦ', path: '/dashboard', icon: '📊' },
+    { label: 'CHẤM CÔNG', path: '/attendance', icon: '🕒' },
+    { label: 'LỊCH SỬ', path: '/attendance-history', icon: '📋' },
+    { label: 'CA LÀM', path: '/schedule', icon: '📅' },
+    { label: 'NHIỆM VỤ', path: '/tasks', icon: '📋' }
   ];
 
   const managerMenu = [
-    { label: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { label: 'Staff List', path: '/staff-list', icon: '👥' },
-    { label: 'Shift Schedule', path: '/schedule', icon: '📅' },
+    { label: 'Trang Chủ', path: '/dashboard', icon: '📊' },
+    { label: 'Danh Sách NV', path: '/staff-list', icon: '👥' },
+    { label: 'Lịch Ca', path: '/schedule', icon: '📅' },
+    { label: 'Phân Nhiệm Vụ', path: '/task-management', icon: '📋' },
     { label: 'Duyệt Chấm Công', path: '/attendance-approval', icon: '✅' },
-    { label: 'Báo cáo', path: '/reports', icon: '📊' },
-    { label: 'Settings', path: '/settings', icon: '⚙️' },
-    { label: 'System Admin', path: '/system-admin', icon: '🖥️' }
+    { label: 'Báo Cáo', path: '/reports', icon: '📊' },
+    { label: 'Cài Đặt', path: '/settings', icon: '⚙️' },
+    { label: 'Quản Trị Hệ Thống', path: '/system-admin', icon: '🖥️' }
   ];
 
   const menu = user.isAdmin ? managerMenu : staffMenu;

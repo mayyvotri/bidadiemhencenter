@@ -57,7 +57,7 @@ export default function GPSVerificationLogs() {
   }, [fetchLogs]);
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Loading...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
   }
 
   return (

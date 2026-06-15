@@ -3,7 +3,8 @@
 export const Events = {
   PAYROLL_UPDATED: 'payroll_updated',
   CLOCK_SYNC: 'clock_sync',
-  ATTENDANCE_UPDATED: 'attendance_updated'
+  ATTENDANCE_UPDATED: 'attendance_updated',
+  SCHEDULE_UPDATED: 'schedule_updated'
 };
 
 export const emitEvent = (eventName, data = null) => {

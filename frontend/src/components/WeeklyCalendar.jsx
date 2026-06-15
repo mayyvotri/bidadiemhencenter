@@ -33,7 +33,7 @@ export default function WeeklyCalendar({ startDate, onDateClick }) {
   }, [fetchWeeklyData]);
 
   if (loading) {
-    return <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>Loading...</div>;
+    return <div style={{ padding: '20px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
   }
 
   return (

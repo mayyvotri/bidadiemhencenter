@@ -84,7 +84,7 @@ export default function AccountApproval() {
     }
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Loading...</div>;
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
 
   const displayUsers = filter === 'pending' ? pendingUsers : allUsers;
 
