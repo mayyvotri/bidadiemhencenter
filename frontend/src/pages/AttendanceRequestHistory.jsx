@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { attendanceRequestApi } from '../services/attendanceRequestApi';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import ResponsiveTable from '../components/ResponsiveTable';
 
 const formatDate = (date) => {
   if (!date) return '--/--/----';
@@ -21,6 +23,7 @@ const getStatusInfo = (status) => {
 };
 
 export default function AttendanceRequestHistory() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,9 +58,9 @@ export default function AttendanceRequestHistory() {
 
   return (
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '24px', gap: isMobile ? '12px' : '0' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', marginBottom: '4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: isMobile ? '22px' : '28px', marginBottom: '4px' }}>
             Lịch Sử Yêu Cầu
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
@@ -65,16 +68,18 @@ export default function AttendanceRequestHistory() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
           {['all', 'pending', 'approved', 'rejected'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               style={{
-                padding: '6px 14px', borderRadius: '6px', border: 'none',
+                padding: isMobile ? '10px 14px' : '6px 14px', borderRadius: '6px', border: 'none',
                 fontSize: '13px', fontWeight: '600', cursor: 'pointer',
                 background: filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                color: filter === f ? '#fff' : 'var(--text-secondary)'
+                color: filter === f ? '#fff' : 'var(--text-secondary)',
+                flex: isMobile ? 1 : 'none',
+                minHeight: isMobile ? '40px' : 'auto'
               }}
             >
               {f === 'all' ? 'Tất cả' : f === 'pending' ? 'Chờ duyệt' : f === 'approved' ? 'Đã duyệt' : 'Từ chối'}
@@ -107,10 +112,10 @@ export default function AttendanceRequestHistory() {
           {requests.map(req => {
             const statusInfo = getStatusInfo(req.status);
             return (
-              <div key={req._id} className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+              <div key={req._id} className="glass-card" style={{ padding: isMobile ? '14px' : '20px' }}>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : '20px', alignItems: isMobile ? 'stretch' : 'flex-start' }}>
                   {/* Photo thumbnail */}
-                  <div style={{ flexShrink: 0 }}>
+                  <div style={{ flexShrink: 0, alignSelf: isMobile ? 'flex-start' : 'flex-start' }}>
                     <img
                       src={req.photoUrl}
                       alt="Attendance"

@@ -1,6 +1,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import { api } from '../services/api';
 import { onEvent, emitEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const API_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const VN_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -68,6 +69,7 @@ export default function Schedule() {
 
   const user = getUser();
   const isAdmin = user.isAdmin;
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     const dates = getWeekDates(new Date(), weekOffset);
@@ -401,15 +403,22 @@ export default function Schedule() {
       </div>
 
       {/* Week Navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-        <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={handlePrevWeek}>‹</button>
-        <div style={{ flex: 1, textAlign: 'center', fontSize: '15px', fontWeight: '600', color: '#fff' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '8px' : '12px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+          <button className="btn-secondary" style={{ padding: isMobile ? '10px 16px' : '6px 12px', minHeight: isMobile ? '44px' : 'auto', minWidth: isMobile ? '44px' : 'auto' }} onClick={handlePrevWeek}>‹</button>
+          {isMobile && (
+            <button className="btn-secondary" style={{ padding: '10px 16px', minHeight: '44px', minWidth: '44px' }} onClick={handleNextWeek}>›</button>
+          )}
+        </div>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: isMobile ? '14px' : '15px', fontWeight: '600', color: '#fff' }}>
           Tuần {weekOffset === 0 ? 'này' : weekOffset === 1 ? 'tới' : weekOffset === -1 ? 'trước' : `+${weekOffset}`}
         </div>
-        <div style={{ flex: 2, textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)' }}>{dateRange}</div>
-        <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={handleNextWeek}>›</button>
+        <div style={{ flex: 2, textAlign: 'center', fontSize: isMobile ? '12px' : '13px', color: 'var(--text-secondary)' }}>{dateRange}</div>
+        {!isMobile && (
+          <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={handleNextWeek}>›</button>
+        )}
         {weekOffset !== 0 && (
-          <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={handleThisWeek}>
+          <button className="btn-secondary" style={{ padding: isMobile ? '10px 16px' : '6px 12px', fontSize: '12px', minHeight: isMobile ? '44px' : 'auto' }} onClick={handleThisWeek}>
             Tuần này
           </button>
         )}
@@ -430,7 +439,8 @@ export default function Schedule() {
       ) : (
         <div style={{ overflowX: 'auto', margin: '0 -16px', padding: '0 16px' }}>
           <div className="glass-card" style={{ padding: '16px', display: 'inline-block', minWidth: '100%' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, minmax(120px, 1fr))', gap: '8px', minWidth: '920px' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '70px repeat(7, minmax(110px, 1fr))' : '80px repeat(7, minmax(120px, 1fr))', gap: '8px', minWidth: isMobile ? '840px' : '920px' }}>
             {/* Header Row */}
             <div></div>
             {weekDates.map((day, i) => {
@@ -586,6 +596,7 @@ export default function Schedule() {
               </Fragment>
             ))}
           </div>
+            </div>
         </div>
         {/* Legend */}
         <div style={{ display: 'flex', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)', flexWrap: 'wrap' }}>

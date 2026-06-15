@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notificationApi } from '../services/api';
 import NotificationBell from '../components/NotificationBell';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const TYPE_CONFIG = {
   schedule_change: { icon: '📅', color: '#60a5fa', label: 'Thay đổi lịch' },
@@ -36,6 +37,7 @@ const fmtDate = (dateStr) => {
 };
 
 export default function Notifications() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -158,7 +160,7 @@ export default function Notifications() {
       </div>
 
       {/* Layout: List + Detail */}
-      <div style={{ display: 'grid', gridTemplateColumns: selectedNotif ? '1fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: (selectedNotif && !isMobile) ? '1fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
         {/* List */}
         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ overflowY: 'auto', maxHeight: '600px' }}>

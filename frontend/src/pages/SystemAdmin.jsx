@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { systemApi, api } from '../services/api';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const getUser = () => { try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch { return {}; } };
 
@@ -57,7 +58,7 @@ const OverviewSection = ({ data }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)', gap: '12px' }}>
         <StatCard icon="👥" label="Tổng users" value={overview?.totalUsers || 0} color="#3b82f6" small />
         <StatCard icon="✅" label="Đang hoạt động" value={overview?.activeUsers || 0} color="#10b981" small />
         <StatCard icon="⏳" label="Chờ duyệt" value={overview?.pendingUsers || 0} color="#f59e0b" small />
@@ -67,7 +68,7 @@ const OverviewSection = ({ data }) => {
       </div>
 
       {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '20px' }}>
         {/* Audit by category */}
         <div className="glass-card" style={{ padding: '20px' }}>
           <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>Audit Logs theo danh mục</h4>
@@ -120,7 +121,7 @@ const OverviewSection = ({ data }) => {
       </div>
 
       {/* Recent audit + activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
         <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)' }}>
             <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>Audit logs gần đây</h4>
@@ -397,7 +398,7 @@ const AuditLogsSection = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Stats */}
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
           <StatCard icon="📋" label="Tổng logs" value={fmt(stats.total)} color="#3b82f6" small />
           <StatCard icon="📅" label="Hôm nay" value={fmt(stats.todayCount)} color="#10b981" small />
           <StatCard icon="📆" label="7 ngày" value={fmt(stats.weekCount)} color="#f59e0b" small />
@@ -535,7 +536,7 @@ const SystemSettingsSection = () => {
       <div className="glass-card" style={{ padding: '24px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>⚙️ Cài đặt hệ thống</h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
           {/* Business Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🏪 Thông tin doanh nghiệp</h4>
@@ -572,7 +573,7 @@ const SystemSettingsSection = () => {
           {/* Location coords */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🗺️ Tọa độ địa lý</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
               <div className="form-group">
                 <label className="form-label">Vĩ độ (Latitude)</label>
                 <input className="form-input" type="number" step="any" value={settings?.location?.latitude || 0}
@@ -731,6 +732,7 @@ const SystemConfigSection = () => {
 
 export default function SystemAdmin() {
   const user = getUser();
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [dashboardData, setDashboardData] = useState(null);

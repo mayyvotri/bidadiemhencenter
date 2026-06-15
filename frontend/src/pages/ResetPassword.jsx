@@ -1,11 +1,36 @@
 import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AuthLayout from '../components/AuthLayout';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+
+const inputStyle = (isMobile) => ({
+  width: '100%',
+  padding: '14px 16px',
+  background: 'rgba(255, 255, 255, 0.05)',
+  border: '1px solid var(--border-glass)',
+  borderRadius: '8px',
+  color: '#fff',
+  fontSize: '16px',
+  outline: 'none',
+  minHeight: isMobile ? '48px' : 'auto',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit'
+});
+
+const labelStyle = {
+  display: 'block',
+  fontSize: '14px',
+  fontWeight: '500',
+  color: 'var(--text-secondary)',
+  marginBottom: '8px'
+};
 
 export default function ResetPassword() {
   const { resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [token, setToken] = useState(location.state?.token || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,30 +41,15 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (!token) {
-      setError('Token là bắt buộc. Vui lòng lấy token từ trang Quên mật khẩu.');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setError('Mật khẩu mới phải có ít nhất 6 ký tự');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('Mật khẩu mới không khớp');
-      return;
-    }
-
+    if (!token) { setError('Token là bắt buộc. Vui lòng lấy token từ trang Quên mật khẩu.'); return; }
+    if (newPassword.length < 6) { setError('Mật khẩu mới phải có ít nhất 6 ký tự'); return; }
+    if (newPassword !== confirmPassword) { setError('Mật khẩu mới không khớp'); return; }
     setLoading(true);
     try {
       const result = await resetPassword(token, newPassword);
       if (result.success) {
         setSuccess(true);
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        setTimeout(() => navigate('/login'), 2000);
       } else {
         setError(result.message);
       }
@@ -51,93 +61,89 @@ export default function ResetPassword() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '40px auto', padding: '32px', textAlign: 'left' }}>
-      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', marginBottom: '8px', color: '#fff' }}>
-        Đặt Lại Mật Khẩu
-      </h2>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-        Nhập token và mật khẩu mới để đặt lại mật khẩu của bạn.
-      </p>
-
+    <AuthLayout
+      title="Đặt Lại Mật Khẩu"
+      subtitle="Nhập token và mật khẩu mới để đặt lại mật khẩu của bạn."
+      icon="🔓"
+    >
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
           {error}
         </div>
       )}
 
       {success ? (
-        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
-          <p style={{ color: '#22c55e', fontSize: '14px' }}>
-            Đặt lại mật khẩu thành công! Đang chuyển đến trang đăng nhập...
+        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '16px', borderRadius: '8px' }}>
+          <p style={{ color: '#22c55e', fontSize: '14px', margin: 0 }}>
+            ✓ Đặt lại mật khẩu thành công! Đang chuyển đến trang đăng nhập...
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '6px' }}>
-              Reset Token
-            </label>
+            <label style={labelStyle}>Reset Token</label>
             <input
               type="text"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               required
               placeholder="Nhập token từ trang Quên mật khẩu"
-              className="form-input"
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={inputStyle(isMobile)}
             />
           </div>
-
           <div>
-            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '6px' }}>
-              Mật khẩu mới
-            </label>
+            <label style={labelStyle}>Mật khẩu mới</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={6}
-              className="form-input"
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              placeholder="Ít nhất 6 ký tự"
+              style={inputStyle(isMobile)}
             />
           </div>
-
           <div>
-            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '6px' }}>
-              Xác nhận mật khẩu mới
-            </label>
+            <label style={labelStyle}>Xác nhận mật khẩu mới</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
-              className="form-input"
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              placeholder="Nhập lại mật khẩu"
+              style={inputStyle(isMobile)}
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary"
-            style={{ padding: '12px', fontSize: '14px', fontWeight: '600', marginTop: '8px' }}
+            style={{
+              padding: '14px',
+              fontSize: '16px',
+              fontWeight: '600',
+              marginTop: '8px',
+              background: loading ? 'rgba(225, 29, 72, 0.5)' : 'var(--primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              minHeight: isMobile ? '52px' : 'auto'
+            }}
           >
             {loading ? 'Đang xử lý...' : 'Đặt Lại Mật Khẩu'}
           </button>
-
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', fontSize: '13px' }}>
-            <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', fontSize: '14px', flexWrap: 'wrap' }}>
+            <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', padding: '8px 12px', minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>
               Đăng nhập
             </Link>
-            <span style={{ color: 'var(--text-muted)' }}>|</span>
-            <Link to="/forgot-password" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>|</span>
+            <Link to="/forgot-password" style={{ color: 'var(--text-secondary)', textDecoration: 'none', padding: '8px 12px', minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>
               Lấy token mới
             </Link>
           </div>
         </form>
       )}
-    </div>
+    </AuthLayout>
   );
 }

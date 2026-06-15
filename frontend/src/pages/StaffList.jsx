@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { systemApi } from '../services/api';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const POSITION_LABELS = {
   receptionist: 'Lễ tân',
@@ -17,6 +18,7 @@ const ROLE_LABELS = {
 };
 
 export default function StaffList() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [activeTab, setActiveTab] = useState('staff');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -244,6 +246,7 @@ export default function StaffList() {
 
       {/* Table */}
       <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <table className="custom-table">
           <thead>
             <tr>
@@ -345,6 +348,7 @@ export default function StaffList() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Detail Drawer */}

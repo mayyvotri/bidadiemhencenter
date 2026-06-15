@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { api, getTaskId } from '../services/api';
 import { payrollApi } from '../services/api';
 import { onEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1023px)');
   const [user, setUser] = useState({ name: '', role: '', isAdmin: false });
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [tasks, setTasks] = useState([]);
@@ -129,16 +132,16 @@ export default function Dashboard() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       
       {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '24px', gap: isMobile ? '12px' : '0' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: isMobile ? '22px' : '28px', fontWeight: '700' }}>
           Bảng điều khiển
         </h1>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm nhiệm vụ..." 
-            className="form-input" 
-            style={{ width: '220px', padding: '6px 12px', fontSize: '13px', background: 'rgba(0,0,0,0.15)' }}
+        <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto' }}>
+          <input
+            type="text"
+            placeholder="Tìm kiếm nhiệm vụ..."
+            className="form-input"
+            style={{ width: isMobile ? '100%' : '220px', padding: isMobile ? '10px 12px' : '6px 12px', fontSize: '14px', minHeight: isMobile ? '44px' : 'auto', background: 'rgba(0,0,0,0.15)' }}
           />
         </div>
       </div>
@@ -146,8 +149,8 @@ export default function Dashboard() {
       {/* Grid Layout */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '3fr 1.3fr',
-        gap: '24px',
+        gridTemplateColumns: isMobile ? '1fr' : (isTablet ? '1fr' : '3fr 1.3fr'),
+        gap: isMobile ? '16px' : '24px',
         alignItems: 'start'
       }}>
         {/* Left Column */}
@@ -157,10 +160,12 @@ export default function Dashboard() {
           <div className="glass-card" style={{
             background: 'linear-gradient(135deg, rgba(22, 28, 45, 0.95), rgba(15, 18, 29, 0.95))',
             borderLeft: '4px solid var(--primary)',
-            padding: '28px',
+            padding: isMobile ? '20px' : '28px',
             display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: isMobile ? '16px' : '0'
           }}>
             <div>
               <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -183,34 +188,38 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button 
+            <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto' }}>
+              <button
                 onClick={() => handleClockToggle(true)}
                 style={{
                   background: isClockedIn ? 'rgba(255,255,255,0.02)' : 'var(--primary)',
                   color: isClockedIn ? 'var(--text-muted)' : '#fff',
                   border: isClockedIn ? '1px solid var(--border-glass)' : 'none',
-                  padding: '12px 18px',
+                  padding: isMobile ? '14px 12px' : '12px 18px',
                   borderRadius: '8px',
                   fontSize: '12px',
                   fontWeight: '700',
-                  cursor: isClockedIn ? 'default' : 'pointer'
+                  cursor: isClockedIn ? 'default' : 'pointer',
+                  flex: isMobile ? 1 : 'none',
+                  minHeight: isMobile ? '44px' : 'auto'
                 }}
                 disabled={isClockedIn}
               >
                 ➔ CHẤM CÔNG VÀO
               </button>
-              <button 
+              <button
                 onClick={() => handleClockToggle(false)}
                 style={{
                   background: !isClockedIn ? 'rgba(255,255,255,0.02)' : 'transparent',
                   color: !isClockedIn ? 'var(--text-muted)' : '#fff',
                   border: '1px solid var(--border-glass)',
-                  padding: '12px 18px',
+                  padding: isMobile ? '14px 12px' : '12px 18px',
                   borderRadius: '8px',
                   fontSize: '12px',
                   fontWeight: '700',
-                  cursor: !isClockedIn ? 'default' : 'pointer'
+                  cursor: !isClockedIn ? 'default' : 'pointer',
+                  flex: isMobile ? 1 : 'none',
+                  minHeight: isMobile ? '44px' : 'auto'
                 }}
                 disabled={!isClockedIn}
               >
@@ -220,7 +229,7 @@ export default function Dashboard() {
           </div>
 
           {/* Cards Row: Next Shift & Revenue */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '12px' : '20px' }}>
             
             {/* Shift Card */}
             <div className="glass-card" style={{ padding: '20px', position: 'relative' }}>
@@ -388,23 +397,23 @@ export default function Dashboard() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       
       {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '24px', gap: isMobile ? '12px' : '0' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: isMobile ? '22px' : '28px', fontWeight: '700', color: '#fff' }}>
             Trang Chủ Quản Lý
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Quản trị hoạt động và phối hợp nhân viên ca trực.
           </p>
         </div>
-        
+
         {/* Search & Meta */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <input 
-            type="text" 
-            placeholder="Search tables, staff, or transactions..." 
-            className="form-input" 
-            style={{ width: '280px', padding: '8px 12px', fontSize: '13px', background: 'rgba(0,0,0,0.15)' }}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: isMobile ? '100%' : 'auto' }}>
+          <input
+            type="text"
+            placeholder="Search tables, staff..."
+            className="form-input"
+            style={{ width: isMobile ? '100%' : '280px', padding: isMobile ? '10px 12px' : '8px 12px', fontSize: '14px', minHeight: isMobile ? '44px' : 'auto', background: 'rgba(0,0,0,0.15)' }}
           />
         </div>
       </div>
@@ -477,8 +486,8 @@ export default function Dashboard() {
       {/* Main Grid: Tables & Staff List vs Alerts */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '3fr 1.3fr',
-        gap: '24px',
+        gridTemplateColumns: isMobile ? '1fr' : (isTablet ? '1fr' : '3fr 1.3fr'),
+        gap: isMobile ? '16px' : '24px',
         alignItems: 'start'
       }}>
         {/* Left Column Content */}

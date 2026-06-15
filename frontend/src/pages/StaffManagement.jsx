@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const POSITION_LABELS = {
   receptionist: 'Lễ tân',
@@ -24,6 +25,7 @@ const ROLE_LABELS = {
 };
 
 export default function StaffManagement() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingStaff, setEditingStaff] = useState(null);
@@ -252,13 +254,13 @@ export default function StaffManagement() {
             borderRadius: '12px',
             padding: '24px',
             width: '90%',
-            maxWidth: '600px',
+            maxWidth: isMobile ? '100%' : '600px',
             maxHeight: '90vh',
             overflowY: 'auto'
           }}>
             <h3 style={{ margin: '0 0 20px 0', color: 'var(--text-primary)' }}>Chỉnh sửa nhân viên</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-muted)', fontSize: '12px' }}>Tên</label>
                 <input

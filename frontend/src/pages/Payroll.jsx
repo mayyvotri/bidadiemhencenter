@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { payrollApi, attendanceApi } from '../services/api';
 import { onEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const getUser = () => {
   try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch { return {}; }
@@ -23,6 +24,7 @@ const STATUS_BADGE = {
 export default function Payroll() {
   const user = getUser();
   const isAdmin = user.isAdmin;
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const now = new Date();
 
   const [tab, setTab] = useState('payroll');
@@ -299,7 +301,7 @@ export default function Payroll() {
 
           {/* Stats */}
           {isAdmin ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
             {[
               { label: 'Tổng nhân viên', value: payrolls.length, color: '#fff' },
               { label: 'Tổng lương NET', value: fmt(totalNet) + 'đ', color: 'var(--success)' },
@@ -314,7 +316,7 @@ export default function Payroll() {
             ))}
           </div>
           ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
             {[
               { label: 'Ngày làm việc', value: attendanceSummary.totalDaysWorked, color: '#fff' },
               { label: 'Tổng giờ làm', value: attendanceSummary.totalHoursWorked + 'h', color: 'var(--primary)' },
@@ -330,7 +332,7 @@ export default function Payroll() {
           )}
 
           {/* Main Layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: isAdmin && selectedPayroll ? '1.5fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isAdmin && selectedPayroll && !isMobile ? '1.5fr 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
             
             {/* Admin: Payroll Table */}
             {isAdmin ? (
@@ -393,7 +395,7 @@ export default function Payroll() {
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
                     <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                       <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>{attendanceSummary.totalDaysWorked}</div>
                       <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Ngày làm</div>
@@ -614,7 +616,7 @@ export default function Payroll() {
       {/* Adjust Modal */}
       {showAdjustModal && selectedPayroll && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '440px', background: '#0d111a' }}>
+          <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', width: '100%', maxWidth: isMobile ? '100%' : '440px', background: '#0d111a', borderRadius: isMobile ? '0' : '16px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>Điều chỉnh lương</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
@@ -647,7 +649,7 @@ export default function Payroll() {
       {/* Wage Config Modal */}
       {showWageModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '480px', background: '#0d111a', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', width: '100%', maxWidth: isMobile ? '100%' : '480px', background: '#0d111a', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto', borderRadius: isMobile ? '0' : '16px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>Cấu hình lương</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
@@ -664,7 +666,7 @@ export default function Payroll() {
                 <input type="number" className="form-input" placeholder="VD: 5000000"
                   value={wageForm.baseWage} onChange={e => setWageForm({ ...wageForm, baseWage: e.target.value })} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
                 {[
                   { label: 'Hệ số OT', field: 'overtimeRate', desc: 'Mặc định: 1.5' },
                   { label: 'Hệ số ca đêm', field: 'nightShiftRate', desc: 'Mặc định: 1.3' },
@@ -696,13 +698,13 @@ export default function Payroll() {
       {/* Report Modal */}
       {showReportModal && reportData && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '760px', background: '#0d111a', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', width: '100%', maxWidth: isMobile ? '100%' : '760px', background: '#0d111a', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto', borderRadius: isMobile ? '0' : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#fff' }}>Báo cáo lương {reportData.payrolls?.[0]?.month}/{reportData.payrolls?.[0]?.year}</h3>
               <button onClick={() => setShowReportModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
               {[
                 { label: 'Tổng nhân viên', value: reportData.summary.totalEmployees },
                 { label: 'Tổng lương NET', value: fmt(reportData.summary.totalNet) + 'đ', color: 'var(--success)' },

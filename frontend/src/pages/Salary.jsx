@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { api, payrollApi } from '../services/api';
 import { onEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export default function Salary() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [salaryDetail, setSalaryDetail] = useState({
     baseRate: 0, totalHours: 0, baseSalary: 0,
     allowance: 0, bonus: 0, deduction: 0, netSalary: 0, period: ''
@@ -86,7 +88,7 @@ export default function Salary() {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: '24px',
         marginBottom: '32px'
       }}>

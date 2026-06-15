@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api, getTaskId } from '../services/api';
 import { onEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const getUser = () => {
   try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch { return {}; }
@@ -27,6 +28,7 @@ const VN_DAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 export default function TaskManagement() {
   const user = getUser();
   const isAdmin = user.isAdmin;
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [activeTab, setActiveTab] = useState('pool');
   const [taskPool, setTaskPool] = useState([]);
   const [assignedTasks, setAssignedTasks] = useState([]);
@@ -493,7 +495,7 @@ export default function TaskManagement() {
       {/* MODAL: Thêm nhiệm vụ vào pool */}
       {showAddPoolModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '480px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>
                 Thêm nhiệm vụ mới
@@ -514,7 +516,7 @@ export default function TaskManagement() {
                   value={newPoolTask.description} onChange={e => setNewPoolTask({ ...newPoolTask, description: e.target.value })} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label">Mức ưu tiên</label>
                   <select className="form-input" style={{ padding: '10px 14px', fontSize: '13px', background: 'var(--bg-darker)' }}
@@ -548,7 +550,7 @@ export default function TaskManagement() {
       {/* MODAL: Phân công nhiệm vụ */}
       {showAssignModal && selectedPoolTask && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '480px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: '#fff', margin: 0 }}>
                 Phân công nhiệm vụ
@@ -563,7 +565,7 @@ export default function TaskManagement() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label">Ngày *</label>
                   <select className="form-input" style={{ padding: '10px 14px', fontSize: '13px', background: 'var(--bg-darker)' }}

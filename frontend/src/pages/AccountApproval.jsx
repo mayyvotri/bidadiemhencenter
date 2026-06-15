@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { approvalApi } from '../services/api';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export default function AccountApproval() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [pendingUsers, setPendingUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +153,7 @@ export default function AccountApproval() {
           Không có tài khoản nào để hiển thị
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
           {displayUsers.map((user) => (
             <div key={user._id} style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -236,7 +238,7 @@ export default function AccountApproval() {
 
       {showRejectModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '32px', maxWidth: '500px', width: '90%' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '12px', padding: isMobile ? '20px' : '32px', maxWidth: isMobile ? '100%' : '500px', width: isMobile ? '100%' : '90%', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '16px' }}>
               Từ chối tài khoản
             </h2>

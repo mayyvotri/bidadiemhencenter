@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api, getTaskId } from '../services/api';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const getUser = () => {
   try { return JSON.parse(localStorage.getItem('user_info') || '{}'); } catch { return {}; }
@@ -35,6 +36,7 @@ const Badge = ({ children, config, style = {} }) => (
 export default function Tasks() {
   const user = getUser();
   const isAdmin = user.isAdmin || user.role === 'manager';
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const userId = user.id || user._id;
   const [tasks, setTasks] = useState([]);
   const [staffList, setStaffList] = useState([]);
@@ -270,7 +272,7 @@ export default function Tasks() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
         {[
           { key: 'all',       label: 'Tổng',            value: stats.total,       color: '#ffffff', icon: '📋' },
           { key: 'pending',   label: 'Chờ thực hiện', value: stats.pending,     color: '#f59e0b', icon: '⏳' },
@@ -310,7 +312,7 @@ export default function Tasks() {
 
       {/* BOARD VIEW */}
       {viewMode === 'board' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '14px', alignItems: 'start' }}>
           {boardColumns.map(col => {
             const colTasks = filteredTasks.filter(t => t.status === col);
             const cfg = STATUS_CONFIG[col];
@@ -658,7 +660,7 @@ export default function Tasks() {
       {/* Add Task Modal */}
       {showAddModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '520px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>Thêm nhiệm vụ mới</h2>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
@@ -674,7 +676,7 @@ export default function Tasks() {
                 <textarea className="form-input" rows="3" placeholder="Mô tả nhiệm vụ cần thực hiện..." style={{ padding: '10px 14px', fontSize: '13px', resize: 'vertical' }}
                   value={newTask.description} onChange={e => setNewTask({ ...newTask, description: e.target.value })} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label className="form-label">Giờ hạn chót</label>
                   <input type="time" className="form-input" style={{ padding: '10px 14px', fontSize: '13px' }}
@@ -686,7 +688,7 @@ export default function Tasks() {
                     value={newTask.deadlineDate} onChange={e => setNewTask({ ...newTask, deadlineDate: e.target.value })} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label className="form-label">Mức ưu tiên</label>
                   <select className="form-input" style={{ padding: '10px 14px', fontSize: '13px', background: 'var(--bg-darker)' }}
@@ -735,7 +737,7 @@ export default function Tasks() {
       {/* Edit Task Modal */}
       {editTask && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
-          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '520px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>Sửa nhiệm vụ</h2>
               <button onClick={() => setEditTask(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
@@ -751,7 +753,7 @@ export default function Tasks() {
                 <textarea className="form-input" rows="3" style={{ padding: '10px 14px', fontSize: '13px', resize: 'vertical' }}
                   value={editTask.description || ''} onChange={e => setEditTask({ ...editTask, description: e.target.value })} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label className="form-label">Giờ hạn chót</label>
                   <input type="time" className="form-input" style={{ padding: '10px 14px', fontSize: '13px' }}
@@ -764,7 +766,7 @@ export default function Tasks() {
                     onChange={e => setEditTask({ ...editTask, deadlineDate: e.target.value })} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px' }}>
                 <div className="form-group">
                   <label className="form-label">Mức ưu tiên</label>
                   <select className="form-input" style={{ padding: '10px 14px', fontSize: '13px', background: 'var(--bg-darker)' }}

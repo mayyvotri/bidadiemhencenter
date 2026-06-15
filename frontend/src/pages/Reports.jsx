@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api, payrollApi } from '../services/api';
 import { onEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const fmt = (n) => {
   if (n == null) return '0';
@@ -12,6 +13,7 @@ const fmtCurrency = (n) => {
 };
 
 export default function Reports() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [activeTab, setActiveTab] = useState('attendance');
   const [staffList, setStaffList] = useState([]);
   const [selectedStaff, setSelectedStaff] = useState(null);
@@ -296,7 +298,7 @@ function AttendanceTab({
   fetchStaffAttendance, getStatusBadge, formatCurrency, currentMonth, currentYear
 }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '20px', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '340px 1fr', gap: '20px', alignItems: 'start' }}>
       {/* Left: Staff List */}
       <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.02)' }}>
@@ -407,7 +409,7 @@ function AttendanceTab({
             </div>
 
             {/* Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px' }}>
               {[
                 { label: 'Ngày làm việc', value: staffAttendance.summary?.totalDaysWorked || 0, color: '#3b82f6', icon: '📅' },
                 { label: 'Tổng giờ', value: `${(staffAttendance.summary?.totalHoursWorked || 0).toFixed(1)}h`, color: '#10b981', icon: '⏱️' },
@@ -428,7 +430,7 @@ function AttendanceTab({
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>
                 💵 Chi tiết lương tháng
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[
                     { label: 'Mức lương cơ bản/giờ', value: formatCurrency(staffAttendance.summary?.wagePerHour || 0) },
@@ -564,7 +566,7 @@ function PayrollTab({ payrollSummary, payrollLoading, currentMonth, currentYear,
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
         {[
           { label: 'Tổng nhân viên', value: totals.count, color: '#3b82f6', icon: '👥' },
           { label: 'Đã thanh toán', value: totals.paid, color: '#10b981', icon: '✅' },
@@ -698,7 +700,7 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px' }}>
         {[
           { label: 'Tổng nhiệm vụ', value: stats.total, color: '#3b82f6', icon: '📋' },
           { label: 'Chờ xử lý', value: stats.pending, color: '#f59e0b', icon: '⏳' },

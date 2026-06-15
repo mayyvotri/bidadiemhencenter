@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { attendanceRequestApi } from '../services/attendanceRequestApi';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const formatDate = (date) => {
   if (!date) return '--/--/----';
@@ -9,6 +10,7 @@ const formatDate = (date) => {
 
 export default function AttendanceRequestPage() {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -312,7 +314,7 @@ export default function AttendanceRequestPage() {
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gap: '24px', alignItems: 'start' }}>
           {/* LEFT: Camera */}
           <div>
             {/* Type selector */}

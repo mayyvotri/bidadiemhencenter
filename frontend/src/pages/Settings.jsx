@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 export default function Settings() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
     general: {
@@ -114,7 +116,7 @@ export default function Settings() {
                   })}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
                 <div className="form-group">
                   <label className="form-label">Số điện thoại</label>
                   <input 

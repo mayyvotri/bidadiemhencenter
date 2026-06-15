@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { attendanceRequestApi } from '../services/attendanceRequestApi';
 import { emitEvent, Events } from '../utils/events';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const formatDate = (date) => {
   if (!date) return '--/--/----';
@@ -22,6 +23,7 @@ const getStatusInfo = (status) => {
 };
 
 export default function AttendanceApproval() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -152,7 +154,7 @@ export default function AttendanceApproval() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
         {[
           { label: 'Chờ duyệt', value: stats.pending, color: '#eab308', bg: 'rgba(234,179,8,0.1)' },
           { label: 'Đã duyệt', value: stats.approved, color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
@@ -361,7 +363,7 @@ export default function AttendanceApproval() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 100, padding: '20px'
         }}>
-          <div className="glass-card" style={{ padding: '24px', maxWidth: '500px', width: '100%' }}>
+          <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', maxWidth: isMobile ? '100%' : '500px', width: '100%', borderRadius: isMobile ? '0' : '16px' }}>
             <h3 style={{ fontSize: '18px', color: '#fff', marginBottom: '16px' }}>
               Từ Chối Yêu Cầu
             </h3>
