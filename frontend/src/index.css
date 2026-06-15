@@ -328,3 +328,40 @@ body {
   0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
   50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
 }
+
+/* ── Responsive Utilities ── */
+@media (max-width: 767px) {
+  html, body { font-size: 14px; }
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+  .card, [class*="card-"] { padding: 14px !important; }
+
+  /* Tables: cuộn ngang trên mobile */
+  table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+
+  /* Form inputs full-width & cao hơn cho touch */
+  input, select, textarea, button {
+    font-size: 16px !important; /* ngăn iOS auto-zoom */
+  }
+
+  /* Grid nhiều cột → 1 cột */
+  [style*="gridTemplateColumns"], .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal/dialog full-screen trên mobile */
+  [role="dialog"], .modal, .dialog {
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  html, body { font-size: 14px; }
+}
+
+@media (min-width: 1024px) {
+  html, body { font-size: 15px; }
+}
