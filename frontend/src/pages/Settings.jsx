@@ -47,7 +47,7 @@ export default function Settings() {
       
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
           Cài đặt Hệ thống
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -64,7 +64,7 @@ export default function Settings() {
             style={{
               padding: '10px 16px',
               background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
-              color: activeTab === tab.id ? '#fff' : 'var(--text-secondary)',
+              color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-secondary)',
               border: activeTab === tab.id ? 'none' : '1px solid var(--border-glass)',
               borderRadius: '8px',
               fontSize: '13px',
@@ -88,7 +88,7 @@ export default function Settings() {
         {/* General Settings */}
         {activeTab === 'general' && (
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Cài đặt chung
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -161,7 +161,7 @@ export default function Settings() {
         {/* Notifications Settings */}
         {activeTab === 'notifications' && (
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Cài đặt thông báo
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -173,7 +173,7 @@ export default function Settings() {
               ].map((item) => (
                 <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                   <div>
-                    <div style={{ fontWeight: '600', color: '#fff', marginBottom: '4px' }}>{item.label}</div>
+                    <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>{item.label}</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.desc}</div>
                   </div>
                   <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
@@ -204,7 +204,7 @@ export default function Settings() {
                       width: '18px',
                       left: settings.notifications[item.key] ? '27px' : '3px',
                       bottom: '3px',
-                      backgroundColor: '#fff',
+                      backgroundColor: 'var(--text-primary)',
                       transition: '0.3s',
                       borderRadius: '50%'
                     }}></span>
@@ -218,13 +218,13 @@ export default function Settings() {
         {/* System Settings */}
         {activeTab === 'system' && (
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Cài đặt hệ thống
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                 <div>
-                  <div style={{ fontWeight: '600', color: '#fff', marginBottom: '4px' }}>Sao lưu tự động</div>
+                  <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>Sao lưu tự động</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Tự động sao lưu dữ liệu định kỳ</div>
                 </div>
                 <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
@@ -255,7 +255,7 @@ export default function Settings() {
                     width: '18px',
                     left: settings.system.autoBackup ? '27px' : '3px',
                     bottom: '3px',
-                    backgroundColor: '#fff',
+                    backgroundColor: 'var(--text-primary)',
                     transition: '0.3s',
                     borderRadius: '50%'
                   }}></span>
@@ -300,7 +300,7 @@ export default function Settings() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                 <div>
-                  <div style={{ fontWeight: '600', color: '#fff', marginBottom: '4px' }}>Bật nhật ký hệ thống</div>
+                  <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>Bật nhật ký hệ thống</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Ghi lại tất cả hoạt động hệ thống</div>
                 </div>
                 <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
@@ -331,7 +331,7 @@ export default function Settings() {
                     width: '18px',
                     left: settings.system.enableAuditLogs ? '27px' : '3px',
                     bottom: '3px',
-                    backgroundColor: '#fff',
+                    backgroundColor: 'var(--text-primary)',
                     transition: '0.3s',
                     borderRadius: '50%'
                   }}></span>
@@ -344,7 +344,7 @@ export default function Settings() {
         {/* Appearance Settings */}
         {activeTab === 'appearance' && (
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Cài đặt giao diện
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

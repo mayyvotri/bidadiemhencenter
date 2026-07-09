@@ -171,7 +171,7 @@ export default function Dashboard() {
               <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Chào buổi chiều, {user.name.split(' ')[0]}!
               </span>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '26px', fontWeight: '700', marginTop: '4px', color: '#fff' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '26px', fontWeight: '700', marginTop: '4px', color: 'var(--text-primary)' }}>
                 Sẵn sàng cho ca tối chưa?
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -193,7 +193,7 @@ export default function Dashboard() {
                 onClick={() => handleClockToggle(true)}
                 style={{
                   background: isClockedIn ? 'rgba(255,255,255,0.02)' : 'var(--primary)',
-                  color: isClockedIn ? 'var(--text-muted)' : '#fff',
+                  color: isClockedIn ? 'var(--text-muted)' : 'var(--text-primary)',
                   border: isClockedIn ? '1px solid var(--border-glass)' : 'none',
                   padding: isMobile ? '14px 12px' : '12px 18px',
                   borderRadius: '8px',
@@ -211,7 +211,7 @@ export default function Dashboard() {
                 onClick={() => handleClockToggle(false)}
                 style={{
                   background: !isClockedIn ? 'rgba(255,255,255,0.02)' : 'transparent',
-                  color: !isClockedIn ? 'var(--text-muted)' : '#fff',
+                  color: !isClockedIn ? 'var(--text-muted)' : 'var(--text-primary)',
                   border: '1px solid var(--border-glass)',
                   padding: isMobile ? '14px 12px' : '12px 18px',
                   borderRadius: '8px',
@@ -238,7 +238,7 @@ export default function Dashboard() {
               </span>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>📅</div>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Chưa có ca được giao</div>
-              <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff', margin: '4px 0 8px' }}>
+              <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: '4px 0 8px' }}>
                 --
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -265,7 +265,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Thu nhập dự kiến</div>
-                  <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff', margin: '4px 0 8px' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', margin: '4px 0 8px' }}>
                     {salaryPreview ? new Intl.NumberFormat('vi-VN').format(salaryPreview.netSalary) + 'đ' : '0đ'}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
@@ -280,7 +280,7 @@ export default function Dashboard() {
           {/* Tasks List Box */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)' }}>
                 Nhiệm vụ được giao
               </h3>
               <span style={{ fontSize: '13px', color: 'var(--primary)', cursor: 'pointer' }} onClick={() => navigate('/tasks')}>
@@ -305,7 +305,7 @@ export default function Dashboard() {
                       >
                         {task.status === 'completed' && <span style={{ color: 'white', fontSize: '11px' }}>✓</span>}
                       </div>
-                      <span className="task-title" style={{ color: task.status === 'completed' ? 'var(--text-muted)' : '#fff' }}>
+                      <span className="task-title" style={{ color: task.status === 'completed' ? 'var(--text-muted)' : 'var(--text-primary)' }}>
                         {task.title} - {task.deadline}
                       </span>
                     </div>
@@ -377,7 +377,7 @@ export default function Dashboard() {
             <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
               CƠ HỘI THĂNG TIẾN
             </span>
-            <h4 style={{ fontSize: '18px', fontWeight: '700', color: '#fff', margin: 0 }}>
+            <h4 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
               Tuyển Trưởng ca mới
             </h4>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -399,7 +399,7 @@ export default function Dashboard() {
       {/* Title */}
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '24px', gap: isMobile ? '12px' : '0' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: isMobile ? '22px' : '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: isMobile ? '22px' : '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Trang Chủ Quản Lý
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -431,7 +431,7 @@ export default function Dashboard() {
             <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               TOTAL STAFF
             </span>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff', margin: '4px 0' }}>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', margin: '4px 0' }}>
               {staffCount.active} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: '400' }}>/ {staffCount.total}</span>
             </div>
           </div>
@@ -444,7 +444,7 @@ export default function Dashboard() {
             <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               ACTIVE TABLES
             </span>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff', margin: '4px 0' }}>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', margin: '4px 0' }}>
               {tableStats.occupied} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: '400' }}>/ {tableStats.total}</span>
             </div>
           </div>
@@ -457,7 +457,7 @@ export default function Dashboard() {
             <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               SHIFT REVENUE
             </span>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#fff', margin: '4px 0' }}>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', margin: '4px 0' }}>
               0 <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>VND</span>
             </div>
           </div>
@@ -474,7 +474,7 @@ export default function Dashboard() {
           justifyContent: 'center',
           border: '1px solid rgba(59, 130, 246, 0.15)'
         }}>
-          <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#fff', margin: 0 }}>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
             Elite Ambience
           </h4>
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -496,7 +496,7 @@ export default function Dashboard() {
           {/* Table Management Board */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)' }}>
                 Table Management
               </h3>
               <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
@@ -526,7 +526,7 @@ export default function Dashboard() {
                   border: `1px solid ${table.status === 'Occupied' ? 'var(--primary)' : 'var(--border-glass)'}`,
                   borderRadius: '8px', padding: '16px', textAlign: 'center'
                 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{table.id}</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{table.id}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{table.type || 'STD'}</div>
                   <div style={{ fontSize: '10px', color: table.status === 'Occupied' ? 'var(--primary)' : 'var(--success)', marginTop: '6px', fontWeight: '600' }}>
                     {table.status === 'Occupied' ? 'Đang chơi' : 'Trống'}
@@ -539,7 +539,7 @@ export default function Dashboard() {
           {/* Active Shift Staff */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)' }}>
                 Shift Staff
               </h3>
               <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => navigate('/staff-list')}>

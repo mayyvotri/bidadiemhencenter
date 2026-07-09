@@ -10,7 +10,7 @@ const inputStyle = (isMobile) => ({
   background: 'rgba(255, 255, 255, 0.05)',
   border: '1px solid var(--border-glass)',
   borderRadius: '8px',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '16px',
   outline: 'none',
   minHeight: isMobile ? '48px' : 'auto',
@@ -63,7 +63,7 @@ export default function ChangePassword() {
       icon="🔐"
     >
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -90,7 +90,7 @@ export default function ChangePassword() {
             fontWeight: '600',
             marginTop: '8px',
             background: loading ? 'rgba(225, 29, 72, 0.5)' : 'var(--primary)',
-            color: '#fff',
+            color: 'var(--text-primary)',
             border: 'none',
             borderRadius: '8px',
             cursor: loading ? 'not-allowed' : 'pointer',

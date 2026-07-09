@@ -91,12 +91,12 @@ export default function BusinessLocationSettings() {
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
   }
 
   return (
     <div style={{ padding: '32px' }}>
-      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', marginBottom: '8px' }}>
+      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', marginBottom: '8px' }}>
         Cài Đặt Vị Trí Doanh Nghiệp
       </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
@@ -104,13 +104,13 @@ export default function BusinessLocationSettings() {
       </p>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
 
       {success && (
-        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#22c55e', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--success-text)', fontSize: '14px' }}>
           {success}
         </div>
       )}
@@ -118,7 +118,7 @@ export default function BusinessLocationSettings() {
       <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
         {/* Business Information */}
         <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff', marginBottom: '20px' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)', marginBottom: '20px' }}>
             Thông tin doanh nghiệp
           </h3>
           <div style={{ marginBottom: '16px' }}>
@@ -127,7 +127,7 @@ export default function BusinessLocationSettings() {
               type="text"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             />
           </div>
           <div style={{ marginBottom: '16px' }}>
@@ -137,14 +137,14 @@ export default function BusinessLocationSettings() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Địa chỉ doanh nghiệp"
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             />
           </div>
         </div>
 
         {/* Location Settings */}
         <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff', marginBottom: '20px' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)', marginBottom: '20px' }}>
             Cài đặt vị trí GPS
           </h3>
           <div style={{ marginBottom: '16px' }}>
@@ -155,7 +155,7 @@ export default function BusinessLocationSettings() {
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               placeholder="Ví dụ: 21.0285"
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             />
           </div>
           <div style={{ marginBottom: '16px' }}>
@@ -166,14 +166,14 @@ export default function BusinessLocationSettings() {
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               placeholder="Ví dụ: 105.8542"
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             />
           </div>
           <div style={{ marginBottom: '16px' }}>
             <button
               type="button"
               onClick={getCurrentLocation}
-              style={{ padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', color: '#3b82f6', fontSize: '14px', cursor: 'pointer' }}
+              style={{ padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', color: 'var(--info)', fontSize: '14px', cursor: 'pointer' }}
             >
               📍 Lấy vị trí hiện tại
             </button>
@@ -186,7 +186,7 @@ export default function BusinessLocationSettings() {
               max="1000"
               value={allowedRadius}
               onChange={(e) => setAllowedRadius(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             />
             <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}>Nhân viên chỉ có thể điểm danh trong bán kính này (10m - 1000m)</p>
           </div>
@@ -194,12 +194,12 @@ export default function BusinessLocationSettings() {
 
         {/* Verification Settings */}
         <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '24px' }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff', marginBottom: '20px' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)', marginBottom: '20px' }}>
             Cài đặt xác thực
           </h3>
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-              <span style={{ color: '#fff', fontSize: '14px' }}>Bật xác thực GPS</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>Bật xác thực GPS</span>
               <input
                 type="checkbox"
                 checked={gpsVerificationEnabled}
@@ -221,7 +221,7 @@ export default function BusinessLocationSettings() {
               background: saving ? 'rgba(255, 255, 255, 0.1)' : 'var(--primary)',
               border: saving ? '1px solid var(--border-glass)' : 'none',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '16px',
               fontWeight: '600',
               cursor: saving ? 'not-allowed' : 'pointer',

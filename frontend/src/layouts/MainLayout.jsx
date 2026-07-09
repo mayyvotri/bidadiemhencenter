@@ -145,11 +145,12 @@ export default function MainLayout({ children }) {
 
   const profileCard = (
     <div style={{
-      background: 'rgba(255, 255, 255, 0.02)',
+      background: 'var(--bg-card)',
       border: '1px solid var(--border-glass)',
-      borderRadius: '10px',
-      padding: '12px',
-      marginTop: isMobile ? '0' : '0'
+      borderRadius: 'var(--radius-lg)',
+      padding: '14px',
+      marginTop: isMobile ? '0' : '0',
+      boxShadow: 'var(--shadow-sm)'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={handleProfileClick}>
         <img
@@ -186,7 +187,7 @@ export default function MainLayout({ children }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tổng NV</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>{salaryInfo.stats?.totalEmployees || 0}</span>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{salaryInfo.stats?.totalEmployees || 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Đã thanh toán</span>
@@ -194,7 +195,7 @@ export default function MainLayout({ children }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Quỹ lương</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
                     {salaryInfo.stats?.totalNet != null ? new Intl.NumberFormat('vi-VN').format(salaryInfo.stats.totalNet) + 'đ' : '—'}
                   </span>
                 </div>
@@ -215,13 +216,13 @@ export default function MainLayout({ children }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Lương GROSS</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
                     {salaryInfo.grossSalary != null ? new Intl.NumberFormat('vi-VN').format(salaryInfo.grossSalary) + 'đ' : '—'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tổng giờ</span>
-                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
                     {salaryInfo.totalHours != null ? salaryInfo.totalHours.toFixed(1) + 'h' : '—'}
                   </span>
                 </div>
@@ -245,15 +246,29 @@ export default function MainLayout({ children }) {
           style={{
             width: '100%',
             marginTop: '12px',
-            padding: '8px',
-            background: isClockedIn ? 'rgba(16, 185, 129, 0.15)' : 'var(--primary)',
-            color: isClockedIn ? '#34d399' : '#fff',
-            border: isClockedIn ? '1px solid rgba(16, 185, 129, 0.3)' : 'none',
-            borderRadius: '6px',
+            padding: '10px',
+            background: isClockedIn ? 'var(--success-bg)' : 'var(--primary)',
+            color: isClockedIn ? 'var(--success-text)' : '#fff',
+            border: isClockedIn ? '1px solid var(--success)' : 'none',
+            borderRadius: 'var(--radius-md)',
             fontSize: '12px',
             fontWeight: '700',
             letterSpacing: '0.5px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            transition: 'all var(--transition-fast)',
+            boxShadow: isClockedIn ? 'none' : 'var(--shadow-sm)'
+          }}
+          onMouseEnter={(e) => {
+            if (!isClockedIn) {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isClockedIn) {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+            }
           }}
         >
           {isClockedIn ? '🟢 CLOCKED IN' : '🔴 CLOCK IN'}
@@ -263,7 +278,7 @@ export default function MainLayout({ children }) {
   );
 
   const navLinks = (
-    <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {fullMenu.map((item) => {
         const isActive = location.pathname === item.path;
         return (
@@ -274,20 +289,20 @@ export default function MainLayout({ children }) {
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: isMobile ? '14px 16px' : '12px 16px',
-              borderRadius: '8px',
+              padding: isMobile ? '12px 16px' : '11px 14px',
+              borderRadius: 'var(--radius-md)',
               textDecoration: 'none',
-              color: isActive ? '#fff' : 'var(--text-secondary)',
-              background: isActive ? 'var(--primary)' : 'transparent',
-              fontWeight: isActive ? '600' : '400',
+              color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+              background: isActive ? 'var(--primary-soft)' : 'transparent',
+              fontWeight: isActive ? '600' : '500',
               fontSize: user.isAdmin ? (isMobile ? '15px' : '14px') : (isMobile ? '14px' : '13px'),
-              letterSpacing: user.isAdmin ? '0' : '0.8px',
+              letterSpacing: user.isAdmin ? '0' : '0.5px',
               minHeight: '44px',
               transition: 'all var(--transition-fast)'
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.background = 'var(--bg-overlay)';
                 e.currentTarget.style.color = 'var(--text-primary)';
               }
             }}
@@ -315,7 +330,7 @@ export default function MainLayout({ children }) {
             fontSize: isMobile ? '18px' : '20px',
             fontWeight: '700',
             letterSpacing: '0.5px',
-            color: '#fff',
+            color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
@@ -343,7 +358,7 @@ export default function MainLayout({ children }) {
         {user.isAdmin && (
           <button
             className="btn-primary"
-            style={{ width: '100%', padding: '12px', fontWeight: '600', fontSize: '14px', borderRadius: '8px' }}
+            style={{ width: '100%', padding: '12px', fontWeight: '600', fontSize: '14px' }}
             onClick={() => alert('Chức năng đặt bàn nhanh cho khách hàng.')}
           >
             Book Table
@@ -388,13 +403,13 @@ export default function MainLayout({ children }) {
           left: 0,
           right: 0,
           zIndex: 100,
-          background: 'rgba(234, 179, 8, 0.95)',
-          color: '#1a1a1a',
+          background: 'var(--warning-bg)',
+          color: 'var(--warning-text)',
           padding: '10px 16px',
           textAlign: 'center',
           fontSize: '13px',
           fontWeight: '600',
-          backdropFilter: 'blur(8px)'
+          borderBottom: '1px solid rgba(217, 119, 6, 0.3)'
         }}>
           ⏳ Tài khoản của bạn đang chờ được quản lý duyệt.
         </div>
@@ -404,7 +419,7 @@ export default function MainLayout({ children }) {
       {!isMobile && (
         <aside style={{
           width: '260px',
-          background: '#0d111a',
+          background: 'var(--bg-darker)',
           borderRight: '1px solid var(--border-glass)',
           padding: '28px 16px',
           display: 'flex',
@@ -438,7 +453,7 @@ export default function MainLayout({ children }) {
           <aside style={{
             width: '280px',
             maxWidth: '85vw',
-            background: '#0d111a',
+            background: 'var(--bg-darker)',
             borderRight: '1px solid var(--border-glass)',
             padding: '24px 16px',
             display: 'flex',
@@ -453,7 +468,8 @@ export default function MainLayout({ children }) {
             transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             overflowY: 'auto',
             paddingTop: 'max(24px, env(safe-area-inset-top))',
-            paddingBottom: 'max(24px, env(safe-area-inset-bottom))'
+            paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
+            boxShadow: 'var(--shadow-xl)'
           }}>
             {sidebarContent}
           </aside>
@@ -478,13 +494,14 @@ export default function MainLayout({ children }) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(15, 18, 29, 0.4)',
+          background: 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(8px)',
           position: 'sticky',
           top: 0,
           zIndex: 5,
           gap: '8px',
-          paddingTop: 'env(safe-area-inset-top)'
+          paddingTop: 'env(safe-area-inset-top)',
+          boxShadow: 'var(--shadow-sm)'
         }}>
           {isMobile && (
             <button
@@ -553,13 +570,14 @@ export default function MainLayout({ children }) {
             right: 0,
             height: '64px',
             paddingBottom: 'env(safe-area-inset-bottom)',
-            background: 'rgba(13, 17, 26, 0.95)',
+            background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(12px)',
             borderTop: '1px solid var(--border-glass)',
             display: 'flex',
             alignItems: 'stretch',
             justifyContent: 'space-around',
-            zIndex: 15
+            zIndex: 15,
+            boxShadow: '0 -2px 8px rgba(15, 23, 42, 0.06)'
           }}>
             {bottomItems.map((item) => {
               const isActive = item.path !== '__more__' && location.pathname === item.path;

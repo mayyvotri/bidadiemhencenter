@@ -16,8 +16,8 @@ const formatTime = (date) => {
 const getStatusInfo = (status) => {
   const map = {
     pending: { label: 'Chờ duyệt', color: '#eab308', bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.3)' },
-    approved: { label: 'Đã duyệt', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)' },
-    rejected: { label: 'Từ chối', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
+    approved: { label: 'Đã duyệt', color: 'var(--success-text)', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)' },
+    rejected: { label: 'Từ chối', color: 'var(--danger)', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
   };
   return map[status] || { label: status, color: '#6b7280', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' };
 };
@@ -157,9 +157,9 @@ export default function AttendanceApproval() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
         {[
           { label: 'Chờ duyệt', value: stats.pending, color: '#eab308', bg: 'rgba(234,179,8,0.1)' },
-          { label: 'Đã duyệt', value: stats.approved, color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-          { label: 'Từ chối', value: stats.rejected, color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
-          { label: 'Tổng cộng', value: stats.total, color: '#fff', bg: 'rgba(255,255,255,0.05)' }
+          { label: 'Đã duyệt', value: stats.approved, color: 'var(--success-text)', bg: 'rgba(34,197,94,0.1)' },
+          { label: 'Từ chối', value: stats.rejected, color: 'var(--danger)', bg: 'rgba(239,68,68,0.1)' },
+          { label: 'Tổng cộng', value: stats.total, color: 'var(--text-primary)', bg: 'rgba(255,255,255,0.05)' }
         ].map((stat, i) => (
           <div key={i} className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
             <div style={{ fontSize: '28px', fontWeight: '700', color: stat.color }}>{stat.value}</div>
@@ -178,7 +178,7 @@ export default function AttendanceApproval() {
               padding: '6px 16px', borderRadius: '6px', border: 'none',
               fontSize: '13px', fontWeight: '600', cursor: 'pointer',
               background: filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-              color: filter === f ? '#fff' : 'var(--text-secondary)'
+              color: filter === f ? 'var(--text-primary)' : 'var(--text-secondary)'
             }}
           >
             {f === 'all' ? 'Tất cả' : f === 'pending' ? 'Chờ duyệt' : f === 'approved' ? 'Đã duyệt' : 'Từ chối'}
@@ -190,7 +190,7 @@ export default function AttendanceApproval() {
         <div style={{
           background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)',
           padding: '12px', borderRadius: '8px', marginBottom: '20px',
-          color: '#ef4444', fontSize: '14px'
+          color: 'var(--danger)', fontSize: '14px'
         }}>
           ⚠️ {error}
         </div>
@@ -226,7 +226,7 @@ export default function AttendanceApproval() {
                   return (
                     <tr key={req._id}>
                       <td>
-                        <div style={{ fontWeight: '600', color: '#fff' }}>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
                           {req.employee?.name || 'N/A'}
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -236,7 +236,7 @@ export default function AttendanceApproval() {
                       <td>
                         <span style={{
                           fontWeight: '700', fontSize: '14px',
-                          color: req.type === 'checkin' ? '#22c55e' : '#ef4444'
+                          color: req.type === 'checkin' ? 'var(--success-text)' : 'var(--danger)'
                         }}>
                           {req.type === 'checkin' ? '🟢 Check In' : '🔴 Check Out'}
                         </span>
@@ -260,7 +260,7 @@ export default function AttendanceApproval() {
                                 style={{
                                   width: '100%', marginTop: '12px', padding: '10px',
                                   background: 'rgba(255,255,255,0.1)', border: '1px solid var(--border-glass)',
-                                  borderRadius: '8px', color: '#fff', cursor: 'pointer', fontSize: '14px'
+                                  borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px'
                                 }}
                               >
                                 Đóng
@@ -280,7 +280,7 @@ export default function AttendanceApproval() {
                         )}
                       </td>
                       <td>
-                        <div style={{ fontSize: '13px', color: '#fff' }}>{formatDate(req.requestTime)}</div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{formatDate(req.requestTime)}</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatTime(req.requestTime)}</div>
                       </td>
                       <td>
@@ -292,7 +292,7 @@ export default function AttendanceApproval() {
                           {statusInfo.label}
                         </span>
                         {req.status === 'rejected' && req.rejectionReason && (
-                          <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', maxWidth: '150px' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', maxWidth: '150px' }}>
                             Lý do: {req.rejectionReason}
                           </div>
                         )}
@@ -310,7 +310,7 @@ export default function AttendanceApproval() {
                               disabled={actionLoading === req._id}
                               style={{
                                 padding: '6px 14px', borderRadius: '6px', border: 'none',
-                                background: 'rgba(34,197,94,0.15)', color: '#22c55e',
+                                background: 'rgba(34,197,94,0.15)', color: 'var(--success-text)',
                                 fontSize: '12px', fontWeight: '700', cursor: actionLoading === req._id ? 'not-allowed' : 'pointer',
                                 opacity: actionLoading === req._id ? 0.5 : 1
                               }}
@@ -322,7 +322,7 @@ export default function AttendanceApproval() {
                               disabled={actionLoading === req._id}
                               style={{
                                 padding: '6px 14px', borderRadius: '6px', border: 'none',
-                                background: 'rgba(239,68,68,0.15)', color: '#ef4444',
+                                background: 'rgba(239,68,68,0.15)', color: 'var(--danger)',
                                 fontSize: '12px', fontWeight: '700', cursor: 'pointer',
                                 opacity: actionLoading === req._id ? 0.5 : 1
                               }}
@@ -364,7 +364,7 @@ export default function AttendanceApproval() {
           zIndex: 100, padding: '20px'
         }}>
           <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', maxWidth: isMobile ? '100%' : '500px', width: '100%', borderRadius: isMobile ? '0' : '16px' }}>
-            <h3 style={{ fontSize: '18px', color: '#fff', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '18px', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Từ Chối Yêu Cầu
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
@@ -378,7 +378,7 @@ export default function AttendanceApproval() {
               style={{
                 width: '100%', padding: '12px', borderRadius: '8px',
                 background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)',
-                color: '#fff', fontSize: '14px', resize: 'vertical', marginBottom: '16px'
+                color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical', marginBottom: '16px'
               }}
             />
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
@@ -387,7 +387,7 @@ export default function AttendanceApproval() {
                 style={{
                   padding: '10px 20px', borderRadius: '8px',
                   background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)',
-                  color: '#fff', fontSize: '14px', cursor: 'pointer'
+                  color: 'var(--text-primary)', fontSize: '14px', cursor: 'pointer'
                 }}
               >
                 Hủy
@@ -397,8 +397,8 @@ export default function AttendanceApproval() {
                 disabled={!rejectModal.reason.trim()}
                 style={{
                   padding: '10px 20px', borderRadius: '8px',
-                  background: '#ef4444', border: 'none',
-                  color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                  background: 'var(--danger)', border: 'none',
+                  color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
                   opacity: !rejectModal.reason.trim() ? 0.5 : 1
                 }}
               >

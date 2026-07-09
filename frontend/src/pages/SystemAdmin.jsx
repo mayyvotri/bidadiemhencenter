@@ -13,35 +13,35 @@ const fmt = (n) => n == null ? '0' : Number(n).toLocaleString('vi-VN');
 const fmtDate = (d) => d ? new Date(d).toLocaleString('vi-VN') : '—';
 const fmtDateOnly = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
 
-const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+const PIE_COLORS = ['var(--success)', 'var(--info)', 'var(--warning)', 'var(--danger)', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: '#0d111a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px' }}>
-      {label && <div style={{ color: '#fff', fontWeight: '600', marginBottom: '6px' }}>{label}</div>}
+      {label && <div style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '6px' }}>{label}</div>}
       {payload.map((p, i) => (
-        <div key={i} style={{ color: p.color || '#fff' }}>{p.name}: {fmt(p.value)}</div>
+        <div key={i} style={{ color: p.color || 'var(--text-primary)' }}>{p.name}: {fmt(p.value)}</div>
       ))}
     </div>
   );
 };
 
 const SeverityBadge = ({ severity }) => {
-  const colors = { INFO: '#3b82f6', LOW: '#10b981', MEDIUM: '#f59e0b', HIGH: '#ef4444', CRITICAL: '#dc2626' };
-  return <span style={{ color: colors[severity] || '#fff', fontSize: '11px', fontWeight: '700' }}>{severity}</span>;
+  const colors = { INFO: 'var(--info)', LOW: 'var(--success)', MEDIUM: 'var(--warning)', HIGH: 'var(--danger)', CRITICAL: '#dc2626' };
+  return <span style={{ color: colors[severity] || 'var(--text-primary)', fontSize: '11px', fontWeight: '700' }}>{severity}</span>;
 };
 
 const CategoryBadge = ({ category }) => {
   const colors = {
-    AUTH: '#06b6d4', USER: '#8b5cf6', ATTENDANCE: '#3b82f6', LEAVE: '#f59e0b',
-    SCHEDULE: '#10b981', PAYROLL: '#f97316', TASK: '#84cc16', INVENTORY: '#a855f7',
-    SETTINGS: '#ec4899', SYSTEM: '#6b7280', REPORT: '#14b8a6', SHIFT: '#22d3ee', FACE: '#fb923c', GPS: '#a3e635'
+    AUTH: '#06b6d4', USER: '#8b5cf6', ATTENDANCE: 'var(--info)', LEAVE: 'var(--warning)',
+    SCHEDULE: 'var(--success)', PAYROLL: '#f97316', TASK: '#84cc16', INVENTORY: '#a855f7',
+    SETTINGS: '#ec4899', SYSTEM: '#6b7280', REPORT: '#14b8a6', SHIFT: '#22d3ee', FACE: 'var(--warning-text)', GPS: '#a3e635'
   };
-  return <span style={{ color: colors[category] || '#fff', fontSize: '11px', fontWeight: '600' }}>{category}</span>;
+  return <span style={{ color: colors[category] || 'var(--text-primary)', fontSize: '11px', fontWeight: '600' }}>{category}</span>;
 };
 
-const StatCard = ({ icon, label, value, sub, color = '#fff', small }) => (
+const StatCard = ({ icon, label, value, sub, color = 'var(--text-primary)', small }) => (
   <div className="glass-card" style={{ padding: small ? '14px' : '20px', textAlign: 'center' }}>
     <div style={{ fontSize: small ? '22px' : '28px', marginBottom: '6px' }}>{icon}</div>
     <div style={{ fontSize: small ? '18px' : '22px', fontWeight: '700', color }}>{value}</div>
@@ -71,7 +71,7 @@ const OverviewSection = ({ data }) => {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '20px' }}>
         {/* Audit by category */}
         <div className="glass-card" style={{ padding: '20px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>Audit Logs theo danh mục</h4>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>Audit Logs theo danh mục</h4>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={auditStats || []} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={2} dataKey="count" nameKey="category">
@@ -85,7 +85,7 @@ const OverviewSection = ({ data }) => {
 
         {/* Role breakdown */}
         <div className="glass-card" style={{ padding: '20px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>Phân bổ vai trò</h4>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>Phân bổ vai trò</h4>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={roleBreakdown || []} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -99,13 +99,13 @@ const OverviewSection = ({ data }) => {
 
         {/* Recent logins */}
         <div className="glass-card" style={{ padding: '20px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>Đăng nhập gần đây</h4>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>Đăng nhập gần đây</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
             {recentLogins?.map((log, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>{log.performedByName || 'Unknown'}</div>
-                  <div style={{ fontSize: '11px', color: log.action === 'LOGIN_FAILED' ? '#ef4444' : 'var(--text-muted)' }}>{log.description}</div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{log.performedByName || 'Unknown'}</div>
+                  <div style={{ fontSize: '11px', color: log.action === 'LOGIN_FAILED' ? 'var(--danger)' : 'var(--text-muted)' }}>{log.description}</div>
                 </div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right' }}>
                   <div>{log.status === 'FAILURE' ? '❌' : '✅'}</div>
@@ -124,7 +124,7 @@ const OverviewSection = ({ data }) => {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
         <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>Audit logs gần đây</h4>
+            <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Audit logs gần đây</h4>
           </div>
           <div style={{ overflowY: 'auto', maxHeight: '280px' }}>
             <table className="custom-table">
@@ -134,7 +134,7 @@ const OverviewSection = ({ data }) => {
                   <tr key={i}>
                     <td><CategoryBadge category={log.category} /></td>
                     <td style={{ fontSize: '11px', color: 'var(--text-secondary)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.description}</td>
-                    <td style={{ fontSize: '12px', color: '#fff' }}>{log.performedByName || 'System'}</td>
+                    <td style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{log.performedByName || 'System'}</td>
                     <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fmtDateOnly(log.createdAt)}</td>
                   </tr>
                 ))}
@@ -145,7 +145,7 @@ const OverviewSection = ({ data }) => {
 
         <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>Hoạt động hệ thống</h4>
+            <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Hoạt động hệ thống</h4>
           </div>
           <div style={{ padding: '12px 16px', overflowY: 'auto', maxHeight: '280px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {[
@@ -161,7 +161,7 @@ const OverviewSection = ({ data }) => {
                   <span style={{ fontSize: '18px' }}>{item.icon}</span>
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.label}</span>
                 </div>
-                <span style={{ fontSize: '16px', fontWeight: '700', color: '#fff' }}>{fmt(item.value)}</span>
+                <span style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>{fmt(item.value)}</span>
               </div>
             ))}
           </div>
@@ -227,9 +227,9 @@ const UserManagementSection = () => {
   };
 
   const statusColor = (u) => {
-    if (u.approvalStatus === 'pending') return '#f59e0b';
-    if (!u.isActive) return '#ef4444';
-    return '#10b981';
+    if (u.approvalStatus === 'pending') return 'var(--warning)';
+    if (!u.isActive) return 'var(--danger)';
+    return 'var(--success)';
   };
 
   return (
@@ -271,18 +271,18 @@ const UserManagementSection = () => {
               <tr key={u._id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700', color: '#fff' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
                       {u.name?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                     <div>
-                      <div style={{ fontWeight: '600', color: '#fff', fontSize: '13px' }}>{u.name}</div>
+                      <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px' }}>{u.name}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{u.email}</div>
                     </div>
                   </div>
                 </td>
                 <td>
                   <select value={u.role} onChange={e => handleRoleChange(u._id, e.target.value)}
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '6px', padding: '4px 8px', color: '#fff', fontSize: '12px', cursor: 'pointer' }}>
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '6px', padding: '4px 8px', color: 'var(--text-primary)', fontSize: '12px', cursor: 'pointer' }}>
                     <option value="staff">Staff</option>
                     <option value="manager">Manager</option>
                     <option value="admin">Admin</option>
@@ -303,11 +303,11 @@ const UserManagementSection = () => {
                       onClick={() => { setShowResetModal(u._id); setTempPwd(null); setNewPassword(''); }}>
                       🔑 Mật khẩu
                     </button>
-                    <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: u.isActive ? '#ef4444' : '#10b981' }}
+                    <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: u.isActive ? 'var(--danger)' : 'var(--success)' }}
                       onClick={() => handleToggleStatus(u._id)}>
                       {u.isActive ? '🔒 Khóa' : '🔓 Mở'}
                     </button>
-                    <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: '#ef4444' }}
+                    <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '11px', color: 'var(--danger)' }}
                       onClick={() => handleDeleteUser(u._id)}>
                       🗑️
                     </button>
@@ -326,7 +326,7 @@ const UserManagementSection = () => {
               return (
                 <button key={page} onClick={() => fetchUsers(page)}
                   style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
-                    background: page === pagination.page ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: '#fff' }}>
+                    background: page === pagination.page ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
                   {page}
                 </button>
               );
@@ -339,11 +339,11 @@ const UserManagementSection = () => {
       {showResetModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="glass-card" style={{ padding: '24px', width: '400px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>🔑 Đặt lại mật khẩu</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>🔑 Đặt lại mật khẩu</h3>
             {tempPwd ? (
               <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
                 <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>Mật khẩu mới (auto-generated):</div>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: '#fff', fontFamily: 'monospace', letterSpacing: '2px' }}>{tempPwd}</div>
+                <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace', letterSpacing: '2px' }}>{tempPwd}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>Hãy copy và gửi cho nhân viên. Họ sẽ phải đổi mật khẩu khi đăng nhập.</div>
               </div>
             ) : (
@@ -409,7 +409,7 @@ const AuditLogsSection = () => {
       {/* Chart */}
       {stats?.byCategory?.length > 0 && (
         <div className="glass-card" style={{ padding: '20px' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>Audit logs theo danh mục (7 ngày)</h4>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>Audit logs theo danh mục (7 ngày)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={stats.byCategory} layout="horizontal" margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -471,10 +471,10 @@ const AuditLogsSection = () => {
               <tr key={i} style={{ opacity: log.severity === 'CRITICAL' ? 1 : log.severity === 'HIGH' ? 0.9 : 1 }}>
                 <td style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(log.createdAt)}</td>
                 <td><CategoryBadge category={log.category} /></td>
-                <td style={{ fontSize: '11px', color: '#fff' }}>{log.action}</td>
+                <td style={{ fontSize: '11px', color: 'var(--text-primary)' }}>{log.action}</td>
                 <td style={{ fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.description}</td>
-                <td style={{ fontSize: '12px', color: '#fff' }}>{log.performedByName || '—'}</td>
-                <td><span style={{ fontSize: '11px', color: log.status === 'FAILURE' ? '#ef4444' : log.status === 'WARNING' ? '#f59e0b' : '#10b981', fontWeight: '600' }}>{log.status}</span></td>
+                <td style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{log.performedByName || '—'}</td>
+                <td><span style={{ fontSize: '11px', color: log.status === 'FAILURE' ? 'var(--danger)' : log.status === 'WARNING' ? 'var(--warning)' : 'var(--success)', fontWeight: '600' }}>{log.status}</span></td>
                 <td><SeverityBadge severity={log.severity} /></td>
                 <td style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{log.ipAddress || '—'}</td>
               </tr>
@@ -494,7 +494,7 @@ const AuditLogsSection = () => {
               return (
                 <button key={page} onClick={() => fetchLogs(page)}
                   style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
-                    background: page === pagination.page ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: '#fff' }}>
+                    background: page === pagination.page ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
                   {page}
                 </button>
               );
@@ -534,12 +534,12 @@ const SystemSettingsSection = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="glass-card" style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>⚙️ Cài đặt hệ thống</h3>
+        <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>⚙️ Cài đặt hệ thống</h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
           {/* Business Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🏪 Thông tin doanh nghiệp</h4>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🏪 Thông tin doanh nghiệp</h4>
             <div className="form-group">
               <label className="form-label">Tên doanh nghiệp</label>
               <input className="form-input" value={settings?.businessName || ''}
@@ -549,7 +549,7 @@ const SystemSettingsSection = () => {
 
           {/* GPS Settings */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>📍 Cài đặt GPS</h4>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>📍 Cài đặt GPS</h4>
             <div className="form-group">
               <label className="form-label">Bán kính cho phép (m)</label>
               <input className="form-input" type="number" value={settings?.allowedRadius || 100}
@@ -572,7 +572,7 @@ const SystemSettingsSection = () => {
 
           {/* Location coords */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🗺️ Tọa độ địa lý</h4>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>🗺️ Tọa độ địa lý</h4>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
               <div className="form-group">
                 <label className="form-label">Vĩ độ (Latitude)</label>
@@ -649,7 +649,7 @@ const SystemConfigSection = () => {
       return (
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
           <input type="checkbox" checked={value} onChange={e => handleChange(config.key, e.target.checked, 'boolean')} />
-          <span style={{ fontSize: '12px', color: value ? '#10b981' : '#ef4444' }}>{value ? 'Bật' : 'Tắt'}</span>
+          <span style={{ fontSize: '12px', color: value ? 'var(--success)' : 'var(--danger)' }}>{value ? 'Bật' : 'Tắt'}</span>
         </label>
       );
     }
@@ -679,13 +679,13 @@ const SystemConfigSection = () => {
       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', padding: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', width: 'fit-content' }}>
         <button onClick={() => setActiveGroup('ALL')}
           style={{ padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600',
-            background: activeGroup === 'ALL' ? 'var(--primary)' : 'transparent', color: '#fff' }}>
+            background: activeGroup === 'ALL' ? 'var(--primary)' : 'transparent', color: 'var(--text-primary)' }}>
           Tất cả
         </button>
         {groups.map(g => (
           <button key={g} onClick={() => setActiveGroup(g)}
             style={{ padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600',
-              background: activeGroup === g ? 'var(--primary)' : 'transparent', color: '#fff' }}>
+              background: activeGroup === g ? 'var(--primary)' : 'transparent', color: 'var(--text-primary)' }}>
             {g}
           </button>
         ))}
@@ -699,7 +699,7 @@ const SystemConfigSection = () => {
           {filtered.map(config => (
             <div key={config.key} className="glass-card" style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{config.label}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{config.label}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   <code style={{ color: '#8b5cf6' }}>{config.key}</code>
                   {config.description && ` — ${config.description}`}
@@ -708,7 +708,7 @@ const SystemConfigSection = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {renderInput(config)}
                 {changedConfigs[config.key] !== undefined && (
-                  <span style={{ fontSize: '11px', color: '#f59e0b' }}>⚡ changed</span>
+                  <span style={{ fontSize: '11px', color: 'var(--warning)' }}>⚡ changed</span>
                 )}
               </div>
             </div>
@@ -759,7 +759,7 @@ export default function SystemAdmin() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
           🖥️ Quản trị hệ thống
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -775,7 +775,7 @@ export default function SystemAdmin() {
               padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
               fontSize: '13px', fontWeight: '600',
               background: activeTab === t.key ? 'var(--primary)' : 'transparent',
-              color: activeTab === t.key ? '#fff' : 'var(--text-secondary)'
+              color: activeTab === t.key ? 'var(--text-primary)' : 'var(--text-secondary)'
             }}>
             {t.label}
           </button>

@@ -9,8 +9,8 @@ const STATUS_LABELS = {
 };
 const STATUS_COLORS = {
   pending: '#eab308',
-  approved: '#22c55e',
-  rejected: '#ef4444',
+  approved: 'var(--success-text)',
+  rejected: 'var(--danger)',
   cancelled: '#6b7280'
 };
 
@@ -93,12 +93,12 @@ export default function ShiftApproval() {
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
   }
 
   return (
     <div style={{ padding: '32px' }}>
-      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', marginBottom: '8px' }}>
+      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', marginBottom: '8px' }}>
         Phê Duyệt Đăng Ký Ca
       </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
@@ -106,7 +106,7 @@ export default function ShiftApproval() {
       </p>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -118,7 +118,7 @@ export default function ShiftApproval() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            style={{ padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+            style={{ padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
           >
             <option value="">Tất cả</option>
             <option value="pending">Đang chờ</option>
@@ -151,15 +151,15 @@ export default function ShiftApproval() {
             <tbody>
               {registrations.map((reg) => (
                 <tr key={reg._id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>
                     <div style={{ fontWeight: '500' }}>{reg.user?.name || 'N/A'}</div>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{reg.user?.position || ''}</div>
                   </td>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>
                     <div style={{ fontWeight: '500' }}>{reg.shift?.name || 'N/A'}</div>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{reg.shift?.startTime} - {reg.shift?.endTime}</div>
                   </td>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{formatDate(reg.startDate)}</td>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{formatDate(reg.startDate)}</td>
                   <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {reg.notes || '-'}
                   </td>
@@ -187,7 +187,7 @@ export default function ShiftApproval() {
                             background: 'rgba(34, 197, 94, 0.1)',
                             border: '1px solid rgba(34, 197, 94, 0.3)',
                             borderRadius: '6px',
-                            color: '#22c55e',
+                            color: 'var(--success-text)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -201,7 +201,7 @@ export default function ShiftApproval() {
                             background: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
                             borderRadius: '6px',
-                            color: '#ef4444',
+                            color: 'var(--danger)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -227,15 +227,15 @@ export default function ShiftApproval() {
       {showRejectModal && selectedRegistration && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', maxWidth: '500px', width: '90%', padding: '24px' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '16px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Từ Chối Đăng Ký
             </h2>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '8px' }}>Nhân viên:</p>
-              <p style={{ color: '#fff', fontSize: '14px', marginBottom: '8px' }}>{selectedRegistration.user?.name}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '14px', marginBottom: '8px' }}>{selectedRegistration.user?.name}</p>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '8px' }}>Ca làm việc:</p>
-              <p style={{ color: '#fff', fontSize: '14px' }}>{selectedRegistration.shift?.name}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{selectedRegistration.shift?.name}</p>
             </div>
 
             <form onSubmit={handleRejectSubmit}>
@@ -247,7 +247,7 @@ export default function ShiftApproval() {
                   rows={3}
                   placeholder="Nhập lý do từ chối"
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
                 />
               </div>
 
@@ -261,7 +261,7 @@ export default function ShiftApproval() {
                     background: 'rgba(255, 255, 255, 0.1)',
                     border: '1px solid var(--border-glass)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}
@@ -273,10 +273,10 @@ export default function ShiftApproval() {
                   style={{
                     flex: 1,
                     padding: '12px 24px',
-                    background: '#ef4444',
+                    background: 'var(--danger)',
                     border: 'none',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}

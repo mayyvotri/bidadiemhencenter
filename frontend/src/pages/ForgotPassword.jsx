@@ -10,7 +10,7 @@ const inputStyle = (isMobile) => ({
   background: 'rgba(255, 255, 255, 0.05)',
   border: '1px solid var(--border-glass)',
   borderRadius: '8px',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '16px',
   outline: 'none',
   minHeight: isMobile ? '48px' : 'auto',
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
           padding: '12px 16px',
           borderRadius: '8px',
           marginBottom: '20px',
-          color: '#ef4444',
+          color: 'var(--danger)',
           fontSize: '14px'
         }}>
           {error}
@@ -84,12 +84,12 @@ export default function ForgotPassword() {
           borderRadius: '8px',
           marginBottom: '20px'
         }}>
-          <p style={{ color: '#22c55e', fontSize: '14px', marginBottom: '12px' }}>
+          <p style={{ color: 'var(--success-text)', fontSize: '14px', marginBottom: '12px' }}>
             ✓ Token đặt lại mật khẩu đã được tạo!
           </p>
           <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '4px' }}>Reset Token:</p>
-            <code style={{ color: '#fff', fontSize: '13px', wordBreak: 'break-all' }}>{resetToken}</code>
+            <code style={{ color: 'var(--text-primary)', fontSize: '13px', wordBreak: 'break-all' }}>{resetToken}</code>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
             Sử dụng token này để đặt lại mật khẩu của bạn.
@@ -133,7 +133,7 @@ export default function ForgotPassword() {
               fontWeight: '600',
               marginTop: '8px',
               background: loading ? 'rgba(225, 29, 72, 0.5)' : 'var(--primary)',
-              color: '#fff',
+              color: 'var(--text-primary)',
               border: 'none',
               borderRadius: '8px',
               cursor: loading ? 'not-allowed' : 'pointer',

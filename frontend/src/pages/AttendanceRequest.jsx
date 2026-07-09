@@ -195,7 +195,7 @@ export default function AttendanceRequestPage() {
   };
 
   const isCheckIn = selectedType === 'checkin';
-  const accentColor = isCheckIn ? '#22c55e' : '#ef4444';
+  const accentColor = isCheckIn ? 'var(--success-text)' : 'var(--danger)';
 
   // Static map URL
   const mapUrl = location
@@ -206,7 +206,7 @@ export default function AttendanceRequestPage() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', marginBottom: '4px', color: '#fff' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', marginBottom: '4px', color: 'var(--text-primary)' }}>
           Chấm Công
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
@@ -236,7 +236,7 @@ export default function AttendanceRequestPage() {
                 <span style={{ fontSize: '36px' }}>⚠️</span>
               </div>
             </div>
-            <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '12px' }}>
+            <h2 style={{ textAlign: 'center', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>
               Không thể thực hiện
             </h2>
             <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: '1.6', marginBottom: '28px' }}>
@@ -248,7 +248,7 @@ export default function AttendanceRequestPage() {
                 style={{
                   width: '100%', padding: '14px', borderRadius: '12px',
                   background: 'linear-gradient(135deg, #dc2626, #ef4444)',
-                  border: 'none', color: '#fff', fontSize: '15px', fontWeight: '700',
+                  border: 'none', color: 'var(--text-primary)', fontSize: '15px', fontWeight: '700',
                   cursor: 'pointer', marginBottom: '10px'
                 }}
               >
@@ -274,7 +274,7 @@ export default function AttendanceRequestPage() {
         <div style={{
           background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)',
           padding: '12px 16px', borderRadius: '10px', marginBottom: '20px',
-          color: '#ef4444', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px'
+          color: 'var(--danger)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px'
         }}>
           <span>⚠️</span> {error}
         </div>
@@ -291,7 +291,7 @@ export default function AttendanceRequestPage() {
             <span style={{ fontSize: '48px' }}>✓</span>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
               {isCheckIn ? 'Check-in' : 'Check-out'} Thành Công!
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '360px' }}>
@@ -301,13 +301,13 @@ export default function AttendanceRequestPage() {
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
             <button
               onClick={() => navigate('/attendance-history')}
-              style={{ padding: '12px 24px', borderRadius: '10px', background: 'var(--primary)', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+              style={{ padding: '12px 24px', borderRadius: '10px', background: 'var(--primary)', border: 'none', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
             >
               📋 Lịch sử
             </button>
             <button
               onClick={handleReset}
-              style={{ padding: '12px 24px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+              style={{ padding: '12px 24px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
             >
               ↻ Tiếp tục
             </button>
@@ -333,7 +333,7 @@ export default function AttendanceRequestPage() {
                         ? opt.type === 'checkin' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'
                         : 'rgba(255,255,255,0.03)',
                       border: selectedType === opt.type
-                        ? `2px solid ${opt.type === 'checkin' ? '#22c55e' : '#ef4444'}`
+                        ? `2px solid ${opt.type === 'checkin' ? 'var(--success-text)' : 'var(--danger)'}`
                         : '2px solid var(--border-glass)',
                       cursor: 'pointer', transition: 'all 0.2s',
                       display: 'flex', alignItems: 'center', gap: '10px'
@@ -341,7 +341,7 @@ export default function AttendanceRequestPage() {
                   >
                     <span style={{ fontSize: '28px' }}>{opt.emoji}</span>
                     <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: selectedType === opt.type ? (opt.type === 'checkin' ? '#22c55e' : '#ef4444') : '#fff' }}>{opt.label}</div>
+                      <div style={{ fontSize: '15px', fontWeight: '700', color: selectedType === opt.type ? (opt.type === 'checkin' ? 'var(--success-text)' : 'var(--danger)') : 'var(--text-primary)' }}>{opt.label}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.desc}</div>
                     </div>
                   </button>
@@ -368,7 +368,7 @@ export default function AttendanceRequestPage() {
                   {!cameraReady && (
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
                       <div style={{ fontSize: '36px', animation: 'pulse 1.5s infinite' }}>📷</div>
-                      <div style={{ color: '#fff', fontSize: '14px' }}>Đang khởi động camera...</div>
+                      <div style={{ color: 'var(--text-primary)', fontSize: '14px' }}>Đang khởi động camera...</div>
                     </div>
                   )}
                 </>
@@ -381,19 +381,19 @@ export default function AttendanceRequestPage() {
               {/* Type badge */}
               <div style={{ position: 'absolute', top: '14px', right: '14px', background: selectedType ? accentColor : 'rgba(0,0,0,0.5)', borderRadius: '8px', padding: '6px 12px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '14px' }}>{isCheckIn ? '🟢' : '🔴'}</span>
-                <span style={{ fontSize: '12px', fontWeight: '700', color: '#fff' }}>{isCheckIn ? 'CHECK IN' : 'CHECK OUT'}</span>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)' }}>{isCheckIn ? 'CHECK IN' : 'CHECK OUT'}</span>
               </div>
 
               {/* Time overlay */}
               <div style={{ position: 'absolute', bottom: '14px', left: '14px', background: 'rgba(0,0,0,0.6)', borderRadius: '8px', padding: '8px 14px', backdropFilter: 'blur(8px)' }}>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: '#fff', fontFamily: 'var(--font-heading)' }}>{currentTime}</div>
+                <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>{currentTime}</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>{formatDate(new Date())}</div>
               </div>
 
               {/* GPS badge */}
               <div style={{ position: 'absolute', bottom: '14px', right: '14px', background: location ? 'rgba(34,197,94,0.8)' : 'rgba(234,179,8,0.8)', borderRadius: '8px', padding: '6px 10px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ fontSize: '12px' }}>{location ? '📍' : '⏳'}</span>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: '#fff' }}>{location ? 'GPS' : 'GPS...'}</span>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-primary)' }}>{location ? 'GPS' : 'GPS...'}</span>
               </div>
             </div>
 
@@ -409,7 +409,7 @@ export default function AttendanceRequestPage() {
                       ? (isCheckIn ? 'linear-gradient(135deg, #16a34a, #22c55e)' : 'linear-gradient(135deg, #dc2626, #ef4444)')
                       : 'rgba(255,255,255,0.05)',
                     border: 'none',
-                    color: selectedType && cameraReady ? '#fff' : 'var(--text-muted)',
+                    color: selectedType && cameraReady ? 'var(--text-primary)' : 'var(--text-muted)',
                     fontSize: '16px', fontWeight: '700', cursor: selectedType && cameraReady ? 'pointer' : 'not-allowed',
                     opacity: selectedType && cameraReady ? 1 : 0.5,
                     transition: 'all 0.2s',
@@ -426,10 +426,10 @@ export default function AttendanceRequestPage() {
 
             {status === 'captured' && (
               <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
-                <button onClick={handleRetake} style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                <button onClick={handleRetake} style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
                   🔄 Chụp lại
                 </button>
-                <button onClick={() => { setSelectedType(''); setPhotoDataUrl(''); setStatus('idle'); }} style={{ padding: '14px 20px', borderRadius: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                <button onClick={() => { setSelectedType(''); setPhotoDataUrl(''); setStatus('idle'); }} style={{ padding: '14px 20px', borderRadius: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
                   ✕ Đổi loại
                 </button>
               </div>
@@ -445,7 +445,7 @@ export default function AttendanceRequestPage() {
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <img src={photoDataUrl} alt="Thumb" style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border-glass)' }} />
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: isCheckIn ? '#22c55e' : '#ef4444', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: isCheckIn ? 'var(--success-text)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {isCheckIn ? '🟢' : '🔴'} {isCheckIn ? 'Check In' : 'Check Out'}
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{formatDate(new Date())} · {currentTime}</div>
@@ -474,7 +474,7 @@ export default function AttendanceRequestPage() {
                       }}
                     />
                     <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(0,0,0,0.7)', borderRadius: '6px', padding: '4px 8px', backdropFilter: 'blur(4px)' }}>
-                      <span style={{ fontSize: '10px', color: '#fff' }}>📍 {location.accuracy ? `±${location.accuracy.toFixed(0)}m` : 'vị trí'}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-primary)' }}>📍 {location.accuracy ? `±${location.accuracy.toFixed(0)}m` : 'vị trí'}</span>
                     </div>
                   </div>
                 )}
@@ -486,12 +486,12 @@ export default function AttendanceRequestPage() {
                       <span style={{ animation: 'pulse 1s infinite' }}>⏳</span> Đang lấy địa chỉ...
                     </div>
                   ) : address ? (
-                    <div style={{ fontSize: '13px', color: '#fff', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                       <span>📍</span>
                       <span style={{ lineHeight: '1.4' }}>{address}</span>
                     </div>
                   ) : location ? (
-                    <div style={{ fontSize: '13px', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span>📍</span>
                       <span>{location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</span>
                     </div>
@@ -535,7 +535,7 @@ export default function AttendanceRequestPage() {
                     ? 'rgba(255,255,255,0.05)'
                     : (isCheckIn ? 'linear-gradient(135deg, #16a34a, #22c55e)' : 'linear-gradient(135deg, #dc2626, #ef4444)'),
                   border: 'none',
-                  color: loading ? 'var(--text-muted)' : '#fff',
+                  color: loading ? 'var(--text-muted)' : 'var(--text-primary)',
                   fontSize: '16px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.6 : 1,
                   transition: 'all 0.2s',
@@ -582,7 +582,7 @@ export default function AttendanceRequestPage() {
                       }}
                     />
                     <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(0,0,0,0.7)', borderRadius: '6px', padding: '4px 8px', backdropFilter: 'blur(4px)' }}>
-                      <span style={{ fontSize: '10px', color: '#fff' }}>📍 {location.accuracy ? `±${location.accuracy.toFixed(0)}m` : 'vị trí'}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-primary)' }}>📍 {location.accuracy ? `±${location.accuracy.toFixed(0)}m` : 'vị trí'}</span>
                     </div>
                   </div>
                 )}
@@ -593,12 +593,12 @@ export default function AttendanceRequestPage() {
                       <span style={{ animation: 'pulse 1s infinite' }}>⏳</span> Đang lấy địa chỉ...
                     </div>
                   ) : address ? (
-                    <div style={{ fontSize: '13px', color: '#fff', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                       <span>📍</span>
                       <span style={{ lineHeight: '1.4' }}>{address}</span>
                     </div>
                   ) : location ? (
-                    <div style={{ fontSize: '13px', color: '#fff' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
                       📍 {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                     </div>
                   ) : (

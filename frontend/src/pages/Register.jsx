@@ -9,7 +9,7 @@ const inputStyle = (isMobile) => ({
   background: 'rgba(255, 255, 255, 0.05)',
   border: '1px solid var(--border-glass)',
   borderRadius: '8px',
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '16px',
   outline: 'none',
   minHeight: isMobile ? '48px' : 'auto',
@@ -107,12 +107,12 @@ export default function Register() {
             justifyContent: 'center',
             fontSize: isMobile ? '16px' : '20px',
             fontWeight: 'bold',
-            color: '#fff',
+            color: 'var(--text-primary)',
             fontFamily: 'var(--font-heading)'
           }}>
             ĐH
           </div>
-          <span style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#fff', fontFamily: 'var(--font-heading)' }}>
+          <span style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
             Điểm Hẹn Billiards
           </span>
         </div>
@@ -123,7 +123,7 @@ export default function Register() {
           fontFamily: 'var(--font-heading)',
           fontSize: isMobile ? '28px' : '42px',
           fontWeight: '700',
-          color: '#fff',
+          color: 'var(--text-primary)',
           marginBottom: isMobile ? '12px' : '16px',
           lineHeight: '1.2'
         }}>
@@ -141,7 +141,7 @@ export default function Register() {
           borderRadius: '8px',
           padding: '12px 16px',
           marginBottom: '24px',
-          color: '#f87171',
+          color: 'var(--danger-text)',
           fontSize: '14px'
         }}>
           {error}
@@ -215,7 +215,7 @@ export default function Register() {
             width: '100%',
             padding: '16px',
             background: loading ? 'rgba(225, 29, 72, 0.5)' : 'var(--primary)',
-            color: '#fff',
+            color: 'var(--text-primary)',
             border: 'none',
             borderRadius: '8px',
             fontSize: '16px',
@@ -260,7 +260,7 @@ export default function Register() {
             padding: '40px', maxWidth: '500px'
           }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', fontSize: '24px' }}>⭐</div>
-            <blockquote style={{ fontSize: '24px', fontWeight: '600', color: '#fff', fontFamily: 'var(--font-heading)', marginBottom: '24px', lineHeight: '1.4' }}>
+            <blockquote style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-heading)', marginBottom: '24px', lineHeight: '1.4' }}>
               "Đội ngũ chuyên nghiệp. Công việc hiệu quả. Tương lai rực rỡ."
             </blockquote>
             <div style={{ width: '60px', height: '2px', background: 'var(--primary)', marginBottom: '24px' }}></div>

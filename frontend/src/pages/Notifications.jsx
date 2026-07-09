@@ -4,27 +4,27 @@ import NotificationBell from '../components/NotificationBell';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const TYPE_CONFIG = {
-  schedule_change: { icon: '📅', color: '#60a5fa', label: 'Thay đổi lịch' },
-  leave_approved: { icon: '✅', color: '#10b981', label: 'Nghỉ phép được duyệt' },
-  leave_rejected: { icon: '❌', color: '#ef4444', label: 'Nghỉ phép bị từ chối' },
-  leave_pending: { icon: '⏳', color: '#f59e0b', label: 'Yêu cầu nghỉ phép' },
+  schedule_change: { icon: '📅', color: 'var(--info-text)', label: 'Thay đổi lịch' },
+  leave_approved: { icon: '✅', color: 'var(--success)', label: 'Nghỉ phép được duyệt' },
+  leave_rejected: { icon: '❌', color: 'var(--danger)', label: 'Nghỉ phép bị từ chối' },
+  leave_pending: { icon: '⏳', color: 'var(--warning)', label: 'Yêu cầu nghỉ phép' },
   task_assigned: { icon: '📋', color: '#8b5cf6', label: 'Nhiệm vụ mới' },
-  task_updated: { icon: '✏️', color: '#3b82f6', label: 'Nhiệm vụ cập nhật' },
-  task_completed: { icon: '🎉', color: '#10b981', label: 'Nhiệm vụ hoàn thành' },
-  payroll_calculated: { icon: '💵', color: '#10b981', label: 'Lương đã tính' },
-  payroll_approved: { icon: '✅', color: '#10b981', label: 'Lương đã duyệt' },
-  payroll_paid: { icon: '💰', color: '#10b981', label: 'Lương đã thanh toán' },
-  shift_swap_request: { icon: '🔄', color: '#f59e0b', label: 'Yêu cầu đổi ca' },
-  shift_swap_approved: { icon: '✅', color: '#10b981', label: 'Đổi ca được duyệt' },
-  shift_swap_rejected: { icon: '❌', color: '#ef4444', label: 'Đổi ca bị từ chối' },
+  task_updated: { icon: '✏️', color: 'var(--info)', label: 'Nhiệm vụ cập nhật' },
+  task_completed: { icon: '🎉', color: 'var(--success)', label: 'Nhiệm vụ hoàn thành' },
+  payroll_calculated: { icon: '💵', color: 'var(--success)', label: 'Lương đã tính' },
+  payroll_approved: { icon: '✅', color: 'var(--success)', label: 'Lương đã duyệt' },
+  payroll_paid: { icon: '💰', color: 'var(--success)', label: 'Lương đã thanh toán' },
+  shift_swap_request: { icon: '🔄', color: 'var(--warning)', label: 'Yêu cầu đổi ca' },
+  shift_swap_approved: { icon: '✅', color: 'var(--success)', label: 'Đổi ca được duyệt' },
+  shift_swap_rejected: { icon: '❌', color: 'var(--danger)', label: 'Đổi ca bị từ chối' },
   system: { icon: '⚙️', color: '#6b7280', label: 'Hệ thống' },
-  general: { icon: '📢', color: '#3b82f6', label: 'Thông báo' }
+  general: { icon: '📢', color: 'var(--info)', label: 'Thông báo' }
 };
 
 const PRIORITY_BADGE = {
-  urgent: { label: 'Khẩn cấp', color: '#ef4444' },
-  high: { label: 'Cao', color: '#f59e0b' },
-  normal: { label: 'Thường', color: '#3b82f6' },
+  urgent: { label: 'Khẩn cấp', color: 'var(--danger)' },
+  high: { label: 'Cao', color: 'var(--warning)' },
+  normal: { label: 'Thường', color: 'var(--info)' },
   low: { label: 'Thấp', color: '#6b7280' }
 };
 
@@ -124,7 +124,7 @@ export default function Notifications() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Thông báo
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -198,7 +198,7 @@ export default function Notifications() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                           <span style={{
                             fontSize: '14px', fontWeight: notif.read ? '500' : '700',
-                            color: notif.read ? 'var(--text-secondary)' : '#fff'
+                            color: notif.read ? 'var(--text-secondary)' : 'var(--text-primary)'
                           }}>
                             {notif.title}
                           </span>
@@ -215,7 +215,7 @@ export default function Notifications() {
                         <div style={{ display: 'flex', gap: '6px', marginTop: '6px', alignItems: 'center' }}>
                           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fmtDate(notif.createdAt)}</span>
                           {notif.priority === 'urgent' && (
-                            <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.2)', color: '#ef4444', fontWeight: '600' }}>Khẩn cấp</span>
+                            <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(239,68,68,0.2)', color: 'var(--danger)', fontWeight: '600' }}>Khẩn cấp</span>
                           )}
                         </div>
                       </div>
@@ -256,13 +256,13 @@ export default function Notifications() {
                       {cfg.icon}
                     </div>
                     <div>
-                      <div style={{ fontSize: '16px', fontWeight: '700', color: '#fff' }}>{selectedNotif.title}</div>
+                      <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>{selectedNotif.title}</div>
                       <div style={{ fontSize: '12px', color: cfg.color, marginTop: '2px' }}>{cfg.label}</div>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', marginBottom: '16px' }}>
-                    <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', lineHeight: '1.6', color: '#fff' }}>
+                    <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', lineHeight: '1.6', color: 'var(--text-primary)' }}>
                       {selectedNotif.message}
                     </div>
                     {[
@@ -274,7 +274,7 @@ export default function Notifications() {
                     ].map(([label, value]) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                         <span style={{ color: 'var(--text-muted)' }}>{label}</span>
-                        <span style={{ color: '#fff', fontWeight: '500' }}>{value}</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{value}</span>
                       </div>
                     ))}
                   </div>

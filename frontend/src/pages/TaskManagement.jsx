@@ -9,13 +9,13 @@ const getUser = () => {
 
 const PRIORITY_ORDER = { urgent: 0, high: 1, medium: 2, low: 3 };
 const STATUS_CONFIG = {
-  pending:    { label: 'Chưa thực hiện', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-  in_progress:{ label: 'Đang thực hiện', color: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
-  completed:  { label: 'Hoàn thành',     color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+  pending:    { label: 'Chưa thực hiện', color: 'var(--warning)', bg: 'rgba(245,158,11,0.12)' },
+  in_progress:{ label: 'Đang thực hiện', color: 'var(--info-text)', bg: 'rgba(96,165,250,0.12)' },
+  completed:  { label: 'Hoàn thành',     color: 'var(--success)', bg: 'rgba(16,185,129,0.12)' },
   cancelled:  { label: 'Đã hủy',         color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
 };
 const PRIORITY_CONFIG = {
-  urgent: { label: 'Khẩn cấp', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+  urgent: { label: 'Khẩn cấp', color: 'var(--danger)', bg: 'rgba(239,68,68,0.15)' },
   high:   { label: 'Cao',       color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
   medium: { label: 'Trung bình',color: '#eab308', bg: 'rgba(234,179,8,0.15)' },
   low:    { label: 'Thấp',      color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
@@ -230,7 +230,7 @@ export default function TaskManagement() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
             📋 Phân nhiệm vụ
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -259,7 +259,7 @@ export default function TaskManagement() {
             style={{
               padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
               background: activeTab === tab.key ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-              color: activeTab === tab.key ? '#fff' : 'var(--text-muted)',
+              color: activeTab === tab.key ? 'var(--text-primary)' : 'var(--text-muted)',
               transition: 'all 0.2s'
             }}>
             {tab.label}
@@ -272,7 +272,7 @@ export default function TaskManagement() {
         <div>
           <div className="glass-card" style={{ padding: '16px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#fff' }}>Danh sách nhiệm vụ mẫu</h3>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>Danh sách nhiệm vụ mẫu</h3>
               <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{taskPool.length} nhiệm vụ</span>
             </div>
             <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -301,7 +301,7 @@ export default function TaskManagement() {
                         {task.category}
                       </span>
                     </div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', margin: '0 0 8px 0' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', margin: '0 0 8px 0' }}>
                       {task.title}
                     </h4>
                     {task.description && (
@@ -311,11 +311,11 @@ export default function TaskManagement() {
                     )}
                     <div style={{ display: 'flex', gap: '8px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                       <button onClick={() => openAssignModal(task)}
-                        style={{ flex: 1, padding: '8px', fontSize: '12px', background: 'var(--primary)', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+                        style={{ flex: 1, padding: '8px', fontSize: '12px', background: 'var(--primary)', border: 'none', borderRadius: '6px', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: '600' }}>
                         📅 Phân công
                       </button>
                       <button onClick={() => handleDeletePoolTask(task)}
-                        style={{ padding: '8px 12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', color: '#ef4444', cursor: 'pointer' }}>
+                        style={{ padding: '8px 12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', color: 'var(--danger)', cursor: 'pointer' }}>
                         🗑️
                       </button>
                     </div>
@@ -332,13 +332,13 @@ export default function TaskManagement() {
         <div>
           {/* Week Navigator */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <button onClick={() => setWeekOffset(w => w - 1)} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', cursor: 'pointer' }}>
+            <button onClick={() => setWeekOffset(w => w - 1)} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer' }}>
               ← Tuần trước
             </button>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
               {weekDates[0]?.dateStr ? new Date(weekDates[0].dateStr).toLocaleDateString('vi-VN') : '...'} - {weekDates[6]?.dateStr ? new Date(weekDates[6].dateStr).toLocaleDateString('vi-VN') : '...'}
             </span>
-            <button onClick={() => setWeekOffset(w => w + 1)} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', cursor: 'pointer' }}>
+            <button onClick={() => setWeekOffset(w => w + 1)} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer' }}>
               Tuần sau →
             </button>
           </div>
@@ -350,7 +350,7 @@ export default function TaskManagement() {
                 <tr>
                   <th style={{ padding: '10px 8px', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.1)', width: '80px' }}>Ca</th>
                   {weekDates.map(d => (
-                    <th key={d.key} style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    <th key={d.key} style={{ padding: '10px 8px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                       <div>{d.label}</div>
                       <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '400' }}>{d.dateStr?.slice(5)}</div>
                     </th>
@@ -390,7 +390,7 @@ export default function TaskManagement() {
                                         {task.status === 'completed' ? '↩️' : '✓'}
                                       </button>
                                       <button onClick={() => handleDeleteAssigned(task)}
-                                        style={{ padding: '2px 4px', fontSize: '9px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '3px', color: '#ef4444', cursor: 'pointer' }}>
+                                        style={{ padding: '2px 4px', fontSize: '9px', background: 'rgba(239,68,68,0.1)', border: 'none', borderRadius: '3px', color: 'var(--danger)', cursor: 'pointer' }}>
                                         ✕
                                       </button>
                                     </div>
@@ -475,7 +475,7 @@ export default function TaskManagement() {
                                   {task.status === 'completed' ? '↩️' : '✓'}
                                 </button>
                                 <button onClick={() => handleDeleteAssigned(task)}
-                                  style={{ padding: '4px 6px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '4px', color: '#ef4444', cursor: 'pointer' }}>
+                                  style={{ padding: '4px 6px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '4px', color: 'var(--danger)', cursor: 'pointer' }}>
                                   🗑️
                                 </button>
                               </div>
@@ -497,7 +497,7 @@ export default function TaskManagement() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '480px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
                 Thêm nhiệm vụ mới
               </h2>
               <button onClick={() => setShowAddPoolModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
@@ -552,7 +552,7 @@ export default function TaskManagement() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '480px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: '#fff', margin: 0 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
                 Phân công nhiệm vụ
               </h2>
               <button onClick={() => { setShowAssignModal(false); setSelectedPoolTask(null); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
@@ -560,7 +560,7 @@ export default function TaskManagement() {
 
             <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', marginBottom: '20px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Nhiệm vụ</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{selectedPoolTask.title}</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{selectedPoolTask.title}</div>
               {selectedPoolTask.description && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{selectedPoolTask.description}</div>}
             </div>
 
@@ -593,7 +593,7 @@ export default function TaskManagement() {
                     if (staffInSlot.length === 0) {
                       return (
                         <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)', textAlign: 'center' }}>
-                          <div style={{ fontSize: '12px', color: '#ef4444' }}>Không có nhân viên nào có ca trong ngày này.</div>
+                          <div style={{ fontSize: '12px', color: 'var(--danger)' }}>Không có nhân viên nào có ca trong ngày này.</div>
                         </div>
                       );
                     }
@@ -609,7 +609,7 @@ export default function TaskManagement() {
                               style={{
                                 padding: '10px 12px',
                                 borderRadius: '8px',
-                                border: `2px solid ${isSelected ? '#10b981' : 'rgba(255,255,255,0.1)'}`,
+                                border: `2px solid ${isSelected ? 'var(--success)' : 'rgba(255,255,255,0.1)'}`,
                                 background: isSelected ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -619,15 +619,15 @@ export default function TaskManagement() {
                               }}>
                               <div style={{
                                 width: '20px', height: '20px', borderRadius: '50%',
-                                border: `2px solid ${isSelected ? '#10b981' : 'rgba(255,255,255,0.3)'}`,
-                                background: isSelected ? '#10b981' : 'transparent',
+                                border: `2px solid ${isSelected ? 'var(--success)' : 'rgba(255,255,255,0.3)'}`,
+                                background: isSelected ? 'var(--success)' : 'transparent',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0
                               }}>
-                                {isSelected && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff' }} />}
+                                {isSelected && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--text-primary)' }} />}
                               </div>
                               <div>
-                                <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{staffName}</div>
+                                <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{staffName}</div>
                               </div>
                             </div>
                           );

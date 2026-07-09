@@ -181,17 +181,17 @@ export default function Reports() {
   const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
 
   const getStatusBadge = (status) => {
-    if (status === 'late') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>Trễ</span>;
-    if (status === 'on_time') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}>Đúng giờ</span>;
-    if (status === 'absent') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>Nghỉ</span>;
+    if (status === 'late') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.3)' }}>Trễ</span>;
+    if (status === 'on_time') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(16,185,129,0.12)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.3)' }}>Đúng giờ</span>;
+    if (status === 'absent') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(239,68,68,0.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,0.3)' }}>Nghỉ</span>;
     return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(107,114,128,0.12)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.3)' }}>{status || 'Bình thường'}</span>;
   };
 
   const getTaskStatusBadge = (status) => {
-    if (status === 'completed') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)' }}>Hoàn thành</span>;
-    if (status === 'in_progress') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>Đang làm</span>;
-    if (status === 'pending' || status === 'assigned') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>Chờ</span>;
-    if (status === 'overdue') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>Quá hạn</span>;
+    if (status === 'completed') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(16,185,129,0.12)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.3)' }}>Hoàn thành</span>;
+    if (status === 'in_progress') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(59,130,246,0.12)', color: 'var(--info)', border: '1px solid rgba(59,130,246,0.3)' }}>Đang làm</span>;
+    if (status === 'pending' || status === 'assigned') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.3)' }}>Chờ</span>;
+    if (status === 'overdue') return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(239,68,68,0.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,0.3)' }}>Quá hạn</span>;
     return <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', background: 'rgba(107,114,128,0.12)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.3)' }}>{status}</span>;
   };
 
@@ -206,7 +206,7 @@ export default function Reports() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             📊 Báo cáo Tổng Hợp
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -217,7 +217,7 @@ export default function Reports() {
         {/* Month Selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-glass)' }}>
           <button onClick={() => changeMonth(-1)} style={{ padding: '8px 14px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px', borderRadius: '8px' }}>←</button>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: '#fff', minWidth: '120px', textAlign: 'center' }}>
+          <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', minWidth: '120px', textAlign: 'center' }}>
             Tháng {currentMonth}/{currentYear}
           </span>
           <button onClick={() => changeMonth(1)} style={{ padding: '8px 14px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px', borderRadius: '8px' }}>→</button>
@@ -235,7 +235,7 @@ export default function Reports() {
               background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
-              color: activeTab === tab.id ? '#fff' : 'var(--text-secondary)',
+              color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-secondary)',
               fontSize: '13px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -302,7 +302,7 @@ function AttendanceTab({
       {/* Left: Staff List */}
       <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.02)' }}>
-          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', margin: 0 }}>👥 Danh sách nhân viên</h4>
+          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>👥 Danh sách nhân viên</h4>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>{staffList.length} nhân viên</p>
         </div>
 
@@ -340,12 +340,12 @@ function AttendanceTab({
                     width: '40px', height: '40px', borderRadius: '50%',
                     background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '14px', fontWeight: '700', color: '#fff', flexShrink: 0
+                    fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', flexShrink: 0
                   }}>
                     {(staff.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {staff.name || '—'}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -388,12 +388,12 @@ function AttendanceTab({
                 width: '52px', height: '52px', borderRadius: '50%',
                 background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '18px', fontWeight: '700', color: '#fff', flexShrink: 0
+                fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', flexShrink: 0
               }}>
                 {(staffAttendance.staff?.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
               </div>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: '#fff', margin: '0 0 4px' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 4px' }}>
                   {staffAttendance.staff?.name || '—'}
                 </h3>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -411,11 +411,11 @@ function AttendanceTab({
             {/* Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px' }}>
               {[
-                { label: 'Ngày làm việc', value: staffAttendance.summary?.totalDaysWorked || 0, color: '#3b82f6', icon: '📅' },
-                { label: 'Tổng giờ', value: `${(staffAttendance.summary?.totalHoursWorked || 0).toFixed(1)}h`, color: '#10b981', icon: '⏱️' },
-                { label: 'Số lần trễ', value: staffAttendance.summary?.lateCount || 0, color: '#f59e0b', icon: '⏰' },
+                { label: 'Ngày làm việc', value: staffAttendance.summary?.totalDaysWorked || 0, color: 'var(--info)', icon: '📅' },
+                { label: 'Tổng giờ', value: `${(staffAttendance.summary?.totalHoursWorked || 0).toFixed(1)}h`, color: 'var(--success)', icon: '⏱️' },
+                { label: 'Số lần trễ', value: staffAttendance.summary?.lateCount || 0, color: 'var(--warning)', icon: '⏰' },
                 { label: 'Tăng ca', value: `${(staffAttendance.summary?.overtimeHours || 0).toFixed(1)}h`, color: '#8b5cf6', icon: '🔥' },
-                { label: 'Lương ước tính', value: formatCurrency(staffAttendance.summary?.grossSalary || 0), color: '#ef4444', icon: '💰' },
+                { label: 'Lương ước tính', value: formatCurrency(staffAttendance.summary?.grossSalary || 0), color: 'var(--danger)', icon: '💰' },
               ].map(s => (
                 <div key={s.label} className="glass-card" style={{ padding: '14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '20px', marginBottom: '8px' }}>{s.icon}</div>
@@ -427,7 +427,7 @@ function AttendanceTab({
 
             {/* Salary Breakdown */}
             <div className="glass-card" style={{ padding: '20px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>
                 💵 Chi tiết lương tháng
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
@@ -435,11 +435,11 @@ function AttendanceTab({
                   {[
                     { label: 'Mức lương cơ bản/giờ', value: formatCurrency(staffAttendance.summary?.wagePerHour || 0) },
                     { label: 'Lương cơ bản', value: formatCurrency(staffAttendance.summary?.baseSalary || 0) },
-                    { label: 'Phụ cấp', value: `+${formatCurrency(staffAttendance.summary?.allowances || 0)}`, color: '#10b981' },
+                    { label: 'Phụ cấp', value: `+${formatCurrency(staffAttendance.summary?.allowances || 0)}`, color: 'var(--success)' },
                   ].map(r => (
                     <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>{r.label}</span>
-                      <span style={{ fontWeight: '500', color: r.color || '#fff' }}>{r.value}</span>
+                      <span style={{ fontWeight: '500', color: r.color || 'var(--text-primary)' }}>{r.value}</span>
                     </div>
                   ))}
                 </div>
@@ -447,25 +447,25 @@ function AttendanceTab({
                   {[
                     { label: 'Tổng giờ làm', value: `${(staffAttendance.summary?.totalHoursWorked || 0).toFixed(2)}h` },
                     { label: 'Giờ tăng ca', value: `${(staffAttendance.summary?.overtimeHours || 0).toFixed(2)}h` },
-                    { label: 'Thưởng tăng ca', value: `+${formatCurrency(staffAttendance.summary?.overtimePay || 0)}`, color: '#10b981' },
+                    { label: 'Thưởng tăng ca', value: `+${formatCurrency(staffAttendance.summary?.overtimePay || 0)}`, color: 'var(--success)' },
                   ].map(r => (
                     <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>{r.label}</span>
-                      <span style={{ fontWeight: '500', color: r.color || '#fff' }}>{r.value}</span>
+                      <span style={{ fontWeight: '500', color: r.color || 'var(--text-primary)' }}>{r.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>Tổng lương ước tính (Gross)</span>
-                <span style={{ fontSize: '20px', fontWeight: '700', color: '#10b981' }}>{formatCurrency(staffAttendance.summary?.grossSalary || 0)}</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>Tổng lương ước tính (Gross)</span>
+                <span style={{ fontSize: '20px', fontWeight: '700', color: 'var(--success)' }}>{formatCurrency(staffAttendance.summary?.grossSalary || 0)}</span>
               </div>
             </div>
 
             {/* Attendance Table */}
             <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.02)' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#fff', margin: 0 }}>
+                <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
                   📆 Lịch sử chấm công — Tháng {staffAttendance.month}/{staffAttendance.year}
                 </h4>
               </div>
@@ -486,16 +486,16 @@ function AttendanceTab({
                     {staffAttendance.attendanceRecords && staffAttendance.attendanceRecords.length > 0 ? (
                       staffAttendance.attendanceRecords.map((record, i) => (
                         <tr key={i}>
-                          <td style={{ fontWeight: '600', color: '#fff', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                          <td style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px', whiteSpace: 'nowrap' }}>
                             {record.date ? new Date(record.date).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' }) : '—'}
                           </td>
-                          <td style={{ color: '#fff', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                          <td style={{ color: 'var(--text-primary)', fontSize: '13px', whiteSpace: 'nowrap' }}>
                             {record.checkIn ? new Date(record.checkIn).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '-'}
                           </td>
-                          <td style={{ color: '#fff', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                          <td style={{ color: 'var(--text-primary)', fontSize: '13px', whiteSpace: 'nowrap' }}>
                             {record.checkOut ? new Date(record.checkOut).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '-'}
                           </td>
-                          <td style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
+                          <td style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: '600' }}>
                             {record.hours != null ? `${record.hours.toFixed(2).replace(/\.00$/, '')}h` : '-'}
                           </td>
                           <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{record.shift || 'Ca thường'}</td>
@@ -568,10 +568,10 @@ function PayrollTab({ payrollSummary, payrollLoading, currentMonth, currentYear,
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
         {[
-          { label: 'Tổng nhân viên', value: totals.count, color: '#3b82f6', icon: '👥' },
-          { label: 'Đã thanh toán', value: totals.paid, color: '#10b981', icon: '✅' },
-          { label: 'Chưa thanh toán', value: totals.pending, color: '#f59e0b', icon: '⏳' },
-          { label: 'Tổng thực nhận', value: formatCurrency(totals.totalNet), color: '#ef4444', icon: '💰' },
+          { label: 'Tổng nhân viên', value: totals.count, color: 'var(--info)', icon: '👥' },
+          { label: 'Đã thanh toán', value: totals.paid, color: 'var(--success)', icon: '✅' },
+          { label: 'Chưa thanh toán', value: totals.pending, color: 'var(--warning)', icon: '⏳' },
+          { label: 'Tổng thực nhận', value: formatCurrency(totals.totalNet), color: 'var(--danger)', icon: '💰' },
         ].map(s => (
           <div key={s.label} className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
             <div style={{ fontSize: '28px', marginBottom: '12px' }}>{s.icon}</div>
@@ -584,7 +584,7 @@ function PayrollTab({ payrollSummary, payrollLoading, currentMonth, currentYear,
       {/* Payroll Details Table */}
       <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.02)' }}>
-          <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', margin: 0 }}>
+          <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
             💵 Bảng lương tổng — Tháng {currentMonth}/{currentYear}
           </h4>
         </div>
@@ -617,32 +617,32 @@ function PayrollTab({ payrollSummary, payrollLoading, currentMonth, currentYear,
                           width: '36px', height: '36px', borderRadius: '50%',
                           background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '12px', fontWeight: '700', color: '#fff'
+                          fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)'
                         }}>
                           {(p.staffName || p.staff?.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: '600', color: '#fff', fontSize: '13px' }}>{p.staffName || p.staff?.name || '—'}</div>
+                          <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px' }}>{p.staffName || p.staff?.name || '—'}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{p.staff?.dept || p.department || ''}</div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ color: '#fff', fontWeight: '500' }}>
+                    <td style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
                       {hasPayroll ? formatCurrency(p.baseSalary || 0) : <span style={{ color: '#6b7280' }}>—</span>}
                     </td>
-                    <td style={{ color: '#10b981' }}>
+                    <td style={{ color: 'var(--success)' }}>
                       {hasPayroll && (p.totalBonus || 0) > 0 ? `+${formatCurrency(p.totalBonus)}` : '—'}
                     </td>
-                    <td style={{ color: penalty > 0 ? '#ef4444' : '#fff' }}>
+                    <td style={{ color: penalty > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
                       {penalty > 0 ? `-${formatCurrency(penalty)}` : '—'}
                     </td>
-                    <td style={{ color: inventoryDeduction > 0 ? '#ef4444' : '#fff' }}>
+                    <td style={{ color: inventoryDeduction > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
                       {inventoryDeduction > 0 ? `-${formatCurrency(inventoryDeduction)}` : '—'}
                     </td>
-                    <td style={{ color: advance > 0 ? '#f59e0b' : '#fff' }}>
+                    <td style={{ color: advance > 0 ? 'var(--warning)' : 'var(--text-primary)' }}>
                       {advance > 0 ? `-${formatCurrency(advance)}` : '—'}
                     </td>
-                    <td style={{ color: '#10b981', fontWeight: '700', fontSize: '14px' }}>
+                    <td style={{ color: 'var(--success)', fontWeight: '700', fontSize: '14px' }}>
                       {hasPayroll ? formatCurrency(p.netSalary || 0) : <span style={{ color: '#6b7280' }}>—</span>}
                     </td>
                   </tr>
@@ -651,13 +651,13 @@ function PayrollTab({ payrollSummary, payrollLoading, currentMonth, currentYear,
             </tbody>
             <tfoot>
               <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <td style={{ fontWeight: '700', color: '#fff', fontSize: '14px' }}>TỔNG CỘNG</td>
-                <td style={{ fontWeight: '700', color: '#fff' }}>{formatCurrency(totals.totalBase)}</td>
-                <td style={{ fontWeight: '700', color: '#10b981' }}>+{formatCurrency(totals.totalBonus)}</td>
-                <td style={{ fontWeight: '700', color: '#ef4444' }}>-{formatCurrency(totals.totalPenalty)}</td>
-                <td style={{ fontWeight: '700', color: '#ef4444' }}>-{formatCurrency(totals.totalInventoryDeduction)}</td>
-                <td style={{ fontWeight: '700', color: '#f59e0b' }}>-{formatCurrency(totals.totalAdvance)}</td>
-                <td style={{ fontWeight: '700', color: '#10b981', fontSize: '16px' }}>{formatCurrency(totals.totalNet)}</td>
+                <td style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '14px' }}>TỔNG CỘNG</td>
+                <td style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{formatCurrency(totals.totalBase)}</td>
+                <td style={{ fontWeight: '700', color: 'var(--success)' }}>+{formatCurrency(totals.totalBonus)}</td>
+                <td style={{ fontWeight: '700', color: 'var(--danger)' }}>-{formatCurrency(totals.totalPenalty)}</td>
+                <td style={{ fontWeight: '700', color: 'var(--danger)' }}>-{formatCurrency(totals.totalInventoryDeduction)}</td>
+                <td style={{ fontWeight: '700', color: 'var(--warning)' }}>-{formatCurrency(totals.totalAdvance)}</td>
+                <td style={{ fontWeight: '700', color: 'var(--success)', fontSize: '16px' }}>{formatCurrency(totals.totalNet)}</td>
               </tr>
             </tfoot>
           </table>
@@ -702,11 +702,11 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px' }}>
         {[
-          { label: 'Tổng nhiệm vụ', value: stats.total, color: '#3b82f6', icon: '📋' },
-          { label: 'Chờ xử lý', value: stats.pending, color: '#f59e0b', icon: '⏳' },
-          { label: 'Đang làm', value: stats.inProgress, color: '#3b82f6', icon: '🔄' },
-          { label: 'Hoàn thành', value: stats.completed, color: '#10b981', icon: '✅' },
-          { label: 'Quá hạn', value: stats.overdue, color: '#ef4444', icon: '⚠️' },
+          { label: 'Tổng nhiệm vụ', value: stats.total, color: 'var(--info)', icon: '📋' },
+          { label: 'Chờ xử lý', value: stats.pending, color: 'var(--warning)', icon: '⏳' },
+          { label: 'Đang làm', value: stats.inProgress, color: 'var(--info)', icon: '🔄' },
+          { label: 'Hoàn thành', value: stats.completed, color: 'var(--success)', icon: '✅' },
+          { label: 'Quá hạn', value: stats.overdue, color: 'var(--danger)', icon: '⚠️' },
         ].map(s => (
           <div key={s.label} className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
             <div style={{ fontSize: '28px', marginBottom: '12px' }}>{s.icon}</div>
@@ -718,7 +718,7 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
 
       {/* Tasks by Staff */}
       <div className="glass-card" style={{ padding: '20px' }}>
-        <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '16px' }}>
+        <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>
           📊 Nhiệm vụ theo nhân viên
         </h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
@@ -742,12 +742,12 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
                     width: '36px', height: '36px', borderRadius: '50%',
                     background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '12px', fontWeight: '700', color: '#fff', flexShrink: 0
+                    fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', flexShrink: 0
                   }}>
                     {(staff.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {staff.name || '—'}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -760,7 +760,7 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
                   <div style={{
                     width: `${percentage}%`,
                     height: '100%',
-                    background: percentage === 100 ? '#10b981' : percentage > 50 ? '#3b82f6' : '#f59e0b',
+                    background: percentage === 100 ? 'var(--success)' : percentage > 50 ? 'var(--info)' : 'var(--warning)',
                     borderRadius: '3px',
                     transition: 'width 0.3s'
                   }} />
@@ -777,7 +777,7 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
       {/* Tasks List */}
       <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-glass)', background: 'rgba(255,255,255,0.02)' }}>
-          <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', margin: 0 }}>
+          <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
             📝 Danh sách nhiệm vụ
           </h4>
         </div>
@@ -798,7 +798,7 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
                 tasks.map((task, i) => (
                   <tr key={i}>
                     <td>
-                      <div style={{ fontWeight: '600', color: '#fff', fontSize: '13px', maxWidth: '300px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px', maxWidth: '300px' }}>
                         {task.title || task.name || '—'}
                       </div>
                       {task.description && (
@@ -813,24 +813,24 @@ function TasksTab({ tasksData, tasksLoading, currentMonth, currentYear, getTaskS
                           width: '28px', height: '28px', borderRadius: '50%',
                           background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '10px', fontWeight: '700', color: '#fff'
+                          fontSize: '10px', fontWeight: '700', color: 'var(--text-primary)'
                         }}>
                           {(task.assignee?.name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()}
                         </div>
-                        <span style={{ fontSize: '12px', color: '#fff' }}>{task.assignee?.name || '—'}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{task.assignee?.name || '—'}</span>
                       </div>
                     </td>
-                    <td style={{ color: '#fff', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                    <td style={{ color: 'var(--text-primary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
                       {task.startDate ? new Date(task.startDate).toLocaleDateString('vi-VN') : '—'}
                     </td>
-                    <td style={{ color: '#fff', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                    <td style={{ color: 'var(--text-primary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
                       {task.dueDate ? new Date(task.dueDate).toLocaleDateString('vi-VN') : '—'}
                     </td>
                     <td>{getTaskStatusBadge(task.status)}</td>
                     <td>
-                      {task.priority === 'high' && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '12px' }}>Cao</span>}
-                      {task.priority === 'medium' && <span style={{ color: '#f59e0b', fontWeight: '600', fontSize: '12px' }}>TB</span>}
-                      {task.priority === 'low' && <span style={{ color: '#10b981', fontWeight: '600', fontSize: '12px' }}>Thấp</span>}
+                      {task.priority === 'high' && <span style={{ color: 'var(--danger)', fontWeight: '600', fontSize: '12px' }}>Cao</span>}
+                      {task.priority === 'medium' && <span style={{ color: 'var(--warning)', fontWeight: '600', fontSize: '12px' }}>TB</span>}
+                      {task.priority === 'low' && <span style={{ color: 'var(--success)', fontWeight: '600', fontSize: '12px' }}>Thấp</span>}
                       {!task.priority && <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>—</span>}
                     </td>
                   </tr>

@@ -41,18 +41,19 @@ export default function ResponsiveTable({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {data.map((row, idx) => (
-          <div
-            key={row[keyField] ?? idx}
-            onClick={onRowClick ? () => onRowClick(row) : undefined}
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-glass)',
-              borderRadius: '10px',
-              padding: '12px 14px',
-              cursor: onRowClick ? 'pointer' : 'default',
-              transition: 'all var(--transition-fast)'
-            }}
-          >
+<div
+        key={row[keyField] ?? idx}
+        onClick={onRowClick ? () => onRowClick(row) : undefined}
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-glass)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 14px',
+          cursor: onRowClick ? 'pointer' : 'default',
+          transition: 'all var(--transition-fast)',
+          boxShadow: 'var(--shadow-sm)'
+        }}
+      >
             {cardRenderer ? cardRenderer(row, idx) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {columns.map((col) => {
@@ -70,9 +71,9 @@ export default function ResponsiveTable({
                         {col.label}
                       </span>
                       <span style={{
-                        color: '#fff',
+                        color: 'var(--text-primary)',
                         textAlign: col.align === 'right' ? 'right' : 'left',
-                        fontWeight: col.primary ? '600' : '400',
+                        fontWeight: col.primary ? '600' : '500',
                         wordBreak: 'break-word',
                         textAlignLast: 'right'
                       }}>
@@ -94,8 +95,9 @@ export default function ResponsiveTable({
     <div style={{
       background: 'var(--bg-card)',
       border: '1px solid var(--border-glass)',
-      borderRadius: '12px',
-      overflow: 'hidden'
+      borderRadius: 'var(--radius-lg)',
+      overflow: 'hidden',
+      boxShadow: 'var(--shadow-sm)'
     }}>
       <div style={{ overflowX: 'auto' }}>
         <table style={{
@@ -115,7 +117,8 @@ export default function ResponsiveTable({
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
                   whiteSpace: 'nowrap',
-                  width: col.width
+                  width: col.width,
+                  background: '#f8fafc'
                 }}>
                   {col.label}
                 </th>
@@ -139,7 +142,7 @@ export default function ResponsiveTable({
                   <td key={col.key} style={{
                     padding: '12px 16px',
                     textAlign: col.align || 'left',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     verticalAlign: 'middle'
                   }}>
                     {col.render ? col.render(row) : row[col.key]}

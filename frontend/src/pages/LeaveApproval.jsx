@@ -19,8 +19,8 @@ const STATUS_LABELS = {
 
 const STATUS_COLORS = {
   pending: '#eab308',
-  approved: '#22c55e',
-  rejected: '#ef4444',
+  approved: 'var(--success-text)',
+  rejected: 'var(--danger)',
   cancelled: '#6b7280'
 };
 
@@ -102,12 +102,12 @@ export default function LeaveApproval() {
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
   }
 
   return (
     <div style={{ padding: '32px' }}>
-      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', marginBottom: '8px' }}>
+      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', marginBottom: '8px' }}>
         Phê Duyệt Nghỉ Phép
       </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
@@ -115,7 +115,7 @@ export default function LeaveApproval() {
       </p>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -127,7 +127,7 @@ export default function LeaveApproval() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            style={{ padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+            style={{ padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
           >
             <option value="">Tất cả</option>
             <option value="pending">Đang chờ</option>
@@ -162,14 +162,14 @@ export default function LeaveApproval() {
             <tbody>
               {requests.map((request) => (
                 <tr key={request._id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>
                     <div style={{ fontWeight: '500' }}>{request.user?.name || 'N/A'}</div>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{request.user?.position || ''}</div>
                   </td>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{LEAVE_TYPE_LABELS[request.leaveType] || request.leaveType}</td>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{formatDate(request.startDate)}</td>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{formatDate(request.endDate)}</td>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{request.days}</td>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{LEAVE_TYPE_LABELS[request.leaveType] || request.leaveType}</td>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{formatDate(request.startDate)}</td>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{formatDate(request.endDate)}</td>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{request.days}</td>
                   <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {request.reason}
                   </td>
@@ -197,7 +197,7 @@ export default function LeaveApproval() {
                             background: 'rgba(34, 197, 94, 0.1)',
                             border: '1px solid rgba(34, 197, 94, 0.3)',
                             borderRadius: '6px',
-                            color: '#22c55e',
+                            color: 'var(--success-text)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -211,7 +211,7 @@ export default function LeaveApproval() {
                             background: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
                             borderRadius: '6px',
-                            color: '#ef4444',
+                            color: 'var(--danger)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -237,17 +237,17 @@ export default function LeaveApproval() {
       {showRejectModal && selectedRequest && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', maxWidth: '500px', width: '90%', padding: '24px' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '16px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Từ Chối Yêu Cầu Nghỉ Phép
             </h2>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '8px' }}>Nhân viên:</p>
-              <p style={{ color: '#fff', fontSize: '14px', marginBottom: '8px' }}>{selectedRequest.user?.name}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '14px', marginBottom: '8px' }}>{selectedRequest.user?.name}</p>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '8px' }}>Loại nghỉ:</p>
-              <p style={{ color: '#fff', fontSize: '14px', marginBottom: '8px' }}>{LEAVE_TYPE_LABELS[selectedRequest.leaveType]}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '14px', marginBottom: '8px' }}>{LEAVE_TYPE_LABELS[selectedRequest.leaveType]}</p>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '8px' }}>Thời gian:</p>
-              <p style={{ color: '#fff', fontSize: '14px' }}>{formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)} ({selectedRequest.days} ngày)</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)} ({selectedRequest.days} ngày)</p>
             </div>
 
             <form onSubmit={handleRejectSubmit}>
@@ -259,7 +259,7 @@ export default function LeaveApproval() {
                   rows={3}
                   placeholder="Nhập lý do từ chối"
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
                 />
               </div>
 
@@ -273,7 +273,7 @@ export default function LeaveApproval() {
                     background: 'rgba(255, 255, 255, 0.1)',
                     border: '1px solid var(--border-glass)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}
@@ -285,10 +285,10 @@ export default function LeaveApproval() {
                   style={{
                     flex: 1,
                     padding: '12px 24px',
-                    background: '#ef4444',
+                    background: 'var(--danger)',
                     border: 'none',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}

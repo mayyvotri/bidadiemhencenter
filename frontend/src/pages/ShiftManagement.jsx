@@ -10,8 +10,8 @@ const STATUS_LABELS = {
 };
 const STATUS_COLORS = {
   pending: '#eab308',
-  approved: '#22c55e',
-  rejected: '#ef4444',
+  approved: 'var(--success-text)',
+  rejected: 'var(--danger)',
   cancelled: '#6b7280'
 };
 
@@ -28,7 +28,7 @@ export default function ShiftManagement() {
     endTime: '',
     daysOfWeek: [],
     maxEmployees: '',
-    color: '#3b82f6',
+    color: 'var(--info)',
     isActive: true
   });
 
@@ -59,7 +59,7 @@ export default function ShiftManagement() {
       endTime: '',
       daysOfWeek: [],
       maxEmployees: '',
-      color: '#3b82f6',
+      color: 'var(--info)',
       isActive: true
     });
     setShowModal(true);
@@ -132,12 +132,12 @@ export default function ShiftManagement() {
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
   }
 
   return (
     <div style={{ padding: '32px' }}>
-      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', marginBottom: '8px' }}>
+      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', marginBottom: '8px' }}>
         Quản Lý Ca Làm Việc
       </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
@@ -145,7 +145,7 @@ export default function ShiftManagement() {
       </p>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -157,7 +157,7 @@ export default function ShiftManagement() {
           background: 'var(--primary)',
           border: 'none',
           borderRadius: '8px',
-          color: '#fff',
+          color: 'var(--text-primary)',
           fontSize: '14px',
           cursor: 'pointer',
           marginBottom: '24px'
@@ -171,7 +171,7 @@ export default function ShiftManagement() {
           <div key={shift._id} style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff', marginBottom: '8px' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)', marginBottom: '8px' }}>
                   {shift.name}
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>
@@ -191,7 +191,7 @@ export default function ShiftManagement() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '4px' }}>Ngày làm việc:</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                 {shift.daysOfWeek && shift.daysOfWeek.length > 0 ? shift.daysOfWeek.map(day => (
-                  <span key={day} style={{ padding: '4px 8px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', fontSize: '12px', color: '#fff' }}>
+                  <span key={day} style={{ padding: '4px 8px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', fontSize: '12px', color: 'var(--text-primary)' }}>
                     {DAY_NAMES[day]}
                   </span>
                 )) : <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Chưa chọn</span>}
@@ -205,7 +205,7 @@ export default function ShiftManagement() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ color: shift.isActive ? '#22c55e' : '#ef4444', fontSize: '12px', marginRight: '8px' }}>
+              <span style={{ color: shift.isActive ? 'var(--success-text)' : 'var(--danger)', fontSize: '12px', marginRight: '8px' }}>
                 {shift.isActive ? '● Hoạt động' : '● Không hoạt động'}
               </span>
             </div>
@@ -219,7 +219,7 @@ export default function ShiftManagement() {
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid var(--border-glass)',
                   borderRadius: '6px',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   fontSize: '13px',
                   cursor: 'pointer'
                 }}
@@ -234,7 +234,7 @@ export default function ShiftManagement() {
                   background: 'rgba(239, 68, 68, 0.1)',
                   border: '1px solid rgba(239, 68, 68, 0.3)',
                   borderRadius: '6px',
-                  color: '#ef4444',
+                  color: 'var(--danger)',
                   fontSize: '13px',
                   cursor: 'pointer'
                 }}
@@ -249,7 +249,7 @@ export default function ShiftManagement() {
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflow: 'auto', padding: '24px' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '24px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '24px' }}>
               {editingShift ? 'Sửa Ca Làm Việc' : 'Tạo Ca Mới'}
             </h2>
 
@@ -261,7 +261,7 @@ export default function ShiftManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
 
@@ -271,7 +271,7 @@ export default function ShiftManagement() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
                 />
               </div>
 
@@ -283,7 +283,7 @@ export default function ShiftManagement() {
                     value={formData.startTime}
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                   />
                 </div>
                 <div>
@@ -293,7 +293,7 @@ export default function ShiftManagement() {
                     value={formData.endTime}
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                   />
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function ShiftManagement() {
                         background: formData.daysOfWeek.includes(index) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
                         border: formData.daysOfWeek.includes(index) ? 'none' : '1px solid var(--border-glass)',
                         borderRadius: '6px',
-                        color: '#fff',
+                        color: 'var(--text-primary)',
                         fontSize: '13px',
                         cursor: 'pointer'
                       }}
@@ -330,7 +330,7 @@ export default function ShiftManagement() {
                   value={formData.maxEmployees}
                   onChange={(e) => setFormData({ ...formData, maxEmployees: e.target.value })}
                   placeholder="Để trống nếu không giới hạn"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
 
@@ -352,7 +352,7 @@ export default function ShiftManagement() {
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     style={{ width: '20px', height: '20px', marginRight: '8px' }}
                   />
-                  <span style={{ color: '#fff', fontSize: '14px' }}>Hoạt động</span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>Hoạt động</span>
                 </label>
               </div>
 
@@ -366,7 +366,7 @@ export default function ShiftManagement() {
                     background: 'rgba(255, 255, 255, 0.1)',
                     border: '1px solid var(--border-glass)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}
@@ -381,7 +381,7 @@ export default function ShiftManagement() {
                     background: 'var(--primary)',
                     border: 'none',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}

@@ -8,13 +8,13 @@ const getUser = () => {
 
 const PRIORITY_ORDER = { urgent: 0, high: 1, medium: 2, low: 3 };
 const STATUS_CONFIG = {
-  pending:    { label: 'Chờ thực hiện', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' },
-  submitted:   { label: 'Chờ duyệt',    color: '#60a5fa', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.3)' },
-  completed:  { label: 'Hoàn thành',   color: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)' },
+  pending:    { label: 'Chờ thực hiện', color: 'var(--warning)', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' },
+  submitted:   { label: 'Chờ duyệt',    color: 'var(--info-text)', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.3)' },
+  completed:  { label: 'Hoàn thành',   color: 'var(--success)', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)' },
   cancelled:  { label: 'Đã hủy',        color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.3)' },
 };
 const PRIORITY_CONFIG = {
-  urgent: { label: 'Khẩn cấp', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+  urgent: { label: 'Khẩn cấp', color: 'var(--danger)', bg: 'rgba(239,68,68,0.15)' },
   high:   { label: 'Cao',       color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
   medium: { label: 'Trung bình',color: '#eab308', bg: 'rgba(234,179,8,0.15)' },
   low:    { label: 'Thấp',      color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
@@ -240,7 +240,7 @@ export default function Tasks() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff', margin: 0 }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
             📋 Nhiệm vụ
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -255,7 +255,7 @@ export default function Tasks() {
                 style={{
                   padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px',
                   background: viewMode === v ? 'var(--primary)' : 'transparent',
-                  color: viewMode === v ? '#fff' : 'var(--text-muted)',
+                  color: viewMode === v ? 'var(--text-primary)' : 'var(--text-muted)',
                   transition: 'all 0.2s'
                 }}>
                 {icon} {v === 'board' ? 'Bảng' : 'Danh sách'}
@@ -275,10 +275,10 @@ export default function Tasks() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
         {[
           { key: 'all',       label: 'Tổng',            value: stats.total,       color: '#ffffff', icon: '📋' },
-          { key: 'pending',   label: 'Chờ thực hiện', value: stats.pending,     color: '#f59e0b', icon: '⏳' },
-          { key: 'submitted', label: 'Chờ duyệt',      value: stats.submitted,   color: '#60a5fa', icon: '📷' },
-          { key: 'completed', label: 'Hoàn thành',      value: stats.completed,   color: '#10b981', icon: '✅' },
-          { key: 'overdue',   label: 'Quá hạn',          value: stats.overdue,     color: '#ef4444', icon: '⚠️' },
+          { key: 'pending',   label: 'Chờ thực hiện', value: stats.pending,     color: 'var(--warning)', icon: '⏳' },
+          { key: 'submitted', label: 'Chờ duyệt',      value: stats.submitted,   color: 'var(--info-text)', icon: '📷' },
+          { key: 'completed', label: 'Hoàn thành',      value: stats.completed,   color: 'var(--success)', icon: '✅' },
+          { key: 'overdue',   label: 'Quá hạn',          value: stats.overdue,     color: 'var(--danger)', icon: '⚠️' },
         ].map(s => (
           <div key={s.key} className="glass-card"
             style={{ padding: '14px 12px', cursor: 'pointer', border: filter === s.key ? `1px solid ${s.color}60` : '1px solid var(--border-glass)', background: filter === s.key ? `${s.color}12` : '' }}
@@ -368,21 +368,21 @@ export default function Tasks() {
                             </span>
                           )}
                           {task._isOverdue && (
-                            <span style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', background: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>
+                            <span style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', background: 'rgba(239,68,68,0.15)', color: 'var(--danger)' }}>
                               ⚠️ Quá hạn
                             </span>
                           )}
                         </div>
 
                         {/* Title */}
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', marginBottom: '6px', lineHeight: '1.4',
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px', lineHeight: '1.4',
                           textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
                           {task.title}
                         </div>
 
                         {/* Completion photo indicator */}
                         {task.completionPhoto && (
-                          <div style={{ fontSize: '10px', color: '#60a5fa', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ fontSize: '10px', color: 'var(--info-text)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             📷 Đã gửi ảnh
                           </div>
                         )}
@@ -393,7 +393,7 @@ export default function Tasks() {
                             👤 {task.assignedTo || '—'}
                           </span>
                           {task.deadline && (
-                            <span style={{ color: task._isOverdue ? '#ef4444' : 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: '10px' }}>
+                            <span style={{ color: task._isOverdue ? 'var(--danger)' : 'var(--text-muted)', whiteSpace: 'nowrap', fontSize: '10px' }}>
                               🕐 {task.deadline}
                             </span>
                           )}
@@ -405,7 +405,7 @@ export default function Tasks() {
                             onClick={e => e.stopPropagation()}>
                             {col === 'submitted' && (
                               <button onClick={() => handleUpdateStatus(task, 'completed')}
-                                style={{ flex: 1, padding: '4px', fontSize: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px', color: '#10b981', cursor: 'pointer' }}>
+                                style={{ flex: 1, padding: '4px', fontSize: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px', color: 'var(--success)', cursor: 'pointer' }}>
                                 ✅ Duyệt
                               </button>
                             )}
@@ -416,7 +416,7 @@ export default function Tasks() {
                               </button>
                             )}
                             <button onClick={() => { setEditTask({ ...task }); }}
-                              style={{ flex: 1, padding: '4px', fontSize: '10px', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '4px', color: '#60a5fa', cursor: 'pointer' }}>
+                              style={{ flex: 1, padding: '4px', fontSize: '10px', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '4px', color: 'var(--info-text)', cursor: 'pointer' }}>
                               ✏️ Sửa
                             </button>
                           </div>
@@ -465,17 +465,17 @@ export default function Tasks() {
                       }}
                       onClick={() => selectTask(task)}>
                       <td>
-                        <div style={{ fontWeight: '600', color: '#fff', textDecoration: task.status === 'completed' ? 'line-through' : 'none', maxWidth: '260px' }}>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)', textDecoration: task.status === 'completed' ? 'line-through' : 'none', maxWidth: '260px' }}>
                           {task.title}
                         </div>
                         {task.completionPhoto && (
-                          <div style={{ fontSize: '11px', color: '#60a5fa', marginTop: '2px' }}>📷 Đã gửi ảnh</div>
+                          <div style={{ fontSize: '11px', color: 'var(--info-text)', marginTop: '2px' }}>📷 Đã gửi ảnh</div>
                         )}
                       </td>
                       <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{task.category || '—'}</td>
-                      <td style={{ fontSize: '12px', color: task._isOverdue ? '#ef4444' : 'var(--text-secondary)' }}>
+                      <td style={{ fontSize: '12px', color: task._isOverdue ? 'var(--danger)' : 'var(--text-secondary)' }}>
                         {task.deadline || '—'}
-                        {task._isOverdue && <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: '600' }}>⚠️ Quá hạn</div>}
+                        {task._isOverdue && <div style={{ fontSize: '10px', color: 'var(--danger)', fontWeight: '600' }}>⚠️ Quá hạn</div>}
                       </td>
                       <td>
                         <span style={{
@@ -485,7 +485,7 @@ export default function Tasks() {
                           {pCfg.label}
                         </span>
                       </td>
-                      <td style={{ fontSize: '12px', color: '#fff' }}>{task.assignedTo || '—'}</td>
+                      <td style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{task.assignedTo || '—'}</td>
                       <td>
                         <span style={{
                           padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600',
@@ -499,16 +499,16 @@ export default function Tasks() {
                           <div style={{ display: 'flex', gap: '4px' }}>
                             {task.status === 'submitted' && (
                               <button onClick={() => handleUpdateStatus(task, 'completed')}
-                                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px', color: '#10b981', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
+                                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px', color: 'var(--success)', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
                                 ✅
                               </button>
                             )}
                             <button onClick={() => { setEditTask({ ...task }); setSelectedTask(null); }}
-                              style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '4px', color: '#60a5fa', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
+                              style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: '4px', color: 'var(--info-text)', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
                               ✏️
                             </button>
                             <button onClick={() => handleDeleteTask(task)}
-                              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
+                              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '4px', color: 'var(--danger)', cursor: 'pointer', padding: '3px 6px', fontSize: '11px' }}>
                               🗑️
                             </button>
                           </div>
@@ -535,7 +535,7 @@ export default function Tasks() {
             <button onClick={() => setSelectedTask(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
           </div>
 
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '14px', lineHeight: '1.4' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '14px', lineHeight: '1.4' }}>
             {selectedTask.title}
           </h3>
 
@@ -555,7 +555,7 @@ export default function Tasks() {
             ].map(([label, value]) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{label}</span>
-                <span style={{ fontSize: '12px', color: '#fff', fontWeight: '500', textAlign: 'right', maxWidth: '60%' }}>{value}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '500', textAlign: 'right', maxWidth: '60%' }}>{value}</span>
               </div>
             ))}
           </div>
@@ -589,7 +589,7 @@ export default function Tasks() {
                   <img src={URL.createObjectURL(previewPhoto)} alt="Preview"
                     style={{ width: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }} />
                   <button onClick={() => setPreviewPhoto(null)}
-                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', cursor: 'pointer', fontSize: '14px' }}>
+                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px' }}>
                     ✕
                   </button>
                 </div>
@@ -604,7 +604,7 @@ export default function Tasks() {
               {previewPhoto && (
                 <button onClick={() => handleSubmitCompletionPhoto(selectedTask)}
                   disabled={submittingPhoto}
-                  style={{ width: '100%', marginTop: '10px', padding: '10px', background: '#60a5fa', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                  style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'var(--info-text)', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
                   {submittingPhoto ? '⏳ Đang gửi...' : '📤 Gửi ảnh hoàn thành'}
                 </button>
               )}
@@ -625,11 +625,11 @@ export default function Tasks() {
           {/* Admin Actions - Duyệt nhiệm vụ */}
           {isAdmin && selectedTask.status === 'submitted' && (
             <div style={{ marginBottom: '20px', padding: '16px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '12px' }}>
-              <div style={{ fontSize: '12px', color: '#10b981', fontWeight: '600', marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: '600', marginBottom: '12px' }}>
                 📷 Nhân viên đã gửi ảnh hoàn thành
               </div>
               <button onClick={() => handleUpdateStatus(selectedTask, 'completed')}
-                style={{ width: '100%', padding: '12px', background: '#10b981', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+                style={{ width: '100%', padding: '12px', background: 'var(--success)', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
                 ✅ Duyệt hoàn thành
               </button>
             </div>
@@ -643,12 +643,12 @@ export default function Tasks() {
                 ✏️ Sửa nhiệm vụ
               </button>
               {selectedTask.status !== 'completed' && selectedTask.status !== 'cancelled' && (
-                <button style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontSize: '13px' }}
+                <button style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}
                   onClick={() => handleUpdateStatus(selectedTask, 'cancelled')}>
                   🚫
                 </button>
               )}
-              <button style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontSize: '13px' }}
+              <button style={{ padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: 'var(--danger)', cursor: 'pointer', fontSize: '13px' }}
                 onClick={() => handleDeleteTask(selectedTask)}>
                 🗑️
               </button>
@@ -662,7 +662,7 @@ export default function Tasks() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '520px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>Thêm nhiệm vụ mới</h2>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Thêm nhiệm vụ mới</h2>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -739,7 +739,7 @@ export default function Tasks() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '16px', padding: isMobile ? '20px' : '28px', width: '100%', maxWidth: isMobile ? '100%' : '520px', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0 }}>Sửa nhiệm vụ</h2>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>Sửa nhiệm vụ</h2>
               <button onClick={() => setEditTask(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '22px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

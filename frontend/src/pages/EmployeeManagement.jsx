@@ -190,12 +190,12 @@ export default function EmployeeManagement() {
     setShowDetailDrawer(true);
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
 
   return (
     <div style={{ padding: '32px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', margin: 0 }}>
           Quản Lý Nhân Viên
         </h1>
         {isAdmin && (
@@ -210,7 +210,7 @@ export default function EmployeeManagement() {
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -225,7 +225,7 @@ export default function EmployeeManagement() {
               placeholder="Tên, email, SĐT..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             />
           </div>
           <div>
@@ -233,7 +233,7 @@ export default function EmployeeManagement() {
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             >
               <option value="">Tất cả</option>
               <option value="staff">Nhân viên</option>
@@ -246,7 +246,7 @@ export default function EmployeeManagement() {
             <select
               value={filterPosition}
               onChange={(e) => setFilterPosition(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             >
               <option value="">Tất cả</option>
               <option value="receptionist">Lễ tân</option>
@@ -262,7 +262,7 @@ export default function EmployeeManagement() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             >
               <option value="">Tất cả</option>
               <option value="true">Hoạt động</option>
@@ -278,7 +278,7 @@ export default function EmployeeManagement() {
                 setSortBy(field);
                 setSortOrder(order);
               }}
-              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+              style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
             >
               <option value="createdAt-desc">Mới nhất</option>
               <option value="createdAt-asc">Cũ nhất</option>
@@ -308,18 +308,18 @@ export default function EmployeeManagement() {
           <tbody>
             {users.map((user) => (
               <tr key={user._id} style={{ borderBottom: '1px solid var(--border-glass)', cursor: 'pointer' }} onClick={() => openDetailDrawer(user)}>
-                <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{user.name}</td>
+                <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{user.name}</td>
                 <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{user.email}</td>
                 <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{user.phone}</td>
-                <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{ROLE_LABELS[user.role] || user.role}</td>
-                <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{POSITION_LABELS[user.position] || user.position}</td>
+                <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{ROLE_LABELS[user.role] || user.role}</td>
+                <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{POSITION_LABELS[user.position] || user.position}</td>
                 <td style={{ padding: '16px' }}>
                   <span style={{
                     padding: '4px 12px',
                     borderRadius: '12px',
                     fontSize: '12px',
                     background: user.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: user.isActive ? '#22c55e' : '#ef4444'
+                    color: user.isActive ? 'var(--success-text)' : 'var(--danger)'
                   }}>
                     {user.isActive ? 'Hoạt động' : 'Vô hiệu'}
                   </span>
@@ -330,7 +330,7 @@ export default function EmployeeManagement() {
                     borderRadius: '12px',
                     fontSize: '12px',
                     background: user.isLocked ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                    color: user.isLocked ? '#ef4444' : '#22c55e'
+                    color: user.isLocked ? 'var(--danger)' : 'var(--success-text)'
                   }}>
                     {user.isLocked ? 'Đã khóa' : 'Mở'}
                   </span>
@@ -342,8 +342,8 @@ export default function EmployeeManagement() {
                     fontSize: '12px',
                     background: user.approvalStatus === 'approved' ? 'rgba(34, 197, 94, 0.1)' : 
                             user.approvalStatus === 'pending' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: user.approvalStatus === 'approved' ? '#22c55e' : 
-                           user.approvalStatus === 'pending' ? '#eab308' : '#ef4444'
+                    color: user.approvalStatus === 'approved' ? 'var(--success-text)' : 
+                           user.approvalStatus === 'pending' ? '#eab308' : 'var(--danger)'
                   }}>
                     {user.approvalStatus === 'approved' ? 'Đã duyệt' : 
                      user.approvalStatus === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
@@ -360,7 +360,7 @@ export default function EmployeeManagement() {
                             background: 'rgba(255, 255, 255, 0.1)',
                             border: '1px solid var(--border-glass)',
                             borderRadius: '6px',
-                            color: '#fff',
+                            color: 'var(--text-primary)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -374,7 +374,7 @@ export default function EmployeeManagement() {
                             background: 'rgba(255, 255, 255, 0.1)',
                             border: '1px solid var(--border-glass)',
                             borderRadius: '6px',
-                            color: '#fff',
+                            color: 'var(--text-primary)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -388,7 +388,7 @@ export default function EmployeeManagement() {
                             background: 'rgba(255, 255, 255, 0.1)',
                             border: '1px solid var(--border-glass)',
                             borderRadius: '6px',
-                            color: '#fff',
+                            color: 'var(--text-primary)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -402,7 +402,7 @@ export default function EmployeeManagement() {
                             background: 'rgba(255, 255, 255, 0.1)',
                             border: '1px solid var(--border-glass)',
                             borderRadius: '6px',
-                            color: '#fff',
+                            color: 'var(--text-primary)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -416,7 +416,7 @@ export default function EmployeeManagement() {
                             background: 'rgba(239, 68, 68, 0.1)',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
                             borderRadius: '6px',
-                            color: '#ef4444',
+                            color: 'var(--danger)',
                             fontSize: '12px',
                             cursor: 'pointer'
                           }}
@@ -442,7 +442,7 @@ export default function EmployeeManagement() {
       {showCreateModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '32px', maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '24px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '24px' }}>
               Thêm Nhân Viên Mới
             </h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -453,7 +453,7 @@ export default function EmployeeManagement() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
               <div>
@@ -464,7 +464,7 @@ export default function EmployeeManagement() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   minLength={6}
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
               <div>
@@ -474,7 +474,7 @@ export default function EmployeeManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
               <div>
@@ -484,7 +484,7 @@ export default function EmployeeManagement() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
               <div>
@@ -492,7 +492,7 @@ export default function EmployeeManagement() {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 >
                   <option value="staff">Nhân viên</option>
                   <option value="manager">Quản lý</option>
@@ -503,7 +503,7 @@ export default function EmployeeManagement() {
                 <select
                   value={formData.position}
                   onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 >
                   <option value="none">Chưa phân công</option>
                   <option value="receptionist">Lễ tân</option>
@@ -524,7 +524,7 @@ export default function EmployeeManagement() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  style={{ flex: 1, padding: '12px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '12px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', cursor: 'pointer' }}
                 >
                   Hủy
                 </button>
@@ -538,7 +538,7 @@ export default function EmployeeManagement() {
       {showEditModal && selectedUser && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '32px', maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '24px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '24px' }}>
               Chỉnh Sửa Nhân Viên
             </h2>
             <form onSubmit={handleEdit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -558,7 +558,7 @@ export default function EmployeeManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
               <div>
@@ -568,7 +568,7 @@ export default function EmployeeManagement() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 />
               </div>
               <div>
@@ -576,7 +576,7 @@ export default function EmployeeManagement() {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 >
                   <option value="staff">Nhân viên</option>
                   <option value="manager">Quản lý</option>
@@ -588,7 +588,7 @@ export default function EmployeeManagement() {
                 <select
                   value={formData.position}
                   onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 >
                   <option value="none">Chưa phân công</option>
                   <option value="receptionist">Lễ tân</option>
@@ -613,7 +613,7 @@ export default function EmployeeManagement() {
                     setSelectedUser(null);
                     setFormData({ email: '', password: '', name: '', phone: '', role: 'staff', position: 'none' });
                   }}
-                  style={{ flex: 1, padding: '12px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '12px', background: 'rgba(255, 255, 255, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', cursor: 'pointer' }}
                 >
                   Hủy
                 </button>
@@ -628,7 +628,7 @@ export default function EmployeeManagement() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', zIndex: 1000 }} onClick={() => setShowDetailDrawer(false)}>
           <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '400px', background: '#0d111a', borderLeft: '1px solid var(--border-glass)', padding: '32px', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', margin: 0 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', margin: 0 }}>
                 Chi Tiết Nhân Viên
               </h2>
               <button
@@ -650,12 +650,12 @@ export default function EmployeeManagement() {
                 justifyContent: 'center',
                 fontSize: '28px',
                 fontWeight: 'bold',
-                color: '#fff'
+                color: 'var(--text-primary)'
               }}>
                 {selectedUser.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', color: '#fff', margin: 0, marginBottom: '4px' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', color: 'var(--text-primary)', margin: 0, marginBottom: '4px' }}>
                   {selectedUser.name}
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>{selectedUser.email}</p>
@@ -665,33 +665,33 @@ export default function EmployeeManagement() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Vai trò</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>{ROLE_LABELS[selectedUser.role] || selectedUser.role}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{ROLE_LABELS[selectedUser.role] || selectedUser.role}</p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Vị trí</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>{POSITION_LABELS[selectedUser.position] || selectedUser.position}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{POSITION_LABELS[selectedUser.position] || selectedUser.position}</p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Số điện thoại</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>{selectedUser.phone}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{selectedUser.phone}</p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Trạng thái</p>
-                <p style={{ color: selectedUser.isActive ? '#22c55e' : '#ef4444', fontSize: '16px', margin: 0 }}>
+                <p style={{ color: selectedUser.isActive ? 'var(--success-text)' : 'var(--danger)', fontSize: '16px', margin: 0 }}>
                   {selectedUser.isActive ? 'Hoạt động' : 'Vô hiệu'}
                 </p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Trạng thái khóa</p>
-                <p style={{ color: selectedUser.isLocked ? '#ef4444' : '#22c55e', fontSize: '16px', margin: 0 }}>
+                <p style={{ color: selectedUser.isLocked ? 'var(--danger)' : 'var(--success-text)', fontSize: '16px', margin: 0 }}>
                   {selectedUser.isLocked ? 'Đã khóa' : 'Mở'}
                 </p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Trạng thái duyệt</p>
                 <p style={{ 
-                  color: selectedUser.approvalStatus === 'approved' ? '#22c55e' : 
-                         selectedUser.approvalStatus === 'pending' ? '#eab308' : '#ef4444', 
+                  color: selectedUser.approvalStatus === 'approved' ? 'var(--success-text)' : 
+                         selectedUser.approvalStatus === 'pending' ? '#eab308' : 'var(--danger)', 
                   fontSize: '16px', margin: 0 
                 }}>
                   {selectedUser.approvalStatus === 'approved' ? 'Đã duyệt' : 
@@ -700,14 +700,14 @@ export default function EmployeeManagement() {
               </div>
               <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Ngày tạo</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>
                   {new Date(selectedUser.createdAt).toLocaleDateString('vi-VN')}
                 </p>
               </div>
               {selectedUser.lockedAt && (
                 <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Ngày khóa</p>
-                  <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>
+                  <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>
                     {new Date(selectedUser.lockedAt).toLocaleDateString('vi-VN')}
                   </p>
                 </div>
@@ -715,7 +715,7 @@ export default function EmployeeManagement() {
               {selectedUser.lastPasswordChange && (
                 <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Đổi mật khẩu lần cuối</p>
-                  <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>
+                  <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>
                     {new Date(selectedUser.lastPasswordChange).toLocaleDateString('vi-VN')}
                   </p>
                 </div>

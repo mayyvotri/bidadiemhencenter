@@ -68,7 +68,7 @@ export default function Login() {
             justifyContent: 'center',
             fontSize: isMobile ? '16px' : '20px',
             fontWeight: 'bold',
-            color: '#fff',
+            color: 'var(--text-primary)',
             fontFamily: 'var(--font-heading)',
             flexShrink: 0
           }}>
@@ -77,7 +77,7 @@ export default function Login() {
           <span style={{
             fontSize: isMobile ? '18px' : '24px',
             fontWeight: '700',
-            color: '#fff',
+            color: 'var(--text-primary)',
             fontFamily: 'var(--font-heading)'
           }}>
             Điểm Hẹn Billiards
@@ -91,7 +91,7 @@ export default function Login() {
           fontFamily: 'var(--font-heading)',
           fontSize: isMobile ? '28px' : '42px',
           fontWeight: '700',
-          color: '#fff',
+          color: 'var(--text-primary)',
           marginBottom: isMobile ? '12px' : '16px',
           lineHeight: '1.2'
         }}>
@@ -116,7 +116,7 @@ export default function Login() {
           borderRadius: '8px',
           padding: '12px 16px',
           marginBottom: '24px',
-          color: '#f87171',
+          color: 'var(--danger-text)',
           fontSize: '14px'
         }}>
           {error}
@@ -160,7 +160,7 @@ export default function Login() {
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid var(--border-glass)',
                 borderRadius: '8px',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 fontSize: '16px',
                 outline: 'none',
                 minHeight: isMobile ? '48px' : 'auto',
@@ -213,7 +213,7 @@ export default function Login() {
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid var(--border-glass)',
                 borderRadius: '8px',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 fontSize: '16px',
                 outline: 'none',
                 minHeight: isMobile ? '48px' : 'auto',
@@ -279,7 +279,7 @@ export default function Login() {
             width: '100%',
             padding: isMobile ? '16px' : '16px',
             background: loading ? 'rgba(225, 29, 72, 0.5)' : 'var(--primary)',
-            color: '#fff',
+            color: 'var(--text-primary)',
             border: 'none',
             borderRadius: '8px',
             fontSize: '16px',
@@ -371,7 +371,7 @@ export default function Login() {
             <blockquote style={{
               fontSize: '24px',
               fontWeight: '600',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontFamily: 'var(--font-heading)',
               marginBottom: '24px',
               lineHeight: '1.4'

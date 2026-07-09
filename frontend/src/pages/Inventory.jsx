@@ -87,7 +87,7 @@ export default function Inventory() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Quản lý Kho
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -101,7 +101,7 @@ export default function Inventory() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: '#fff' }}>{inventory.length}</div>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)' }}>{inventory.length}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Tổng mặt hàng</div>
         </div>
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
@@ -148,7 +148,7 @@ export default function Inventory() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {inventory.filter(item => item.status === 'low' || item.status === 'out').map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '8px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-                <span style={{ color: '#fff' }}>{item.name}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{item.name}</span>
                 <span style={{ color: 'var(--danger)' }}>Còn {item.quantity} {item.unit} (Tối thiểu: {item.minStock})</span>
               </div>
             ))}
@@ -181,10 +181,10 @@ export default function Inventory() {
               ) : filteredInventory.map((item) => (
                 <tr key={item.id}>
                   <td style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>{item.id}</td>
-                  <td><div style={{ fontWeight: '600', color: '#fff' }}>{item.name}</div></td>
+                  <td><div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{item.name}</div></td>
                   <td>{item.category}</td>
                   <td>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: item.status === 'low' || item.status === 'out' ? 'var(--danger)' : '#fff' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: item.status === 'low' || item.status === 'out' ? 'var(--danger)' : 'var(--text-primary)' }}>
                       {item.quantity}
                     </div>
                   </td>
@@ -213,7 +213,7 @@ export default function Inventory() {
           justifyContent: 'center', zIndex: 1000
         }}>
           <div className="glass-card" style={{ padding: '24px', width: '100%', maxWidth: '500px', background: '#0d111a' }}>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Thêm Mặt Hàng Mới
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

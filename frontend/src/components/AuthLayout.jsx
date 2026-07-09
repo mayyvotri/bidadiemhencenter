@@ -11,7 +11,7 @@ export default function AuthLayout({ children, title, subtitle, icon = '🔐' })
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#0d111a',
+      background: 'var(--bg-main)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -24,16 +24,16 @@ export default function AuthLayout({ children, title, subtitle, icon = '🔐' })
         maxWidth: '480px',
         background: isMobile ? 'transparent' : 'var(--bg-card)',
         border: isMobile ? 'none' : '1px solid var(--border-glass)',
-        borderRadius: isMobile ? '0' : '16px',
+        borderRadius: isMobile ? '0' : 'var(--radius-xl)',
         padding: isMobile ? '24px 20px' : '40px',
-        backdropFilter: isMobile ? 'none' : 'blur(8px)'
+        boxShadow: isMobile ? 'none' : 'var(--shadow-lg)'
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: isMobile ? '24px' : '32px' }}>
           <div style={{
             width: isMobile ? '40px' : '48px',
             height: isMobile ? '40px' : '48px',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-md)',
             background: 'linear-gradient(135deg, #e11d48, #be123c)',
             display: 'flex',
             alignItems: 'center',
@@ -42,14 +42,15 @@ export default function AuthLayout({ children, title, subtitle, icon = '🔐' })
             fontWeight: 'bold',
             color: '#fff',
             fontFamily: 'var(--font-heading)',
-            flexShrink: 0
+            flexShrink: 0,
+            boxShadow: 'var(--shadow-md)'
           }}>
             {icon}
           </div>
           <span style={{
             fontSize: isMobile ? '18px' : '20px',
             fontWeight: '700',
-            color: '#fff',
+            color: 'var(--text-primary)',
             fontFamily: 'var(--font-heading)'
           }}>
             Điểm Hẹn Billiards
@@ -62,7 +63,7 @@ export default function AuthLayout({ children, title, subtitle, icon = '🔐' })
             fontFamily: 'var(--font-heading)',
             fontSize: isMobile ? '24px' : '28px',
             fontWeight: '700',
-            color: '#fff',
+            color: 'var(--text-primary)',
             marginBottom: '8px'
           }}>
             {title}

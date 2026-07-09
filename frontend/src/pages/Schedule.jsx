@@ -372,7 +372,7 @@ export default function Schedule() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Lịch Làm Việc
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -389,7 +389,7 @@ export default function Schedule() {
                 <>
                   <button
                     className="btn-primary"
-                    style={{ padding: '8px 16px', background: hasChanges ? '#f59e0b' : undefined }}
+                    style={{ padding: '8px 16px', background: hasChanges ? 'var(--warning)' : undefined }}
                     onClick={handleSaveSchedule}
                     disabled={saving}
                   >
@@ -410,7 +410,7 @@ export default function Schedule() {
             <button className="btn-secondary" style={{ padding: '10px 16px', minHeight: '44px', minWidth: '44px' }} onClick={handleNextWeek}>›</button>
           )}
         </div>
-        <div style={{ flex: 1, textAlign: 'center', fontSize: isMobile ? '14px' : '15px', fontWeight: '600', color: '#fff' }}>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: isMobile ? '14px' : '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
           Tuần {weekOffset === 0 ? 'này' : weekOffset === 1 ? 'tới' : weekOffset === -1 ? 'trước' : `+${weekOffset}`}
         </div>
         <div style={{ flex: 2, textAlign: 'center', fontSize: isMobile ? '12px' : '13px', color: 'var(--text-secondary)' }}>{dateRange}</div>
@@ -454,7 +454,7 @@ export default function Schedule() {
                   border: isToday ? '1px solid var(--primary)' : '1px solid transparent'
                 }}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{day.label}</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: isToday ? 'var(--primary)' : '#fff' }}>{day.dateStr.split('-')[2]}</div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: isToday ? 'var(--primary)' : 'var(--text-primary)' }}>{day.dateStr.split('-')[2]}</div>
                 </div>
               );
             })}
@@ -514,14 +514,14 @@ export default function Schedule() {
                                 <span key={a.id} style={{
                                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                                   padding: '2px 6px', borderRadius: '4px',
-                                  background: 'rgba(16, 185, 129, 0.15)', fontSize: '10px', color: '#10b981'
+                                  background: 'rgba(16, 185, 129, 0.15)', fontSize: '10px', color: 'var(--success)'
                                 }}>
                                   {a.name}
                                   <button
                                     onClick={() => handleRemoveStaffFromSlot(slot?._id?.toString() || key, a.id)}
                                     disabled={saving}
                                     style={{
-                                      background: 'none', border: 'none', color: '#10b981',
+                                      background: 'none', border: 'none', color: 'var(--success)',
                                       cursor: 'pointer', padding: '0', fontSize: '12px', lineHeight: 1
                                     }}
                                   >×</button>
@@ -563,7 +563,7 @@ export default function Schedule() {
                           {slot?.assignedStaffId === user.id ? (
                             <div style={{
                               fontSize: '12px',
-                              color: '#10b981',
+                              color: 'var(--success)',
                               fontWeight: '600',
                               textAlign: 'center',
                               padding: '4px 8px',

@@ -50,8 +50,9 @@ export function PageHeader({ title, subtitle, actions, icon }) {
             justifyContent: 'center',
             background: 'var(--bg-card)',
             border: '1px solid var(--border-glass)',
-            borderRadius: '10px',
-            flexShrink: 0
+            borderRadius: 'var(--radius-md)',
+            flexShrink: 0,
+            boxShadow: 'var(--shadow-sm)'
           }}>
             {icon}
           </div>
@@ -60,7 +61,7 @@ export function PageHeader({ title, subtitle, actions, icon }) {
           <h1 style={{
             fontSize: isMobile ? '20px' : '28px',
             fontWeight: '700',
-            color: '#fff',
+            color: 'var(--text-primary)',
             margin: 0,
             fontFamily: 'var(--font-heading)',
             overflow: 'hidden',
@@ -106,9 +107,9 @@ export function Card({ children, style = {}, padding, hoverable = false }) {
       style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-glass)',
-        borderRadius: isMobile ? '10px' : '12px',
+        borderRadius: 'var(--radius-lg)',
         padding: padding || defaultPadding,
-        backdropFilter: 'blur(8px)',
+        boxShadow: 'var(--shadow-sm)',
         transition: hoverable ? 'all var(--transition-fast)' : undefined,
         ...style
       }}
@@ -133,7 +134,7 @@ export function Button({
 
   const variants = {
     primary: { background: 'var(--primary)', color: '#fff', border: 'none' },
-    secondary: { background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--border-glass)' },
+    secondary: { background: '#ffffff', color: 'var(--text-primary)', border: '1px solid var(--border-glass)' },
     success: { background: 'var(--success)', color: '#fff', border: 'none' },
     danger: { background: 'var(--danger)', color: '#fff', border: 'none' },
     ghost: { background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-glass)' }
@@ -152,7 +153,7 @@ export function Button({
         ...variants[variant],
         ...sizes[size],
         fontWeight: '600',
-        borderRadius: '8px',
+        borderRadius: 'var(--radius-md)',
         cursor: 'pointer',
         width: fullWidth ? '100%' : 'auto',
         display: 'inline-flex',
@@ -160,7 +161,18 @@ export function Button({
         justifyContent: 'center',
         gap: '6px',
         transition: 'all var(--transition-fast)',
+        boxShadow: 'var(--shadow-sm)',
         ...style
+      }}
+      onMouseEnter={(e) => {
+        if (props.disabled) return;
+        e.currentTarget.style.transform = 'translateY(-1px)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+      }}
+      onMouseLeave={(e) => {
+        if (props.disabled) return;
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
       }}
     >
       {children}

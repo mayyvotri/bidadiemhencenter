@@ -141,12 +141,12 @@ export default function ShiftScheduling() {
   };
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
   }
 
   return (
     <div style={{ padding: '32px' }}>
-      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', marginBottom: '8px' }}>
+      <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', marginBottom: '8px' }}>
         Lịch Trình Ca Làm Việc
       </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
@@ -154,7 +154,7 @@ export default function ShiftScheduling() {
       </p>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -169,7 +169,7 @@ export default function ShiftScheduling() {
               background: view === 'weekly' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
               border: view === 'weekly' ? 'none' : '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
@@ -183,7 +183,7 @@ export default function ShiftScheduling() {
               background: view === 'monthly' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
               border: view === 'monthly' ? 'none' : '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
@@ -200,14 +200,14 @@ export default function ShiftScheduling() {
               background: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
           >
             ←
           </button>
-          <span style={{ color: '#fff', fontSize: '14px', fontWeight: '600', minWidth: '150px', textAlign: 'center' }}>
+          <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: '600', minWidth: '150px', textAlign: 'center' }}>
             {view === 'weekly' 
               ? `${currentDate.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}`
               : `${currentDate.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}`
@@ -220,7 +220,7 @@ export default function ShiftScheduling() {
               background: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
@@ -248,13 +248,13 @@ export default function ShiftScheduling() {
       {showAssignmentModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: '12px', maxWidth: '500px', width: '90%', padding: '24px' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '16px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Phân Công Ca Làm Việc
             </h2>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '4px' }}>Ngày:</p>
-              <p style={{ color: '#fff', fontSize: '16px', fontWeight: '600' }}>{formatDate(selectedDate)}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: '600' }}>{formatDate(selectedDate)}</p>
             </div>
 
             <form onSubmit={handleCreateAssignment}>
@@ -264,7 +264,7 @@ export default function ShiftScheduling() {
                   value={assignmentForm.userId}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, userId: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 >
                   <option value="">Chọn nhân viên</option>
                   {employees.map(emp => (
@@ -279,7 +279,7 @@ export default function ShiftScheduling() {
                   value={assignmentForm.shiftId}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, shiftId: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px' }}
                 >
                   <option value="">Chọn ca làm việc</option>
                   {shifts.map(shift => (
@@ -295,7 +295,7 @@ export default function ShiftScheduling() {
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, notes: e.target.value })}
                   rows={2}
                   placeholder="Ghi chú tùy chọn"
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
                 />
               </div>
 
@@ -309,7 +309,7 @@ export default function ShiftScheduling() {
                     background: 'rgba(255, 255, 255, 0.1)',
                     border: '1px solid var(--border-glass)',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}
@@ -324,7 +324,7 @@ export default function ShiftScheduling() {
                     background: 'var(--primary)',
                     border: 'none',
                     borderRadius: '8px',
-                    color: '#fff',
+                    color: 'var(--text-primary)',
                     fontSize: '14px',
                     cursor: 'pointer'
                   }}
@@ -339,7 +339,7 @@ export default function ShiftScheduling() {
 
       {/* Assignments List */}
       <div style={{ marginTop: '32px' }}>
-        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '16px' }}>
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '16px' }}>
           Phân Công Gần Đây
         </h2>
 
@@ -361,15 +361,15 @@ export default function ShiftScheduling() {
               <tbody>
                 {assignments.slice(0, 10).map((assignment) => (
                   <tr key={assignment._id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                    <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>
+                    <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>
                       <div style={{ fontWeight: '500' }}>{assignment.user?.name || 'N/A'}</div>
                       <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{assignment.user?.position || ''}</div>
                     </td>
-                    <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>
+                    <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>
                       <div style={{ fontWeight: '500' }}>{assignment.shift?.name || 'N/A'}</div>
                       <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{assignment.shift?.startTime} - {assignment.shift?.endTime}</div>
                     </td>
-                    <td style={{ padding: '16px', color: '#fff', fontSize: '14px' }}>{formatDate(assignment.date)}</td>
+                    <td style={{ padding: '16px', color: 'var(--text-primary)', fontSize: '14px' }}>{formatDate(assignment.date)}</td>
                     <td style={{ padding: '16px' }}>
                       <button
                         onClick={() => handleDeleteAssignment(assignment._id)}
@@ -378,7 +378,7 @@ export default function ShiftScheduling() {
                           background: 'rgba(239, 68, 68, 0.1)',
                           border: '1px solid rgba(239, 68, 68, 0.3)',
                           borderRadius: '6px',
-                          color: '#ef4444',
+                          color: 'var(--danger)',
                           fontSize: '12px',
                           cursor: 'pointer'
                         }}

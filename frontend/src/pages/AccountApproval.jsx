@@ -86,14 +86,14 @@ export default function AccountApproval() {
     }
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Đang tải...</div>;
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>Đang tải...</div>;
 
   const displayUsers = filter === 'pending' ? pendingUsers : allUsers;
 
   return (
     <div style={{ padding: '32px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: '#fff', margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', color: 'var(--text-primary)', margin: 0 }}>
           Duyệt Tài Khoản
         </h1>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -104,7 +104,7 @@ export default function AccountApproval() {
               background: filter === 'pending' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
               border: '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
@@ -118,7 +118,7 @@ export default function AccountApproval() {
               background: filter === 'approved' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
               border: '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
@@ -132,7 +132,7 @@ export default function AccountApproval() {
               background: filter === 'rejected' ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
               border: '1px solid var(--border-glass)',
               borderRadius: '8px',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '14px',
               cursor: 'pointer'
             }}
@@ -143,7 +143,7 @@ export default function AccountApproval() {
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: '#ef4444', fontSize: '14px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '8px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
           {error}
         </div>
       )}
@@ -167,12 +167,12 @@ export default function AccountApproval() {
                   justifyContent: 'center',
                   fontSize: '20px',
                   fontWeight: 'bold',
-                  color: '#fff'
+                  color: 'var(--text-primary)'
                 }}>
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: '#fff', margin: 0, marginBottom: '4px' }}>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', color: 'var(--text-primary)', margin: 0, marginBottom: '4px' }}>
                     {user.name}
                   </h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>{user.email}</p>
@@ -182,11 +182,11 @@ export default function AccountApproval() {
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Vai trò:</span>
-                  <span style={{ color: '#fff', fontSize: '14px' }}>{user.role}</span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{user.role}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>SĐT:</span>
-                  <span style={{ color: '#fff', fontSize: '14px' }}>{user.phone}</span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{user.phone}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Trạng thái:</span>
@@ -196,8 +196,8 @@ export default function AccountApproval() {
                     fontSize: '12px',
                     background: user.approvalStatus === 'approved' ? 'rgba(34, 197, 94, 0.1)' : 
                             user.approvalStatus === 'pending' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: user.approvalStatus === 'approved' ? '#22c55e' : 
-                           user.approvalStatus === 'pending' ? '#eab308' : '#ef4444'
+                    color: user.approvalStatus === 'approved' ? 'var(--success-text)' : 
+                           user.approvalStatus === 'pending' ? '#eab308' : 'var(--danger)'
                   }}>
                     {user.approvalStatus === 'approved' ? 'Đã duyệt' : 
                      user.approvalStatus === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
@@ -222,7 +222,7 @@ export default function AccountApproval() {
                       background: 'rgba(239, 68, 68, 0.1)',
                       border: '1px solid rgba(239, 68, 68, 0.3)',
                       borderRadius: '8px',
-                      color: '#ef4444',
+                      color: 'var(--danger)',
                       fontSize: '14px',
                       cursor: 'pointer'
                     }}
@@ -239,7 +239,7 @@ export default function AccountApproval() {
       {showRejectModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#0d111a', border: '1px solid var(--border-glass)', borderRadius: isMobile ? '0' : '12px', padding: isMobile ? '20px' : '32px', maxWidth: isMobile ? '100%' : '500px', width: isMobile ? '100%' : '90%', height: isMobile ? '100vh' : 'auto', overflowY: 'auto' }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', marginBottom: '16px' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Từ chối tài khoản
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
@@ -253,7 +253,7 @@ export default function AccountApproval() {
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={4}
-                style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '14px', resize: 'vertical' }}
+                style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', resize: 'vertical' }}
               />
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -265,7 +265,7 @@ export default function AccountApproval() {
                   background: 'rgba(239, 68, 68, 0.1)',
                   border: '1px solid rgba(239, 68, 68, 0.3)',
                   borderRadius: '8px',
-                  color: '#ef4444',
+                  color: 'var(--danger)',
                   fontSize: '14px',
                   fontWeight: '600',
                   cursor: 'pointer'
@@ -285,7 +285,7 @@ export default function AccountApproval() {
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid var(--border-glass)',
                   borderRadius: '8px',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   fontSize: '14px',
                   cursor: 'pointer'
                 }}

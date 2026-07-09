@@ -246,7 +246,7 @@ export default function Payroll() {
     <div className="animate-fade-in" style={{ textAlign: 'left' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Quản lý Lương
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -271,7 +271,7 @@ export default function Payroll() {
               style={{
                 padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600',
                 background: tab === t.key ? 'var(--primary)' : 'transparent',
-                color: tab === t.key ? '#fff' : 'var(--text-secondary)'
+                color: tab === t.key ? 'var(--text-primary)' : 'var(--text-secondary)'
               }}>{t.label}</button>
           ))}
         </div>
@@ -303,11 +303,11 @@ export default function Payroll() {
           {isAdmin ? (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
             {[
-              { label: 'Tổng nhân viên', value: payrolls.length, color: '#fff' },
+              { label: 'Tổng nhân viên', value: payrolls.length, color: 'var(--text-primary)' },
               { label: 'Tổng lương NET', value: fmt(totalNet) + 'đ', color: 'var(--success)' },
               { label: 'Tổng giờ làm', value: fmt(totalHours) + 'h', color: 'var(--primary)' },
-              { label: 'Tổng OT', value: fmt(totalOvertime) + 'h', color: '#fbbf24' },
-              { label: 'Lương TB', value: payrolls.length ? fmt(Math.round(totalNet / payrolls.length)) + 'đ' : '0đ', color: '#fff' }
+              { label: 'Tổng OT', value: fmt(totalOvertime) + 'h', color: 'var(--warning-text)' },
+              { label: 'Lương TB', value: payrolls.length ? fmt(Math.round(totalNet / payrolls.length)) + 'đ' : '0đ', color: 'var(--text-primary)' }
             ].map(s => (
               <div className="glass-card" key={s.label} style={{ padding: '16px', textAlign: 'center' }}>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: s.color }}>{s.value}</div>
@@ -318,10 +318,10 @@ export default function Payroll() {
           ) : (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
             {[
-              { label: 'Ngày làm việc', value: attendanceSummary.totalDaysWorked, color: '#fff' },
+              { label: 'Ngày làm việc', value: attendanceSummary.totalDaysWorked, color: 'var(--text-primary)' },
               { label: 'Tổng giờ làm', value: attendanceSummary.totalHoursWorked + 'h', color: 'var(--primary)' },
               { label: 'Số lần trễ', value: attendanceSummary.lateCount, color: '#eab308' },
-              { label: 'Giờ tăng ca', value: attendanceSummary.overtimeHours + 'h', color: '#22c55e' }
+              { label: 'Giờ tăng ca', value: attendanceSummary.overtimeHours + 'h', color: 'var(--success-text)' }
             ].map(s => (
               <div className="glass-card" key={s.label} style={{ padding: '16px', textAlign: 'center' }}>
                 <div style={{ fontSize: '22px', fontWeight: '700', color: s.color }}>{s.value}</div>
@@ -362,12 +362,12 @@ export default function Payroll() {
                       return (
                         <tr key={pid} style={{ cursor: 'pointer', background: selectedPayroll && (selectedPayroll._id || selectedPayroll.id) === pid ? 'rgba(225,29,72,0.05)' : 'transparent' }}
                           onClick={() => selectPayroll(p)}>
-                          <td style={{ fontWeight: '600', color: '#fff', fontSize: '13px' }}>{p.staffName}</td>
+                          <td style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px' }}>{p.staffName}</td>
                           <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{p.dept}</td>
                           <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{p.totalHoursWorked?.toFixed(1) || 0}h</td>
-                          <td style={{ fontSize: '12px', color: '#fbbf24' }}>{p.overtimeHours?.toFixed(1) || 0}h</td>
+                          <td style={{ fontSize: '12px', color: 'var(--warning-text)' }}>{p.overtimeHours?.toFixed(1) || 0}h</td>
                           <td style={{ fontSize: '12px', color: 'var(--success)' }}>+{fmt(p.allowances)}đ</td>
-                          <td style={{ fontSize: '13px', color: '#fff' }}>{fmt(p.grossSalary)}đ</td>
+                          <td style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{fmt(p.grossSalary)}đ</td>
                           <td style={{ fontSize: '12px', color: p.adjustmentTotal > 0 ? 'var(--success)' : p.adjustmentTotal < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>
                             {p.adjustmentTotal !== 0 ? (p.adjustmentTotal > 0 ? '+' : '') + fmt(p.adjustmentTotal) + 'đ' : '—'}
                           </td>
@@ -397,11 +397,11 @@ export default function Payroll() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
                     <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>{attendanceSummary.totalDaysWorked}</div>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>{attendanceSummary.totalDaysWorked}</div>
                       <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Ngày làm</div>
                     </div>
                     <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>{attendanceSummary.totalHoursWorked?.toFixed(2).replace(/\.00$/, '') || 0}h</div>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>{attendanceSummary.totalHoursWorked?.toFixed(2).replace(/\.00$/, '') || 0}h</div>
                       <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Giờ làm</div>
                     </div>
                     <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
@@ -409,7 +409,7 @@ export default function Payroll() {
                       <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Lần trễ</div>
                     </div>
                     <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: '#22c55e' }}>{attendanceSummary.overtimeHours}h</div>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--success-text)' }}>{attendanceSummary.overtimeHours}h</div>
                       <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Tăng ca</div>
                     </div>
                   </div>
@@ -464,7 +464,7 @@ export default function Payroll() {
                   <button onClick={() => setSelectedPayroll(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}>✕</button>
                 </div>
 
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>{selectedPayroll.staffName}</h3>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{selectedPayroll.staffName}</h3>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>{selectedPayroll.dept} · {selectedPayroll.month}/{selectedPayroll.year}</div>
                 <span className={`badge ${STATUS_BADGE[selectedPayroll.status]}`} style={{ marginBottom: '16px' }}>{STATUS_LABELS[selectedPayroll.status]}</span>
 
@@ -483,7 +483,7 @@ export default function Payroll() {
                   ].map(([label, value], i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid var(--border-glass)' }}>
                       <span style={{ color: 'var(--text-muted)' }}>{label}</span>
-                      <span style={{ fontWeight: label.includes('GROSS') ? '700' : '500', color: label.includes('GROSS') ? '#fff' : '#fff' }}>{value}</span>
+                      <span style={{ fontWeight: label.includes('GROSS') ? '700' : '500', color: label.includes('GROSS') ? 'var(--text-primary)' : 'var(--text-primary)' }}>{value}</span>
                     </div>
                   ))}
                 </div>
@@ -524,7 +524,7 @@ export default function Payroll() {
                       {selectedPayroll.attendanceDetails.map((a, i) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '12px' }}>
                           <span style={{ color: 'var(--text-muted)' }}>{a.date}</span>
-                          <span style={{ color: '#fff' }}>{a.checkIn}–{a.checkOut}</span>
+                          <span style={{ color: 'var(--text-primary)' }}>{a.checkIn}–{a.checkOut}</span>
                           <span style={{ color: a.status === 'late' ? 'var(--danger)' : a.status === 'absent' ? 'var(--danger)' : 'var(--success)' }}>{a.hours.toFixed(1)}h</span>
                         </div>
                       ))}
@@ -595,13 +595,13 @@ export default function Payroll() {
                     </td></tr>
                   ) : wageConfigs.map(w => (
                     <tr key={w._id}>
-                      <td style={{ fontWeight: '600', color: '#fff' }}>{w.staffName}</td>
+                      <td style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{w.staffName}</td>
                       <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{w.dept}</td>
                       <td style={{ color: 'var(--success)', fontWeight: '600' }}>{fmt(w.baseWage)}đ</td>
-                      <td style={{ color: '#fbbf24', fontSize: '13px' }}>{w.overtimeRate}x</td>
-                      <td style={{ color: '#60a5fa', fontSize: '13px' }}>{w.nightShiftRate}x</td>
+                      <td style={{ color: 'var(--warning-text)', fontSize: '13px' }}>{w.overtimeRate}x</td>
+                      <td style={{ color: 'var(--info-text)', fontSize: '13px' }}>{w.nightShiftRate}x</td>
                       <td style={{ color: '#a78bfa', fontSize: '13px' }}>{w.weekendRate}x</td>
-                      <td style={{ color: '#f87171', fontSize: '13px' }}>{w.holidayRate}x</td>
+                      <td style={{ color: 'var(--danger-text)', fontSize: '13px' }}>{w.holidayRate}x</td>
                       <td style={{ color: 'var(--success)' }}>+{fmt(w.allowances)}đ</td>
                       <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{fmtDate(w.effectiveFrom)}</td>
                     </tr>
@@ -617,7 +617,7 @@ export default function Payroll() {
       {showAdjustModal && selectedPayroll && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', width: '100%', maxWidth: isMobile ? '100%' : '440px', background: '#0d111a', borderRadius: isMobile ? '0' : '16px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>Điều chỉnh lương</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>Điều chỉnh lương</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
                 <label className="form-label">Loại điều chỉnh</label>
@@ -650,7 +650,7 @@ export default function Payroll() {
       {showWageModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', width: '100%', maxWidth: isMobile ? '100%' : '480px', background: '#0d111a', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto', borderRadius: isMobile ? '0' : '16px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '20px' }}>Cấu hình lương</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>Cấu hình lương</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
                 <label className="form-label">Nhân viên</label>
@@ -700,7 +700,7 @@ export default function Payroll() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="glass-card" style={{ padding: isMobile ? '20px' : '24px', width: '100%', maxWidth: isMobile ? '100%' : '760px', background: '#0d111a', maxHeight: isMobile ? '100vh' : '90vh', height: isMobile ? '100vh' : 'auto', overflowY: 'auto', borderRadius: isMobile ? '0' : '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#fff' }}>Báo cáo lương {reportData.payrolls?.[0]?.month}/{reportData.payrolls?.[0]?.year}</h3>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)' }}>Báo cáo lương {reportData.payrolls?.[0]?.month}/{reportData.payrolls?.[0]?.year}</h3>
               <button onClick={() => setShowReportModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
 
@@ -714,7 +714,7 @@ export default function Payroll() {
                 { label: 'Tổng điều chỉnh', value: fmt(reportData.summary.totalAdjustments) + 'đ' },
               ].map(s => (
                 <div key={s.label} style={{ padding: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: s.color || '#fff' }}>{s.value}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: s.color || 'var(--text-primary)' }}>{s.value}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{s.label}</div>
                 </div>
               ))}
@@ -726,7 +726,7 @@ export default function Payroll() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {Object.entries(reportData.byDept).map(([dept, d]) => (
                     <div key={dept} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '13px' }}>
-                      <span style={{ color: '#fff', fontWeight: '600' }}>{dept}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{dept}</span>
                       <span style={{ color: 'var(--text-secondary)' }}>{d.count} NV</span>
                       <span style={{ color: 'var(--success)' }}>{fmt(d.net)}đ</span>
                       <span style={{ color: 'var(--text-muted)' }}>{d.hours.toFixed(0)}h</span>

@@ -14,7 +14,7 @@ export default defineConfig({
         short_name: 'Điểm Hẹn',
         description: 'Hệ thống quản lý câu lạc bộ Billiards',
         theme_color: '#e11d48',
-        background_color: '#0f121d',
+        background_color: '#f8fafc',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',

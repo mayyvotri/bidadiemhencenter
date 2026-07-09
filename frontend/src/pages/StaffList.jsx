@@ -164,7 +164,7 @@ export default function StaffList() {
       {/* Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: '#fff' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Quản lý Nhân sự
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -181,7 +181,7 @@ export default function StaffList() {
             padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '13px', fontWeight: '600',
             background: activeTab === 'staff' ? 'var(--primary)' : 'transparent',
-            color: activeTab === 'staff' ? '#fff' : 'var(--text-secondary)'
+            color: activeTab === 'staff' ? 'var(--text-primary)' : 'var(--text-secondary)'
           }}
         >
           Danh sách NV
@@ -192,7 +192,7 @@ export default function StaffList() {
             padding: '8px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '13px', fontWeight: '600',
             background: activeTab === 'pending' ? 'var(--primary)' : 'transparent',
-            color: activeTab === 'pending' ? '#fff' : 'var(--text-secondary)'
+            color: activeTab === 'pending' ? 'var(--text-primary)' : 'var(--text-secondary)'
           }}
         >
           Chờ duyệt ({users.filter(u => u.approvalStatus === 'pending').length})
@@ -275,12 +275,12 @@ export default function StaffList() {
                       width: '36px', height: '36px', borderRadius: '50%',
                       background: 'rgba(255,255,255,0.05)', display: 'flex',
                       alignItems: 'center', justifyContent: 'center',
-                      fontSize: '14px', fontWeight: '700', color: '#fff'
+                      fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)'
                     }}>
                       {user.name?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                     <div>
-                      <div style={{ fontWeight: '600', color: '#fff', fontSize: '13px' }}>{user.name}</div>
+                      <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13px' }}>{user.name}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{user._id?.slice(-6)}</div>
                     </div>
                   </div>
@@ -292,18 +292,18 @@ export default function StaffList() {
                     padding: '4px 10px', borderRadius: '12px', fontSize: '12px',
                     background: user.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' :
                       user.role === 'manager' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)',
-                    color: user.role === 'admin' ? '#ef4444' :
-                      user.role === 'manager' ? '#3b82f6' : '#fff'
+                    color: user.role === 'admin' ? 'var(--danger)' :
+                      user.role === 'manager' ? 'var(--info)' : 'var(--text-primary)'
                   }}>
                     {ROLE_LABELS[user.role] || user.role}
                   </span>
                 </td>
-                <td style={{ fontSize: '13px', color: '#fff' }}>{POSITION_LABELS[user.position] || user.position || '—'}</td>
+                <td style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{POSITION_LABELS[user.position] || user.position || '—'}</td>
                 <td>
                   <span style={{
                     padding: '4px 10px', borderRadius: '12px', fontSize: '12px',
                     background: user.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: user.isActive ? '#22c55e' : '#ef4444'
+                    color: user.isActive ? 'var(--success-text)' : 'var(--danger)'
                   }}>
                     {user.isActive ? 'Hoạt động' : 'Vô hiệu'}
                   </span>
@@ -313,8 +313,8 @@ export default function StaffList() {
                     padding: '4px 10px', borderRadius: '12px', fontSize: '12px',
                     background: user.approvalStatus === 'approved' ? 'rgba(34, 197, 94, 0.1)' :
                       user.approvalStatus === 'pending' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: user.approvalStatus === 'approved' ? '#22c55e' :
-                      user.approvalStatus === 'pending' ? '#eab308' : '#ef4444'
+                    color: user.approvalStatus === 'approved' ? 'var(--success-text)' :
+                      user.approvalStatus === 'pending' ? '#eab308' : 'var(--danger)'
                   }}>
                     {user.approvalStatus === 'approved' ? 'Đã duyệt' :
                       user.approvalStatus === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
@@ -323,11 +323,11 @@ export default function StaffList() {
                 <td onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {user.approvalStatus === 'approved' ? (
-                      <span style={{ padding: '5px 10px', fontSize: '11px', borderRadius: '6px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
+                      <span style={{ padding: '5px 10px', fontSize: '11px', borderRadius: '6px', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success-text)' }}>
                         Đã duyệt
                       </span>
                     ) : user.approvalStatus === 'rejected' ? (
-                      <span style={{ padding: '5px 10px', fontSize: '11px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                      <span style={{ padding: '5px 10px', fontSize: '11px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' }}>
                         Đã từ chối
                       </span>
                     ) : (
@@ -336,7 +336,7 @@ export default function StaffList() {
                           onClick={() => handleApprove(user._id)}>
                           Duyệt
                         </button>
-                        <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '11px', color: '#ef4444' }}
+                        <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '11px', color: 'var(--danger)' }}
                           onClick={() => handleReject(user._id)}>
                           Từ chối
                         </button>
@@ -359,7 +359,7 @@ export default function StaffList() {
             borderLeft: '1px solid var(--border-glass)', padding: '32px', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: '#fff', margin: 0 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', color: 'var(--text-primary)', margin: 0 }}>
                 Chi Tiết Nhân Viên
               </h2>
               <button onClick={() => { setShowDetailDrawer(false); setSelectedUser(null); }}
@@ -372,12 +372,12 @@ export default function StaffList() {
               <div style={{
                 width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '28px', fontWeight: 'bold', color: '#fff'
+                fontSize: '28px', fontWeight: 'bold', color: 'var(--text-primary)'
               }}>
                 {selectedUser.name?.charAt(0)?.toUpperCase()}
               </div>
               <div>
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', color: '#fff', margin: 0, marginBottom: '4px' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', color: 'var(--text-primary)', margin: 0, marginBottom: '4px' }}>
                   {selectedUser.name}
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>{selectedUser.email}</p>
@@ -387,27 +387,27 @@ export default function StaffList() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Vai trò</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>{ROLE_LABELS[selectedUser.role] || selectedUser.role}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{ROLE_LABELS[selectedUser.role] || selectedUser.role}</p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Vị trí</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>{POSITION_LABELS[selectedUser.position] || selectedUser.position || '—'}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{POSITION_LABELS[selectedUser.position] || selectedUser.position || '—'}</p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Số điện thoại</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>{selectedUser.phone || '—'}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>{selectedUser.phone || '—'}</p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Trạng thái hoạt động</p>
-                <p style={{ color: selectedUser.isActive ? '#22c55e' : '#ef4444', fontSize: '16px', margin: 0 }}>
+                <p style={{ color: selectedUser.isActive ? 'var(--success-text)' : 'var(--danger)', fontSize: '16px', margin: 0 }}>
                   {selectedUser.isActive ? 'Hoạt động' : 'Vô hiệu'}
                 </p>
               </div>
               <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Trạng thái duyệt</p>
                 <p style={{
-                  color: selectedUser.approvalStatus === 'approved' ? '#22c55e' :
-                    selectedUser.approvalStatus === 'pending' ? '#eab308' : '#ef4444',
+                  color: selectedUser.approvalStatus === 'approved' ? 'var(--success-text)' :
+                    selectedUser.approvalStatus === 'pending' ? '#eab308' : 'var(--danger)',
                   fontSize: '16px', margin: 0
                 }}>
                   {selectedUser.approvalStatus === 'approved' ? 'Đã duyệt' :
@@ -416,14 +416,14 @@ export default function StaffList() {
               </div>
               <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: 0, marginBottom: '4px' }}>Ngày tạo</p>
-                <p style={{ color: '#fff', fontSize: '16px', margin: 0 }}>
+                <p style={{ color: 'var(--text-primary)', fontSize: '16px', margin: 0 }}>
                   {new Date(selectedUser.createdAt).toLocaleDateString('vi-VN')}
                 </p>
               </div>
 
               {/* Edit Form */}
               <div style={{ padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
-                <h4 style={{ color: '#fff', fontSize: '14px', marginBottom: '16px', fontWeight: '600' }}>Chỉnh sửa thông tin</h4>
+                <h4 style={{ color: 'var(--text-primary)', fontSize: '14px', marginBottom: '16px', fontWeight: '600' }}>Chỉnh sửa thông tin</h4>
                 <form onSubmit={handleEdit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <input className="form-input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Tên" />

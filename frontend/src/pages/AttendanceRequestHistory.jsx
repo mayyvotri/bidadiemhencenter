@@ -16,8 +16,8 @@ const formatTime = (date) => {
 const getStatusInfo = (status) => {
   const map = {
     pending: { label: 'Chờ duyệt', color: '#eab308', bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.3)' },
-    approved: { label: 'Đã duyệt', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)' },
-    rejected: { label: 'Từ chối', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
+    approved: { label: 'Đã duyệt', color: 'var(--success-text)', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)' },
+    rejected: { label: 'Từ chối', color: 'var(--danger)', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' }
   };
   return map[status] || { label: status, color: '#6b7280', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' };
 };
@@ -77,7 +77,7 @@ export default function AttendanceRequestHistory() {
                 padding: isMobile ? '10px 14px' : '6px 14px', borderRadius: '6px', border: 'none',
                 fontSize: '13px', fontWeight: '600', cursor: 'pointer',
                 background: filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                color: filter === f ? '#fff' : 'var(--text-secondary)',
+                color: filter === f ? 'var(--text-primary)' : 'var(--text-secondary)',
                 flex: isMobile ? 1 : 'none',
                 minHeight: isMobile ? '40px' : 'auto'
               }}
@@ -92,7 +92,7 @@ export default function AttendanceRequestHistory() {
         <div style={{
           background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)',
           padding: '12px', borderRadius: '8px', marginBottom: '20px',
-          color: '#ef4444', fontSize: '14px'
+          color: 'var(--danger)', fontSize: '14px'
         }}>
           ⚠️ {error}
         </div>
@@ -137,7 +137,7 @@ export default function AttendanceRequestHistory() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span style={{
                             fontSize: '14px', fontWeight: '700',
-                            color: req.type === 'checkin' ? '#22c55e' : '#ef4444'
+                            color: req.type === 'checkin' ? 'var(--success-text)' : 'var(--danger)'
                           }}>
                             {req.type === 'checkin' ? '🟢 Check In' : '🔴 Check Out'}
                           </span>
@@ -158,7 +158,7 @@ export default function AttendanceRequestHistory() {
                         <div style={{
                           padding: '8px 12px', borderRadius: '6px',
                           background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                          fontSize: '12px', color: '#ef4444', maxWidth: '300px'
+                          fontSize: '12px', color: 'var(--danger)', maxWidth: '300px'
                         }}>
                           <strong>Lý do từ chối:</strong> {req.rejectionReason}
                         </div>

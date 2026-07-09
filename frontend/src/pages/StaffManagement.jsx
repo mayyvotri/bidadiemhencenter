@@ -476,7 +476,7 @@ export default function StaffManagement() {
                   background: '#2196F3',
                   border: 'none',
                   borderRadius: '6px',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   cursor: saving ? 'not-allowed' : 'pointer',
                   fontSize: '14px',
                   opacity: saving ? 0.7 : 1
